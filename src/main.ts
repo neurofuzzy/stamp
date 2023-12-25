@@ -1,4 +1,4 @@
-import { Circle, Ray } from './geom/core';
+import { Circle, Donut, Ray, Rectangle } from './geom/core';
 import './style.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -18,8 +18,9 @@ ctx.fillStyle = 'white';
 
 const draw = () => {
   ctx.clearRect(0, 0, w, h)
-  const circle = new Circle(new Ray(w / 2, h / 2), 100);
-  const rays = circle.flatten();
+  //const shape = new Donut(new Ray(w / 2, h / 2), 80, 100);
+  const shape = new Rectangle(new Ray(w / 2, h / 2), 80, 100);
+  const rays = shape.flatten(5);
   ctx.beginPath();
   ctx.moveTo(rays[0][0], rays[0][1]);
   for (let i = 1; i < rays.length; i++) {

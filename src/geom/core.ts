@@ -1,3 +1,5 @@
+import { GeomHelpers } from "./helpers";
+
 export class Vec2 {
   x: number
   y: number
@@ -16,13 +18,10 @@ export class Point extends Vec2 {
   }
 }
 
-export class Ray {
-  x: number;
-  y: number;
+export class Ray extends Point {
   direction: number;
   constructor(x: number, y: number, direction: number = 0) {
-    this.x = x;
-    this.y = y;
+    super(x, y);
     this.direction = direction;
   }
   flatten() {
@@ -59,17 +58,74 @@ export class Circle {
     this.center = center;
     this.radius = radius;
   }
-  flatten(segments = 32) {
-    const rays = [];
+  generate(segments: number, flipRays = false) {
+    const rays = []
     for (let i = 0; i <= segments; i++) {
       rays.push(
         new Ray(
-          this.center.x + this.radius * Math.cos(this.center.direction + Math.PI * 2 * i / segments), 
-          this.center.y + this.radius * Math.sin(this.center.direction + Math.PI * 2 * i / segments), 
-          this.center.direction + Math.PI * 2 * i / segments
+          this.center.x + this.radius * Math.cos(this.center.direction + Math.PI * 2 * i / segments),
+          this.center.y + this.radius * Math.sin(this.center.direction + Math.PI * 2 * i / segments),
+          this.center.direction + Math.PI * 2 * i / segments + (flipRays ? Math.PI : 0)
         )
       )
     }
+    return rays
+  }
+  flatten(segments = 32, flipRays = false) {
+    const rays = this.generate(segments, flipRays)
     return rays.map(r => r.flatten());
+  }
+}
+
+export class Donut {
+  center: Ray;
+  innerRadius: number;
+  outerRadius: number;
+  constructor(center: Ray, innerRadius: number, outerRadius: number) {
+    this.center = center;
+    this.innerRadius = innerRadius;
+    this.outerRadius = outerRadius;
+  }
+  flatten(segments = 32) {
+    const inner = new Circle(this.center, this.innerRadius).flatten(segments, true)
+    const outer = new Circle(this.center, this.outerRadius).flatten(segments)
+    return [
+      ...outer,
+      ...inner.reverse(),
+      outer[0]
+    ]
+  }
+}
+
+export class Rectangle {
+  center: Ray
+  width: number
+  height: number
+  constructor(center: Ray, width: number, height: number) {
+    this.center = center
+    this.width = width
+    this.height = height
+  }
+  generate() {
+    const rays: Ray[] = [];
+    // add rectangle corners
+    rays.push(new Ray(this.center.x - this.width / 2, this.center.y - this.height / 2));
+    rays.push(new Ray(this.center.x + this.width / 2, this.center.y - this.height / 2));
+    rays.push(new Ray(this.center.x + this.width / 2, this.center.y + this.height / 2));
+    rays.push(new Ray(this.center.x - this.width / 2, this.center.y + this.height / 2));
+    rays.push(new Ray(this.center.x - this.width / 2, this.center.y - this.height / 2));
+    GeomHelpers.normalizeRayDirections(rays);
+    return rays;
+  }
+  flatten(segments = 1) {
+    const rays = this.generate()
+    if (segments <= 1) {
+      return rays.map(r => r.flatten());
+    }
+    return GeomHelpers.subdivideRays(rays[0], rays[1], segments)
+      .concat(GeomHelpers.subdivideRays(rays[1], rays[2], segments))
+      .concat(GeomHelpers.subdivideRays(rays[2], rays[3], segments))
+      .concat(GeomHelpers.subdivideRays(rays[3], rays[0], segments))
+      .map(r => r.flatten());
   }
 }
