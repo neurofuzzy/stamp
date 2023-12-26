@@ -1,6 +1,6 @@
 import { GeomHelpers } from "./helpers";
 
-export class Vec2 {
+class Vec2 {
   x: number
   y: number
   constructor(x: number, y: number) {
@@ -101,10 +101,12 @@ export class Rectangle {
   center: Ray
   width: number
   height: number
-  constructor(center: Ray, width: number, height: number) {
+  reverse: boolean
+  constructor(center: Ray, width: number, height: number, reverse: boolean = false) {
     this.center = center
     this.width = width
     this.height = height
+    this.reverse = reverse
   }
   generate() {
     const rays: Ray[] = [];
@@ -114,18 +116,48 @@ export class Rectangle {
     rays.push(new Ray(this.center.x + this.width / 2, this.center.y + this.height / 2));
     rays.push(new Ray(this.center.x - this.width / 2, this.center.y + this.height / 2));
     rays.push(new Ray(this.center.x - this.width / 2, this.center.y - this.height / 2));
-    GeomHelpers.normalizeRayDirections(rays);
+    if (this.reverse) {
+      rays.reverse();
+    }
+    GeomHelpers.normalizeRayDirections(rays, this.reverse);
+    rays.forEach(r => {
+      GeomHelpers.rotateRayAboutOrigin(this.center, r)
+    })
     return rays;
   }
-  flatten(segments = 1) {
-    const rays = this.generate()
-    if (segments <= 1) {
-      return rays.map(r => r.flatten());
+  flatten(segments = 1, flipRays = false) {
+    let rays = this.generate();
+    if (segments > 1) {
+      rays = GeomHelpers.subdivideRays(rays[0], rays[1], segments, flipRays)
+        .concat(GeomHelpers.subdivideRays(rays[1], rays[2], segments, flipRays))
+        .concat(GeomHelpers.subdivideRays(rays[2], rays[3], segments, flipRays))
+        .concat(GeomHelpers.subdivideRays(rays[3], rays[0], segments, flipRays))
     }
-    return GeomHelpers.subdivideRays(rays[0], rays[1], segments)
-      .concat(GeomHelpers.subdivideRays(rays[1], rays[2], segments))
-      .concat(GeomHelpers.subdivideRays(rays[2], rays[3], segments))
-      .concat(GeomHelpers.subdivideRays(rays[3], rays[0], segments))
-      .map(r => r.flatten());
+    return rays.map(r => r.flatten());
   }
+}
+
+export class RectangularDonut {
+  center: Ray
+  innerWidth: number
+  innerHeight: number
+  outerWidth: number
+  outerHeight: number
+  constructor(center: Ray, innerWidth: number, innerHeight: number, outerWidth: number, outerHeight: number) {
+    this.center = center
+    this.innerWidth = innerWidth
+    this.innerHeight = innerHeight
+    this.outerWidth = outerWidth
+    this.outerHeight = outerHeight
+  }
+  flatten(segments = 32) {
+    const inner = new Rectangle(this.center, this.innerWidth, this.innerHeight, true).flatten(segments)
+    const outer = new Rectangle(this.center, this.outerWidth, this.outerHeight).flatten(segments)
+    return [
+      ...outer,
+      ...inner,
+      outer[0]
+    ]
+  }
+  
 }

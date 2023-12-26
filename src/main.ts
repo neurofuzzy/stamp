@@ -1,9 +1,9 @@
-import { Circle, Donut, Ray, Rectangle } from './geom/core';
+import { Circle, Donut, Ray, Rectangle, RectangularDonut } from './geom/shapes';
 import './style.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
-    <canvas id="canvas" width="512" height="512" style="background-color: black;"></canvas>
+    <canvas id="canvas" width="256" height="256" style="background-color: black;"></canvas>
   </div>
 `;
 
@@ -16,11 +16,14 @@ const h = canvas.height
 
 ctx.fillStyle = 'white';
 
+let rot = Math.PI / 4;
+
 const draw = () => {
   ctx.clearRect(0, 0, w, h)
-  //const shape = new Donut(new Ray(w / 2, h / 2), 80, 100);
-  const shape = new Rectangle(new Ray(w / 2, h / 2), 80, 100);
-  const rays = shape.flatten(5);
+  //const shape = new Donut(new Ray(w / 2, h / 2, rot), 80, 100);
+  //const shape = new Rectangle(new Ray(w / 2, h / 2, rot), 75, 100);
+  const shape = new RectangularDonut(new Ray(w / 2, h / 2, rot), 50, 75, 100, 125);
+  const rays = shape.flatten(1);
   ctx.beginPath();
   ctx.moveTo(rays[0][0], rays[0][1]);
   for (let i = 1; i < rays.length; i++) {
@@ -37,7 +40,13 @@ const draw = () => {
   })
 }
 
-draw();
+function animate() {
+  rot += Math.PI / 180 * 0.5;
+  draw();
+  requestAnimationFrame(animate);
+}
+
+animate();
 
 function drawRay(r: number[]) {
   ctx.beginPath();
