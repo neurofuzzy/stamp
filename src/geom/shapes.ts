@@ -52,27 +52,33 @@ export class Polygon {
 }
 
 export class Circle {
-  center: Ray;
+  center: Ray
   radius: number
-  constructor(center: Ray, radius: number) {
+  reverse: boolean
+  constructor(center: Ray, radius: number, reverse = false) {
     this.center = center;
     this.radius = radius;
+    this.reverse = reverse
   }
-  generate(segments: number, flipRays = false) {
+  generate(segments: number) {
     const rays = []
     for (let i = 0; i <= segments; i++) {
       rays.push(
         new Ray(
           this.center.x + this.radius * Math.cos(this.center.direction + Math.PI * 2 * i / segments),
           this.center.y + this.radius * Math.sin(this.center.direction + Math.PI * 2 * i / segments),
-          this.center.direction + Math.PI * 2 * i / segments + (flipRays ? Math.PI : 0)
+          this.center.direction + Math.PI * 2 * i / segments
         )
       )
     }
+    if (this.reverse) {
+      rays.reverse();
+      rays.forEach(r => r.direction += Math.PI);
+    }
     return rays
   }
-  flatten(segments = 32, flipRays = false) {
-    const rays = this.generate(segments, flipRays)
+  flatten(segments = 32) {
+    const rays = this.generate(segments)
     return rays.map(r => r.flatten());
   }
 }
@@ -87,11 +93,11 @@ export class Donut {
     this.outerRadius = outerRadius;
   }
   flatten(segments = 32) {
-    const inner = new Circle(this.center, this.innerRadius).flatten(segments, true)
+    const inner = new Circle(this.center, this.innerRadius, true).flatten(segments)
     const outer = new Circle(this.center, this.outerRadius).flatten(segments)
     return [
       ...outer,
-      ...inner.reverse(),
+      ...inner,
       outer[0]
     ]
   }
@@ -119,19 +125,19 @@ export class Rectangle {
     if (this.reverse) {
       rays.reverse();
     }
-    GeomHelpers.normalizeRayDirections(rays, this.reverse);
+    GeomHelpers.normalizeRayDirections(rays);
     rays.forEach(r => {
       GeomHelpers.rotateRayAboutOrigin(this.center, r)
     })
     return rays;
   }
-  flatten(segments = 1, flipRays = false) {
+  flatten(segments = 1) {
     let rays = this.generate();
     if (segments > 1) {
-      rays = GeomHelpers.subdivideRays(rays[0], rays[1], segments, flipRays)
-        .concat(GeomHelpers.subdivideRays(rays[1], rays[2], segments, flipRays))
-        .concat(GeomHelpers.subdivideRays(rays[2], rays[3], segments, flipRays))
-        .concat(GeomHelpers.subdivideRays(rays[3], rays[0], segments, flipRays))
+      rays = GeomHelpers.subdivideRays(rays[0], rays[1], segments)
+        .concat(GeomHelpers.subdivideRays(rays[1], rays[2], segments))
+        .concat(GeomHelpers.subdivideRays(rays[2], rays[3], segments))
+        .concat(GeomHelpers.subdivideRays(rays[3], rays[0], segments))
     }
     return rays.map(r => r.flatten());
   }

@@ -23,7 +23,7 @@ const draw = () => {
   //const shape = new Donut(new Ray(w / 2, h / 2, rot), 80, 100);
   //const shape = new Rectangle(new Ray(w / 2, h / 2, rot), 75, 100);
   const shape = new RectangularDonut(new Ray(w / 2, h / 2, rot), 50, 75, 100, 125);
-  const rays = shape.flatten(1);
+  const rays = shape.flatten(2);
   ctx.beginPath();
   ctx.moveTo(rays[0][0], rays[0][1]);
   for (let i = 1; i < rays.length; i++) {
