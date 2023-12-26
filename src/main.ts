@@ -1,4 +1,5 @@
-import { Circle, Donut, Ray, Rectangle, RectangularDonut, RoundedRectangle, RoundedRectangularDonut } from './geom/shapes';
+import { Circle,  Ray, Rectangle, RoundedRectangle} from './geom/shapes';
+import { Donut, RectangularDonut, RoundedRectangularDonut } from './geom/compoundshapes';
 import './style.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `

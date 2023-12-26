@@ -104,6 +104,14 @@ export class GeomHelpers {
     return GeomHelpers.subdivideRays(start, end, segments);
   }
 
+  static subdivideRaySet(rays: Ray[], segments: number) {
+    const newRays = [];
+    for (let i = 0; i < rays.length - 1; i++) {
+      newRays.push(...GeomHelpers.subdivideRays(rays[i], rays[i + 1], segments));
+    }
+    return newRays
+  }
+
   static normalizeRayDirections(rays: Ray[], isReversed = false) {
     const r: Ray[] = rays.slice();
     if (r.length < 3) {
