@@ -27,6 +27,9 @@ export class Ray extends Point {
   flatten() {
     return [this.x, this.y, this.direction];
   }
+  clone() {
+    return new Ray(this.x, this.y, this.direction);
+  }
 }
 
 export class Segment {
@@ -38,6 +41,48 @@ export class Segment {
   }
   flatten() {
     return [this.start.x, this.start.y, this.end.x, this.end.y];
+  }
+}
+
+export class Arc {
+  center: Ray
+  radius: number
+  startAngle: number
+  endAngle: number
+  reverse: boolean
+  constructor(center: Ray, radius: number, startAngle: number, endAngle: number, reverse: boolean = false) {
+    this.center = center
+    this.radius = radius
+    this.startAngle = startAngle
+    this.endAngle = endAngle
+    this.reverse = reverse
+  }
+  generate(segments: number) {
+    const rays = []
+    for (let i = 0; i <= segments; i++) {
+      const angle = GeomHelpers.lerpAngle(this.startAngle, this.endAngle, i / segments);
+      rays.push(
+        new Ray(
+          this.center.x + this.radius * Math.cos(angle),
+          this.center.y + this.radius * Math.sin(angle),
+          this.startAngle + Math.PI * 2 * i / segments
+        )
+      )
+    }
+    if (this.reverse) {
+      rays.reverse();
+      rays.forEach(r => r.direction += Math.PI);
+    }
+    if (this.reverse) {
+      rays.reverse();
+    }
+    GeomHelpers.normalizeRayDirections(rays);
+    if (this.center.direction) {
+      rays.forEach(r => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r)
+      })
+    }
+    return rays 
   }
 }
 
@@ -114,8 +159,8 @@ export class Rectangle {
     this.height = height
     this.reverse = reverse
   }
-  generate() {
-    const rays: Ray[] = [];
+  generate(segments = 1) {
+    let rays: Ray[] = [];
     // add rectangle corners
     rays.push(new Ray(this.center.x - this.width / 2, this.center.y - this.height / 2));
     rays.push(new Ray(this.center.x + this.width / 2, this.center.y - this.height / 2));
@@ -126,19 +171,22 @@ export class Rectangle {
       rays.reverse();
     }
     GeomHelpers.normalizeRayDirections(rays);
-    rays.forEach(r => {
-      GeomHelpers.rotateRayAboutOrigin(this.center, r)
-    })
-    return rays;
-  }
-  flatten(segments = 1) {
-    let rays = this.generate();
+    if (this.center.direction) {
+      rays.forEach(r => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r)
+      })
+    }
     if (segments > 1) {
       rays = GeomHelpers.subdivideRays(rays[0], rays[1], segments)
         .concat(GeomHelpers.subdivideRays(rays[1], rays[2], segments))
         .concat(GeomHelpers.subdivideRays(rays[2], rays[3], segments))
         .concat(GeomHelpers.subdivideRays(rays[3], rays[0], segments))
     }
+    return rays;
+  }
+  flatten(segments = 1) {
+    let rays = this.generate(segments);
+    
     return rays.map(r => r.flatten());
   }
 }
@@ -166,4 +214,104 @@ export class RectangularDonut {
     ]
   }
   
+}
+
+export class RoundedRectangle {
+  center: Ray
+  width: number
+  height: number
+  radius: number
+  reverse: boolean
+  constructor(center: Ray, width: number, height: number, radius: number, reverse: boolean = false) {
+    this.center = center
+    this.width = width
+    this.height = height
+    this.radius = radius
+    this.reverse = reverse
+  }
+  generate(cornerSegments: number = 8, edgeSegments: number = 1) {
+    const rays: Ray[] = [];
+    // add rectangle corners
+    const arcCenterTopLeft = new Ray(this.center.x - this.width / 2 + this.radius, this.center.y - this.height / 2 + this.radius);
+    const arcCenterTopRight = new Ray(this.center.x + this.width / 2 - this.radius, this.center.y - this.height / 2 + this.radius);
+    const arcCenterBottomRight = new Ray(this.center.x + this.width / 2 - this.radius, this.center.y + this.height / 2 - this.radius);
+    const arcCenterBottomLeft = new Ray(this.center.x - this.width / 2 + this.radius, this.center.y + this.height / 2 - this.radius);
+    const cornerTopLeft = new Arc(arcCenterTopLeft, this.radius, 0 - Math.PI, 0 - Math.PI / 2).generate(cornerSegments);
+    const cornerTopRight = new Arc(arcCenterTopRight, this.radius, 0 - Math.PI / 2, 0).generate(cornerSegments);
+    const cornerBottomRight = new Arc(arcCenterBottomRight, this.radius, 0, Math.PI / 2).generate(cornerSegments);
+    const cornerBottomLeft = new Arc(arcCenterBottomLeft, this.radius, Math.PI / 2, Math.PI).generate(cornerSegments);
+    rays.push(...cornerTopLeft);
+    if (edgeSegments > 1) {
+      const top = GeomHelpers.subdivideRays(cornerTopLeft[cornerBottomLeft.length - 1], cornerTopRight[0], edgeSegments);
+      top.shift();
+      top.pop();
+      rays.push(...top);
+    }
+    rays.push(...cornerTopRight);
+    if (edgeSegments > 1) {
+      const right = GeomHelpers.subdivideRays(cornerTopRight[cornerBottomRight.length - 1], cornerBottomRight[0], edgeSegments);
+      right.shift();
+      right.pop();
+      rays.push(...right);
+    }
+    rays.push(...cornerBottomRight);
+    if (edgeSegments > 1) {
+      const bottom = GeomHelpers.subdivideRays(cornerBottomRight[cornerTopRight.length - 1], cornerBottomLeft[0], edgeSegments);
+      bottom.shift();
+      bottom.pop();
+      rays.push(...bottom);
+    }
+    rays.push(...cornerBottomLeft);
+    if (edgeSegments > 1) {
+      const left = GeomHelpers.subdivideRays(cornerBottomLeft[cornerTopLeft.length - 1], cornerTopLeft[0], edgeSegments);
+      left.shift();
+      rays.push(...left);
+    } else {
+      rays.push(cornerTopLeft[0].clone());
+    }
+    if (this.reverse) {
+      rays.reverse();
+    }
+    GeomHelpers.normalizeRayDirections(rays);
+    if (this.center.direction) {
+      rays.forEach(r => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r)
+      })
+    }
+    return rays;
+  }
+  flatten(cornerSegments: number = 8, edgeSegments: number = 1) {
+    return this.generate(cornerSegments, edgeSegments).map(r => r.flatten())
+  }
+}
+
+export class RoundedRectangularDonut {
+  center: Ray
+  width: number
+  height: number
+  radius: number
+  thickness: number
+  reverse: boolean
+  constructor(center: Ray, width: number, height: number, radius: number, thickness: number, reverse: boolean = false) {
+    this.center = center
+    this.width = width
+    this.height = height
+    this.radius = radius
+    this.thickness = thickness
+    this.reverse = reverse
+  }
+  generate(cornerSegments: number = 8, edgeSegments: number = 1) {
+    const outer = new RoundedRectangle(this.center, this.width, this.height, this.radius).generate(cornerSegments, edgeSegments);
+    const inner = this.radius - this.thickness > 0 ? 
+      new RoundedRectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, this.radius - this.thickness, true).generate(cornerSegments, edgeSegments) :
+      new Rectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, true).generate(edgeSegments);
+      return [
+        ...outer,
+        ...inner,
+        outer[0]
+      ]
+  }
+  flatten(cornerSegments: number = 8, edgeSegments: number = 1) {
+    return this.generate(cornerSegments, edgeSegments).map(r => r.flatten())
+  }
 }

@@ -1,4 +1,4 @@
-import { Circle, Donut, Ray, Rectangle, RectangularDonut } from './geom/shapes';
+import { Circle, Donut, Ray, Rectangle, RectangularDonut, RoundedRectangle, RoundedRectangularDonut } from './geom/shapes';
 import './style.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -22,8 +22,10 @@ const draw = () => {
   ctx.clearRect(0, 0, w, h)
   //const shape = new Donut(new Ray(w / 2, h / 2, rot), 80, 100);
   //const shape = new Rectangle(new Ray(w / 2, h / 2, rot), 75, 100);
-  const shape = new RectangularDonut(new Ray(w / 2, h / 2, rot), 50, 75, 100, 125);
-  const rays = shape.flatten(2);
+  //const shape = new RectangularDonut(new Ray(w / 2, h / 2, rot), 50, 75, 100, 125);
+  //const shape = new RoundedRectangle(new Ray(w / 2, h / 2, rot), 75, 100, 20);
+  const shape = new RoundedRectangularDonut(new Ray(w / 2, h / 2, rot), 100, 150, 40, 20);
+  const rays = shape.flatten(8, 3);
   ctx.beginPath();
   ctx.moveTo(rays[0][0], rays[0][1]);
   for (let i = 1; i < rays.length; i++) {
