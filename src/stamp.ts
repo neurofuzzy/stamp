@@ -90,53 +90,30 @@ export class Stamp {
   };
 
   private _make (shapes: IShape[], nx = 1, ny = 1, ox = 0, oy = 0) {
-    let n = 0;
+      let n = 0;
 
       for (let iy = 0; iy < ny; iy++) {
         for (let ix = 0; ix < nx; ix++) {
           
-          let geom = shapes;
-          if (Array.isArray(shapes)) {
-            geom = shapes.shift();
+          let shape: IShape | undefined = shapes.shift();
+
+          if (!shape) {
+            break;
           }
 
-          let g = geom.clone();
+          let g = shape.clone();
 
-          var mo = new THREE.Matrix4();
-          var mcr = new THREE.Matrix4();
-          var mc = new THREE.Matrix4();
+          g.center.x = nx > 1 ? this.offsetX + ox * ix : this.offsetX + ox * n;
+          g.center.y = ny > 1 ? this.offsetY + oy * iy : this.offsetY + oy * n;
+          g.center.direction = this.cursorRotation;
 
-          mo.setPosition(
-            new THREE.Vector3(
-              nx > 1 ? this.offsetX + ox * ix : this.offsetX + ox * n,
-              ny > 1 ? this.offsetY + oy * iy : this.offsetY + oy * n,
-              nz > 1 ? this.offsetZ + oz * iz : this.offsetZ + oz * n
-            )
-          );
+          if (!this._bsp) {
+            this._bsp = [];
+          }
 
-          let e = new THREE.Euler(
-            (this.cursorRotX * Math.PI) / 180,
-            (this.cursorRotY * Math.PI) / 180,
-            (this.cursorRotZ * Math.PI) / 180
-          );
+          this._bsp.push(g);
 
-          mcr.makeRotationFromEuler(e);
-
-          let m = new THREE.Mesh(g, null);
-
-          // @ts-ignore
-          m.geometry.applyMatrix4(mo);
-          // @ts-ignore
-          m.geometry.applyMatrix4(mcr);
-
-          mc.setPosition(new THREE.Vector3(this.cursorX, this.cursorY, this.cursorZ));
-          // @ts-ignore
-          m.geometry.applyMatrix4(mc);
-
-          // m.position.x += this.cursorX;
-          // m.position.y += this.cursorY;
-          // m.position.z += this.cursorZ;
-
+          /*
           let b = null;
           let b2 = null;
 
@@ -175,6 +152,11 @@ export class Stamp {
           } else {
             return this;
           }
+
+          */
+
+          n++;
+
         }
       }
       

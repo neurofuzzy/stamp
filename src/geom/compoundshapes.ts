@@ -8,14 +8,17 @@ export class Donut extends AbstractShape {
     this.innerRadius = innerRadius;
     this.outerRadius = outerRadius;
   }
-  flatten() {
-    const inner = new Circle(this.center, this.innerRadius, this.segments, true).flatten()
-    const outer = new Circle(this.center, this.outerRadius, this.segments).flatten()
+  generate() {
+    const inner = new Circle(this.center, this.innerRadius, this.segments, true).generate()
+    const outer = new Circle(this.center, this.outerRadius, this.segments).generate()
     return [
       ...outer,
       ...inner,
       outer[0]
     ]
+  }
+  clone() {
+    return new Donut(this.center.clone(), this.innerRadius, this.outerRadius, this.segments);
   }
 }
 
@@ -39,6 +42,9 @@ export class RectangularDonut extends AbstractShape {
       ...inner,
       outer[0]
     ]
+  }
+  clone() {
+    return new RectangularDonut(this.center.clone(), this.innerWidth, this.innerHeight, this.outerWidth, this.outerHeight, this.segments);
   }
 }
 
@@ -64,5 +70,8 @@ export class RoundedRectangularDonut extends AbstractShape {
         ...inner,
         outer[0]
       ]
+  }
+  clone() {
+    return new RoundedRectangularDonut(this.center.clone(), this.width, this.height, this.radius, this.thickness, this.segments);
   }
 }

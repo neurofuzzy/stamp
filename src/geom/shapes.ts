@@ -6,6 +6,7 @@ export interface IShape {
   reverse: boolean
   generate(): Ray[]
   flatten(): number[][]
+  clone(): IShape
 }
 
 class Vec2 {
@@ -68,6 +69,9 @@ export class AbstractShape implements IShape {
   flatten(): number[][] {
     return this.generate().map(r => r.flatten());
   }
+  clone(): IShape {
+    return new AbstractShape(this.center.clone(), this.segments, this.reverse);
+  }
 }
 
 export class Arc extends AbstractShape {
@@ -108,6 +112,9 @@ export class Arc extends AbstractShape {
     }
     return rays 
   }
+  clone() {
+    return new Arc(this.center.clone(), this.radius, this.startAngle, this.endAngle, this.segments, this.reverse);
+  }
 }
 
 export class Polygon extends AbstractShape { 
@@ -133,6 +140,9 @@ export class Polygon extends AbstractShape {
     }
     return rays
   }
+  clone() {
+    return new Polygon(this.center.clone(), this.rays, this.segments, this.reverse);
+  }
 }
 
 export class Circle extends AbstractShape {
@@ -157,6 +167,9 @@ export class Circle extends AbstractShape {
       rays.forEach(r => r.direction += Math.PI);
     }
     return rays
+  }
+  clone() {
+    return new Circle(this.center.clone(), this.radius, this.segments, this.reverse);
   }
 }
 
@@ -193,6 +206,9 @@ export class Rectangle extends AbstractShape {
     }
     return rays;
   }
+  clone() {
+    return new Rectangle(this.center.clone(), this.width, this.height, this.segments, this.reverse);
+  }
 }
 
 export class CornerRectangle extends AbstractShape {
@@ -227,6 +243,9 @@ export class CornerRectangle extends AbstractShape {
         .concat(GeomHelpers.subdivideRays(rays[3], rays[0], this.segments))
     }
     return rays;
+  }
+  clone() {
+    return new CornerRectangle(this.center.clone(), this.width, this.height, this.segments, this.reverse);
   }
 }
 
@@ -290,5 +309,8 @@ export class RoundedRectangle extends AbstractShape {
       })
     }
     return rays;
+  }
+  clone() {
+    return new RoundedRectangle(this.center.clone(), this.width, this.height, this.radius, this.segments, this.reverse);
   }
 }
