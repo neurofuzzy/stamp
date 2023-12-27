@@ -1,5 +1,5 @@
 import { GeomHelpers } from "./geom/helpers";
-import { IShape, Point, Ray } from "./geom/shapes";
+import { Circle, CornerRectangle, IShape, Point, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
 import { Sequence } from "./sequence";
 
 interface INode {
@@ -20,7 +20,7 @@ export class Stamp {
   _bsps: any[] = [];
   _mats: string[] = [];
 
-  matIdx: number = 0;
+  colorIdx: number = 0;
   mode: number = Stamp.UNION;
 
   offsetX: number = 0;
@@ -92,7 +92,6 @@ export class Stamp {
   private _make (shapes: IShape[], nx = 1, ny = 1, ox = 0, oy = 0) {
     let n = 0;
 
-    for (let iz = 0; iz < nz; iz++) {
       for (let iy = 0; iy < ny; iy++) {
         for (let ix = 0; ix < nx; ix++) {
           
@@ -152,17 +151,17 @@ export class Stamp {
                   v.z -= 10000;
                 });
 
-                b = new ThreeBSP(g, this.matIdx);
+                b = new ThreeBSP(g, this.colorIdx);
                 this._bsp = b.subtract(b);
               }
-              b2 = new ThreeBSP(m.geometry, this.matIdx);
+              b2 = new ThreeBSP(m.geometry, this.colorIdx);
               b = this._bsp.union(b2);
 
               break;
 
             case Stamp.SUBTRACT:
               if (this._bsp) {
-                b2 = new ThreeBSP(m.geometry, this.matIdx);
+                b2 = new ThreeBSP(m.geometry, this.colorIdx);
                 b = this._bsp.subtract(b2);
               }
               break;
@@ -178,104 +177,11 @@ export class Stamp {
           }
         }
       }
-    }
+      
   };
 
-  private _materialIndex (idx: number) {
-    this.matIdx = idx;
-  };
-
-
-  private _box (w, l, h, ws = 1, ls = 1, hs = 1, nx = 1, ny = 1, nz = 1, ox = 0, oy = 0, oz = 0, mod = null) {
-    let geoms = [];
-
-    for (let i = 0; i < nx * ny * nz; i++) {  
-      geoms.push(new THREE.BoxGeometry($(w), $(l), $(h), $(ws), $(ls), $(hs)));
-    }
-
-    this._make(geoms, nx, ny, nz, ox, oy, oz, mod);
-  };
-
-  private _box2 (w, l, h, ws = 1, ls = 1, hs = 1, nx = 1, ny = 1, nz = 1, ox = 0, oy = 0, oz = 0, mod = null) {
-    let geoms = [];
-
-    for (let i = 0; i < nx * ny * nz; i++) {  
-      let lr = $(l);
-      let geom = new THREE.BoxGeometry($(w), lr, $(h), $(ws), $(ls), $(hs));
-      geom.vertices.forEach((v) => {
-        v.y += lr * 0.5;
-      });
-      geoms.push(geom);
-    }
-
-    this._make(geoms, nx, ny, nz, ox, oy, oz, mod);
-  };
-
-  private _exbox (w, l, h, ws = 1, ls = 1, hs = 1, nx = 1, ny = 1, nz = 1, ox = 0, oy = 0, oz = 0, mod = null) {
-    let geoms = [];
-    
-    for (let i = 0; i < nx * ny * nz; i++) {  
-      let wr = $(w);
-      let lr = $(l);
-      let hr = $(h);
-      let p1 = new THREE.Vector2(0, 0);
-      let p2 = new THREE.Vector2(wr, 0);
-      let p3 = new THREE.Vector2(wr, lr);
-      let p4 = new THREE.Vector2(0, lr);
-      let rect = new THREE.Shape([p1, p2, p3, p4]);
-      let geom = new THREE.ExtrudeGeometry(rect, { depth: hr, steps: $(hs), bevelEnabled: false });
-      geoms.push(geom);
-    }
-
-    this._make(geoms, nx, ny, nz, ox, oy, oz, mod);
-  };
-
-  private _cylinder (r1, r2, h, rs = 12, hs = 1, nx = 1, ny = 1, nz = 1, ox = 0, oy = 0, oz = 0, mod = null) {
-    let geoms = [];
-    
-    for (let i = 0; i < nx * ny * nz; i++) {  
-      geoms.push(new THREE.CylinderGeometry($(r1), $(r2), $(h), $(rs), $(hs)));
-    }
-
-    this._make(geoms, nx, ny, nz, ox, oy, oz, mod);
-  };
-
-  private _sphere (r, ws, hs, nx = 1, ny = 1, nz = 1, ox = 0, oy = 0, oz = 0, mod = null) {
-    let geoms = [];
-    
-    for (let i = 0; i < nx * ny * nz; i++) {  
-      geoms.push(new THREE.SphereGeometry($(r), $(ws), $(hs)));
-    }
-
-    this._make(geoms, nx, ny, nz, ox, oy, oz, mod);
-  };
-
-  private _extrusion (points, h = 1, hs = 1, nx = 1, ny = 1, nz = 1, ox = 0, oy = 0, oz = 0, mod = null) {
-    let geoms = [];
-    
-    for (let i = 0; i < nx * ny * nz; i++) {  
-      let pts = [];
-      for (let i = 0; i < points.length; i++) {
-        pts.push(new THREE.Vector2(points[i].x, points[i].y));
-      }
-
-      let shape = new THREE.Shape(pts);
-
-      let settings = {
-        steps: $(hs),
-        depth: $(h),
-        bevelEnabled: false,
-        bevelSize: 0,
-      };
-      let geom = new THREE.ExtrudeGeometry(shape, settings);
-      geom.rotateX((90 * Math.PI) / 180);
-      geom.vertices.forEach((v) => {
-        v.y += settings.depth;
-      });
-      geoms.push(geom);
-    }
-
-    this._make(geoms, nx, ny, nz, ox, oy, oz, mod);
+  private _colorIndex (idx: number) {
+    this.colorIdx = idx;
   };
 
   private _reset () {
@@ -289,6 +195,74 @@ export class Stamp {
     this.cursorY = 0;
     this.cursorRotation = 0;
   };
+
+  private _circle(
+    r: number | string, 
+    s: number | string, 
+    nx: number | string = 1, 
+    ny: number | string = 1, 
+    ox: number | string = 0, 
+    oy: number | string = 0
+  ) {
+    let shapes: IShape[] = [];
+    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    for (let i = 0; i < nnx * nny; i++) {
+      shapes.push(new Circle(new Ray(0, 0, 0), $(r), $(s)));
+    }
+    this._make(shapes, nnx, nny, nox, noy);
+  }
+
+  private _rectangle(
+    w: number | string, 
+    h: number | string, 
+    s: number | string, 
+    nx: number | string = 1, 
+    ny: number | string = 1, 
+    ox: number | string = 0, 
+    oy: number | string = 0
+  ) {
+    let shapes: IShape[] = [];
+    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    for (let i = 0; i < nnx * nny; i++) {
+      shapes.push(new Rectangle(new Ray(0, 0, 0), $(w), $(h), $(s)));
+    }
+    this._make(shapes, nnx, nny, nox, noy);
+  }
+
+  private _cornerRectangle(
+    w: number | string, 
+    h: number | string, 
+    s: number | string, 
+    nx: number | string = 1, 
+    ny: number | string = 1, 
+    ox: number | string = 0, 
+    oy: number | string = 0
+  ) {
+    let shapes: IShape[] = [];
+    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    for (let i = 0; i < nnx * nny; i++) {
+      shapes.push(new CornerRectangle(new Ray(0, 0, 0), $(w), $(h), $(s)));
+    }
+    this._make(shapes, nnx, nny, nox, noy);
+  }
+
+  private _roundedRectangle(
+    w: number | string, 
+    h: number | string, 
+    cr: number | string,
+    s: number | string, 
+    nx: number | string = 1, 
+    ny: number | string = 1, 
+    ox: number | string = 0, 
+    oy: number | string = 0
+  ) {
+    let shapes: IShape[] = [];
+    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    for (let i = 0; i < nnx * nny; i++) {
+      shapes.push(new RoundedRectangle(new Ray(0, 0, 0), $(w), $(h), $(cr), $(s)));
+    }
+    this._make(shapes, nnx, nny, nox, noy);
+  }
 
   reset() {
     // @ts-ignore
@@ -413,14 +387,13 @@ export class Stamp {
     w: number | string, 
     h: number | string, 
     cr: number | string, 
-    cs: number | string, 
-    es: number | string, 
+    s: number | string, 
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
     oy: number | string = 0
   ) {
-    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, cr, cs, es, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, cr, s, nx, ny, ox, oy] });
     return this;
   }
 
@@ -476,7 +449,6 @@ export class Stamp {
     }
 
     this.baked = true;
-    ThreeBSP.MatIdx = 0;
 
     let nodes = this._nodes.concat();
     let i = nodes.length;
@@ -515,71 +487,44 @@ export class Stamp {
 
     //console.log(nodes);
 
+    const privateFunctionMap: { [key:string]: Function } = {
+      _add: this._add,
+      _subtract: this._subtract,
+      _boolean: this._boolean,
+      _next: this._next,
+      _moveTo: this._moveTo,
+      _offset: this._offset,
+      _walk: this._walk,
+      _rotateTo: this._rotateTo,
+      _rotate: this._rotate,
+      _colorIndex: this._colorIndex,
+      _circle: this._circle,
+      _rectangle: this._rectangle,
+      _roundedRectangle: this._roundedRectangle,
+      _cornerRectangle: this._cornerRectangle,
+    }
+
     for (let i = 0; i < nodes.length; i++) {
       let fName = nodes[i].fName;
-      let fn = this[fName];
+      let fn: Function = privateFunctionMap[fName];
       let args = nodes[i].args;
-
       if (fn) {
         fn.apply(this, args);
       }
     }
 
-    if (!this._mats) {
-      this._mats = new THREE.MeshStandardMaterial({
-        flatShading: false,
-        wireframe: false,
-        color: 0,
-      });
+    if (!this._colors) {
+      this._colors = ["white"];
     }
 
     return this;
-  }
-
-  /**
-   * get a mesh of the final result
-   * @param {Boolean} unify_uv_coords
-   * @param {number} uv_scale
-   * @param {Array<THREE.MeshPhongMaterial>} materials
-   * @returns {THREE.Mesh}
-   */
-  mesh(unify_uv_coords = false, uv_scale = 100, materials = null) {
-    if (!this.baked) {
-      this.bake();
-    }
-
-    let res;
-
-    let geom = new THREE.Geometry();
-
-    this._bsps.forEach((bsp) => {
-      let g = bsp.toGeometry();
-      geom.merge(g, bsp.matrix, 0);
-    });
-
-    if (this._bsp) {
-      let g = this._bsp.toGeometry();
-      geom.merge(g, this._bsp.matrix, 0);
-    }
-
-    if (unify_uv_coords) {
-      SolidUtils.unifyUVCoordinates(geom, uv_scale);
-    }
-
-    res = new THREE.Mesh(geom, materials || this._mats);
-
-    return res;
   }
 
   getNodes() {
     return this._nodes;
   }
 
-  /**
-   * @param {Array<Node>} nodes
-   * @returns {Solid}
-   */
-  setNodes(nodes) {
+  setNodes(nodes: INode[]): Stamp {
     this._nodes = nodes;
     return this;
   }
@@ -588,42 +533,29 @@ export class Stamp {
    * @returns {String}
    */
   toString() {
-    return JSON.stringify([this.attributes, this._nodes]);
+    return JSON.stringify([this._nodes]);
   }
 
-  /**
-   *
-   * @param {String} data
-   */
-  fromString(data) {
+  fromString(data: string): Stamp {
     try {
       let h = JSON.parse(data);
-      this.attributes = h[0];
-      this._nodes = h[1];
+      this._nodes = h[0];
     } catch (err) {
       console.error(err);
     }
-
     return this;
   }
 
-  /**
-   * @returns {Solid}
-   */
-  clone() {
-    let solid = new Solid();
-    Stamp._mats = this._mats;
-    return Stamp.fromString(this.toString());
+  clone(): Stamp {
+    let stamp = new Stamp();
+    stamp._colors = this._colors?.concat();
+    return stamp.fromString(this.toString());
   }
 
-  /**
-   * @returns {Solid}
-   */
-  copy(solid) {
+  copy(stamp: Stamp): Stamp {
     // @ts-ignore
-    this.attributes = Object.assign({}, Stamp.attributes);
-    this._nodes = Stamp._nodes.concat();
-    this._mats = Stamp._mats;
-    return solid;
+    this._nodes = stamp._nodes.concat();
+    this._colors = stamp._colors?.concat();
+    return stamp;
   }
 }
