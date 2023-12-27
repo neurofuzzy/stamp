@@ -193,9 +193,11 @@ n;
     let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
     let nr = $(r);
     let ns = $(s);
-    let o = this._getGroupOffset(nr, nr, nnx, nny, nox, noy);
-    for (let i = 0; i < nnx * nny; i++) {
-      shapes.push(new Circle(new Ray(nr * i * 2 + nox * i + o.x, nr * i * 2 + noy * i + o.y, 0), nr, ns));
+    let o = this._getGroupOffset(nr * 2, nr * 2, nnx, nny, nox, noy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        shapes.push(new Circle(new Ray(nr * 2 * i + nox * i - o.x, nr * 2 * j + noy * j - o.y, 0), nr, ns));
+      }
     }
     this._make(shapes, nnx, nny, nox, noy);
   }
@@ -252,6 +254,16 @@ n;
   ) {
     let shapes: IShape[] = [];
     let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    let nw = $(w);
+    let nh = $(h);
+    let ncr = $(cr);
+    let ns = $(s);
+    let o = this._getGroupOffset(nw, nh, nnx, nny, nox, noy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        shapes.push(new RoundedRectangle(new Ray(nw * i + nox * i - o.x, nh * j + noy * j - o.y, 0), nw, nh, ncr, ns));
+      }
+    }
     for (let i = 0; i < nnx * nny; i++) {
       shapes.push(new RoundedRectangle(new Ray(0, 0, 0), $(w), $(h), $(cr), $(s)));
     }
