@@ -21,7 +21,7 @@ let rot = 0;
 
 const draw = () => {
   ctx.clearRect(0, 0, w, h);
-  const shapes = new Stamp().move(50, 50).rotate(rot).rectangle(30, 30, 1, 3, 3, 50, 50);
+  const shapes = new Stamp().moveTo(w / 2, h / 2).rotate(rot).rectangle(30, 30, 1, 2, 3, 50, 50);
   shapes.bake();
   shapes.bsp().forEach(drawShape);
 }

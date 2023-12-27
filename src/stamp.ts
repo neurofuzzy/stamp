@@ -1,5 +1,5 @@
 import { GeomHelpers } from "./geom/helpers";
-import { Circle, CornerRectangle, IShape, Point, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
+import { BoundingBox, Circle, CornerRectangle, IShape, Point, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
 import { Sequence } from "./sequence";
 
 interface INode {
@@ -99,6 +99,24 @@ export class Stamp {
   private _make (shapes: IShape[], nx = 1, ny = 1, ox = 0, oy = 0) {
       let n = 0;
 
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      for (let i = 0; i < shapes.length; i++) {
+        let g = shapes[i];
+        let bb = g.boundingBox();
+        minX = Math.min(minX, bb.x);
+        minY = Math.min(minY, bb.y);
+        maxX = Math.max(maxX, bb.x + bb.width);
+        maxY = Math.max(maxY, bb.y + bb.height);
+      }
+
+      const bb = new BoundingBox(minX, minY, maxX - minX, maxY - minY);
+      bb.x -= bb.width / 2 - minX;
+      bb.y -= bb.height / 2 - minY;
+
       for (let iy = 0; iy < ny; iy++) {
         for (let ix = 0; ix < nx; ix++) {
           
@@ -112,8 +130,8 @@ export class Stamp {
 
           g.center.x = nx > 1 ? this.offsetX + ox * ix : this.offsetX + ox * n;
           g.center.y = ny > 1 ? this.offsetY + oy * iy : this.offsetY + oy * n;
-          g.center.x += this.cursor.x;
-          g.center.y += this.cursor.y;
+          g.center.x += this.cursor.x + bb.x;
+          g.center.y += this.cursor.y + bb.y;
           GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
           g.center.direction = this.cursor.direction;
 
