@@ -60,6 +60,13 @@ export class GeomHelpers {
     return radians * 180 / Math.PI;
   }
 
+  static rotatePoint(v: Point, angle: number) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    v.x = v.x * cos - v.y * sin;
+    v.y = v.x * sin + v.y * cos;
+  }
+
   static rotatePointAboutOrigin(origin: Ray, point: Point) {
     const x = point.x - origin.x;
     const y = point.y - origin.y;

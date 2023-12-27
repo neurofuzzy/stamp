@@ -3,14 +3,14 @@ import { AbstractShape, Ray, Circle, Rectangle, RoundedRectangle } from "./shape
 export class Donut extends AbstractShape {
   innerRadius: number;
   outerRadius: number;
-  constructor(center: Ray, innerRadius: number, outerRadius: number) {
-    super(center)
+  constructor(center: Ray, innerRadius: number, outerRadius: number, segments: number = 32) {
+    super(center, segments, false)
     this.innerRadius = innerRadius;
     this.outerRadius = outerRadius;
   }
-  flatten(segments = 32) {
-    const inner = new Circle(this.center, this.innerRadius, true).flatten(segments)
-    const outer = new Circle(this.center, this.outerRadius).flatten(segments)
+  flatten() {
+    const inner = new Circle(this.center, this.innerRadius, this.segments, true).flatten()
+    const outer = new Circle(this.center, this.outerRadius, this.segments).flatten()
     return [
       ...outer,
       ...inner,
@@ -24,23 +24,22 @@ export class RectangularDonut extends AbstractShape {
   innerHeight: number
   outerWidth: number
   outerHeight: number
-  constructor(center: Ray, innerWidth: number, innerHeight: number, outerWidth: number, outerHeight: number) {
-    super(center)
+  constructor(center: Ray, innerWidth: number, innerHeight: number, outerWidth: number, outerHeight: number, segments: number = 1) {
+    super(center, segments, false)
     this.innerWidth = innerWidth
     this.innerHeight = innerHeight
     this.outerWidth = outerWidth
     this.outerHeight = outerHeight
   }
-  flatten(segments = 32) {
-    const inner = new Rectangle(this.center, this.innerWidth, this.innerHeight, true).flatten(segments)
-    const outer = new Rectangle(this.center, this.outerWidth, this.outerHeight).flatten(segments)
+  generate() {
+    const inner = new Rectangle(this.center, this.innerWidth, this.innerHeight, this.segments, true).generate()
+    const outer = new Rectangle(this.center, this.outerWidth, this.outerHeight, this.segments).generate()
     return [
       ...outer,
       ...inner,
       outer[0]
     ]
   }
-  
 }
 
 export class RoundedRectangularDonut extends AbstractShape {
@@ -48,27 +47,22 @@ export class RoundedRectangularDonut extends AbstractShape {
   height: number
   radius: number
   thickness: number
-  reverse: boolean
-  constructor(center: Ray, width: number, height: number, radius: number, thickness: number, reverse: boolean = false) {
-    super(center)
+  constructor(center: Ray, width: number, height: number, radius: number, thickness: number, segments: number = 3) {
+    super(center, segments, false)
     this.width = width
     this.height = height
     this.radius = radius
     this.thickness = thickness
-    this.reverse = reverse
   }
-  generate(cornerSegments: number = 8, edgeSegments: number = 1) {
-    const outer = new RoundedRectangle(this.center, this.width, this.height, this.radius).generate(cornerSegments, edgeSegments);
+  generate() {
+    const outer = new RoundedRectangle(this.center, this.width, this.height, this.radius, this.segments).generate();
     const inner = this.radius - this.thickness > 0 ? 
-      new RoundedRectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, this.radius - this.thickness, true).generate(cornerSegments, edgeSegments) :
-      new Rectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, true).generate(edgeSegments);
+      new RoundedRectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, this.radius - this.thickness, this.segments, true).generate() :
+      new Rectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, this.segments, true).generate();
       return [
         ...outer,
         ...inner,
         outer[0]
       ]
-  }
-  flatten(cornerSegments: number = 8, edgeSegments: number = 1) {
-    return this.generate(cornerSegments, edgeSegments).map(r => r.flatten())
   }
 }
