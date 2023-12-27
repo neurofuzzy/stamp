@@ -1,5 +1,5 @@
-import { Circle,  Ray, Rectangle, RoundedRectangle} from './geom/shapes';
-import { Donut, RectangularDonut, RoundedRectangularDonut } from './geom/compoundshapes';
+import { IShape } from './geom/shapes';
+import { Stamp } from './stamp';
 import './style.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -17,15 +17,16 @@ const h = canvas.height
 
 ctx.fillStyle = 'white';
 
-let rot = Math.PI / 4;
+let rot = 0;
 
 const draw = () => {
-  ctx.clearRect(0, 0, w, h)
-  //const shape = new Donut(new Ray(w / 2, h / 2, rot), 80, 100);
-  //const shape = new Rectangle(new Ray(w / 2, h / 2, rot), 75, 100);
-  //const shape = new RectangularDonut(new Ray(w / 2, h / 2, rot), 50, 75, 100, 125);
-  //const shape = new RoundedRectangle(new Ray(w / 2, h / 2, rot), 75, 100, 20);
-  const shape = new RoundedRectangularDonut(new Ray(w / 2, h / 2, rot), 100, 150, 40, 20);
+  ctx.clearRect(0, 0, w, h);
+  const shapes = new Stamp().move(50, 50).rotate(rot).rectangle(30, 30, 1, 3, 3, 50, 50);
+  shapes.bake();
+  shapes.bsp().forEach(drawShape);
+}
+
+function drawShape(shape: IShape) {
   const rays = shape.flatten();
   ctx.beginPath();
   ctx.moveTo(rays[0][0], rays[0][1]);
@@ -37,10 +38,10 @@ const draw = () => {
   ctx.stroke();
   ctx.fillStyle = '#333';
   ctx.fill();
-  
+
   rays.forEach(r => {
     drawRay(r);
-  })
+  });
 }
 
 function animate() {

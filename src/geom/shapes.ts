@@ -7,20 +7,15 @@ export interface IShape {
   generate(): Ray[]
   flatten(): number[][]
   clone(): IShape
+  boundingBox(): BoundingBox
 }
 
-class Vec2 {
+export class Point {
   x: number
   y: number
   constructor(x: number, y: number) {
     this.x = x
     this.y = y
-  }
-}
-
-export class Point extends Vec2 {
-  constructor(x: number, y: number) {
-    super(x, y)
   }
   flatten() {
     return [this.x, this.y];
@@ -44,12 +39,16 @@ export class Ray extends Point {
   }
 }
 
-export class Segment {
-  start: Point
-  end: Point
-  constructor(start: Point, end: Point) {
-    this.start = start
-    this.end = end
+export class BoundingBox {
+  x: number
+  y: number
+  width: number
+  height: number
+  constructor(x: number, y: number, width: number, height: number) {
+    this.x = x
+    this.y = y
+    this.width = width
+    this.height = height
   }
 }
 
@@ -71,6 +70,9 @@ export class AbstractShape implements IShape {
   }
   clone(): IShape {
     return new AbstractShape(this.center.clone(), this.segments, this.reverse);
+  }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x, this.center.y, 0, 0);
   }
 }
 
@@ -115,6 +117,9 @@ export class Arc extends AbstractShape {
   clone() {
     return new Arc(this.center.clone(), this.radius, this.startAngle, this.endAngle, this.segments, this.reverse);
   }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2, this.radius * 2);
+  }
 }
 
 export class Polygon extends AbstractShape { 
@@ -143,6 +148,19 @@ export class Polygon extends AbstractShape {
   clone() {
     return new Polygon(this.center.clone(), this.rays, this.segments, this.reverse);
   }
+  boundingBox(): BoundingBox {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    this.rays.forEach(r => {
+      if (r.x < minX) minX = r.x
+      if (r.y < minY) minY = r.y
+      if (r.x > maxX) maxX = r.x
+      if (r.y > maxY) maxY = r.y
+    });
+    return new BoundingBox(minX + this.center.x, minY + this.center.y, maxX - minX, maxY - minY);
+  }
 }
 
 export class Circle extends AbstractShape {
@@ -170,6 +188,9 @@ export class Circle extends AbstractShape {
   }
   clone() {
     return new Circle(this.center.clone(), this.radius, this.segments, this.reverse);
+  }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2, this.radius * 2);
   }
 }
 
@@ -209,6 +230,9 @@ export class Rectangle extends AbstractShape {
   clone() {
     return new Rectangle(this.center.clone(), this.width, this.height, this.segments, this.reverse);
   }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x - this.width / 2, this.center.y - this.height / 2, this.width, this.height);
+  }
 }
 
 export class CornerRectangle extends AbstractShape {
@@ -246,6 +270,9 @@ export class CornerRectangle extends AbstractShape {
   }
   clone() {
     return new CornerRectangle(this.center.clone(), this.width, this.height, this.segments, this.reverse);
+  }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x, this.center.y, this.width, this.height);
   }
 }
 
@@ -312,5 +339,8 @@ export class RoundedRectangle extends AbstractShape {
   }
   clone() {
     return new RoundedRectangle(this.center.clone(), this.width, this.height, this.radius, this.segments, this.reverse);
+  }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x - this.width / 2, this.center.y - this.height / 2, this.width, this.height);
   }
 }

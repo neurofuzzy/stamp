@@ -25,9 +25,7 @@ export class Stamp {
 
   offsetX: number = 0;
   offsetY: number = 0;
-  cursorX: number = 0;
-  cursorY: number = 0;
-  cursorRotation: number = 0;
+  cursor: Ray = new Ray(0, 0, 0);
 
   baked: boolean = false;
 
@@ -35,6 +33,16 @@ export class Stamp {
     this._reset();
     this._colors = colors;
   }
+
+  private _reset () {
+    this._bsps = [];
+    this._bsp = null;
+    this.mode = Stamp.UNION;
+    this.baked = false;
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.cursor.x = this.cursor.y = this.cursor.direction = 0;
+  };
 
   private _add() {
     this.mode = Stamp.UNION;
@@ -64,8 +72,15 @@ export class Stamp {
   };
 
   private _moveTo (x: number | string, y: number | string) {
-    this.offsetX = $(x);
-    this.offsetY = $(y);
+    this.cursor.x = $(x);
+    this.cursor.y = $(y);
+  };
+
+  private _move (x: number | string, y: number | string) {
+    const v = new Point($(x), $(y));
+    GeomHelpers.rotatePoint(v, this.cursor.direction);
+    this.cursor.x += v.x;
+    this.cursor.y += v.y;
   };
 
   private _offset (x: number | string, y: number | string) {
@@ -73,20 +88,12 @@ export class Stamp {
     this.offsetY += $(y);
   };
 
-  private _walk (dist: number) {
-    dist = $(dist);
-    const v = new Point(0, dist);
-    GeomHelpers.rotatePoint(v, this.cursorRotation);
-    this.cursorX += v.x;
-    this.cursorY += v.y;
-  };
-
   private _rotateTo (r: number | string) {
-    this.cursorRotation = $(r);
+    this.cursor.direction = $(r);
   };
 
   private _rotate (r: number | string) {
-    this.cursorRotation = GeomHelpers.normalizeAngle(this.cursorRotation + $(r));
+    this.cursor.direction = GeomHelpers.normalizeAngle(this.cursor.direction + $(r));
   };
 
   private _make (shapes: IShape[], nx = 1, ny = 1, ox = 0, oy = 0) {
@@ -105,7 +112,10 @@ export class Stamp {
 
           g.center.x = nx > 1 ? this.offsetX + ox * ix : this.offsetX + ox * n;
           g.center.y = ny > 1 ? this.offsetY + oy * iy : this.offsetY + oy * n;
-          g.center.direction = this.cursorRotation;
+          g.center.x += this.cursor.x;
+          g.center.y += this.cursor.y;
+          GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
+          g.center.direction = this.cursor.direction;
 
           if (!this._bsp) {
             this._bsp = [];
@@ -164,18 +174,6 @@ export class Stamp {
 
   private _colorIndex (idx: number) {
     this.colorIdx = idx;
-  };
-
-  private _reset () {
-    this._bsps = [];
-    this._bsp = null;
-    this.mode = Stamp.UNION;
-    this.baked = false;
-    this.offsetX = 0;
-    this.offsetY = 0;
-    this.cursorX = 0;
-    this.cursorY = 0;
-    this.cursorRotation = 0;
   };
 
   private _circle(
@@ -247,82 +245,57 @@ export class Stamp {
   }
 
   reset() {
-    // @ts-ignore
     this._nodes.push({ fName: "_reset", args: Array.from(arguments) });
     return this;
   }
 
-  /**
-   *
-   * @param {number} idx the material index to apply to future solids
-   */
   materialIndex(idx = 1) {
-    // @ts-ignore
     this._nodes.push({ fName: "_materialIndex", args: [idx] });
     return this;
   }
 
   add() {
-    // @ts-ignore
     this._nodes.push({ fName: "_add", args: Array.from(arguments) });
     return this;
   }
 
   subtract() {
-    // @ts-ignore
     this._nodes.push({ fName: "_subtract", args: Array.from(arguments) });
     return this;
   }
 
   boolean(type: number | string) {
-    // @ts-ignore
     this._nodes.push({ fName: "_boolean", args: [type] });
     return this;
   }
 
   next() {
-    // @ts-ignore
     this._nodes.push({ fName: "_next", args: Array.from(arguments) });
     return this;
   }
   
-  moveTo(x = 0, y = 0) {
-    // @ts-ignore
+  moveTo(x: number | string = 0, y: number | string = 0) {
     this._nodes.push({ fName: "_moveTo", args: [x, y] });
     return this;
   }
 
+  move(x: number | string = 0, y: number | string = 0) {
+    this._nodes.push({ fName: "_move", args: [x, y] });
+    return this;
+  }
+
   offset(x: number, y: number = 0) {
-    // @ts-ignore
     this._nodes.push({ fName: "_offset", args: [x, y] });
     return this;
   }
 
-  walk(dist: number | string) {
-    // @ts-ignore
-    this._nodes.push({ fName: "_walk", args: [dist] });
+  rotateTo(r: number | string = 0) {
+    this._nodes.push({ fName: "_rotateTo", args: [r] });
     return this;
   }
 
-  /**
-   * @param {number | string} x
-   * @param {number | string} y
-   * @param {number | string} z
-   */
-  rotateTo(x = 0, y = 0, z = 0) {
-    // @ts-ignore
-    this._nodes.push({ fName: "_rotateTo", args: [x, y, z] });
-    return this;
-  }
-
-  /**
-   * @param {number | string} x
-   * @param {number | string} y
-   * @param {number | string} z
-   */
-  rotate(x = 0, y = 0, z = 0) {
-    // @ts-ignore
-    this._nodes.push({ fName: "_rotate", args: [x, y, z] });
+  rotate(r: number | string = 0) {
+    this._nodes.push({ fName: "_rotate", args: [r] });
     return this;
   }
 
@@ -389,7 +362,7 @@ export class Stamp {
   }
 
   getCursor(): Ray {
-    return new Ray(this.cursorX, this.cursorY, this.cursorRotation);
+    return this.cursor;
   }
 
   getLastMode() {
@@ -467,16 +440,14 @@ export class Stamp {
       }
     }
 
-    //console.log(nodes);
-
     const privateFunctionMap: { [key:string]: Function } = {
       _add: this._add,
       _subtract: this._subtract,
       _boolean: this._boolean,
       _next: this._next,
       _moveTo: this._moveTo,
+      _move: this._move,
       _offset: this._offset,
-      _walk: this._walk,
       _rotateTo: this._rotateTo,
       _rotate: this._rotate,
       _colorIndex: this._colorIndex,

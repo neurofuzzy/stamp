@@ -1,5 +1,5 @@
 
-import { AbstractShape, Ray, Circle, Rectangle, RoundedRectangle } from "./shapes";
+import { AbstractShape, BoundingBox, Circle, Ray, Rectangle, RoundedRectangle } from "./shapes";
 export class Donut extends AbstractShape {
   innerRadius: number;
   outerRadius: number;
@@ -19,6 +19,9 @@ export class Donut extends AbstractShape {
   }
   clone() {
     return new Donut(this.center.clone(), this.innerRadius, this.outerRadius, this.segments);
+  }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x - this.outerRadius, this.center.y - this.outerRadius, this.outerRadius * 2, this.outerRadius * 2);
   }
 }
 
@@ -45,6 +48,9 @@ export class RectangularDonut extends AbstractShape {
   }
   clone() {
     return new RectangularDonut(this.center.clone(), this.innerWidth, this.innerHeight, this.outerWidth, this.outerHeight, this.segments);
+  }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x - this.outerWidth / 2, this.center.y - this.outerHeight / 2, this.outerWidth, this.outerHeight);
   }
 }
 
@@ -73,5 +79,8 @@ export class RoundedRectangularDonut extends AbstractShape {
   }
   clone() {
     return new RoundedRectangularDonut(this.center.clone(), this.width, this.height, this.radius, this.thickness, this.segments);
+  }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(this.center.x - this.width / 2, this.center.y - this.height / 2, this.width, this.height);
   }
 }
