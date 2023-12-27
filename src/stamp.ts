@@ -1,5 +1,5 @@
 import { GeomHelpers } from "./geom/helpers";
-import { BoundingBox, Circle, CornerRectangle, IShape, Point, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
+import { Circle, CornerRectangle, IShape, Point, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
 import { Sequence } from "./sequence";
 
 interface INode {
@@ -99,24 +99,6 @@ export class Stamp {
   private _make (shapes: IShape[], nx = 1, ny = 1, ox = 0, oy = 0) {
       let n = 0;
 
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-
-      for (let i = 0; i < shapes.length; i++) {
-        let g = shapes[i];
-        let bb = g.boundingBox();
-        minX = Math.min(minX, bb.x);
-        minY = Math.min(minY, bb.y);
-        maxX = Math.max(maxX, bb.x + bb.width);
-        maxY = Math.max(maxY, bb.y + bb.height);
-      }
-
-      const bb = new BoundingBox(minX, minY, maxX - minX, maxY - minY);
-      bb.x -= bb.width / 2 - minX;
-      bb.y -= bb.height / 2 - minY;
-
       for (let iy = 0; iy < ny; iy++) {
         for (let ix = 0; ix < nx; ix++) {
           
@@ -127,11 +109,9 @@ export class Stamp {
           }
 
           let g = shape.clone();
-
-          g.center.x = nx > 1 ? this.offsetX + ox * ix : this.offsetX + ox * n;
-          g.center.y = ny > 1 ? this.offsetY + oy * iy : this.offsetY + oy * n;
-          g.center.x += this.cursor.x + bb.x;
-          g.center.y += this.cursor.y + bb.y;
+n;
+          g.center.x += this.cursor.x;
+          g.center.y += this.cursor.y;
           GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
           g.center.direction = this.cursor.direction;
 
@@ -194,6 +174,13 @@ export class Stamp {
     this.colorIdx = idx;
   };
 
+  private _getGroupOffset (w: number, h: number, nx = 1, ny = 1, ox = 0, oy = 0): Point {
+    const pt = new Point(0, 0);
+    pt.x = (nx - 1) * (w + ox) * 0.5;
+    pt.y = (ny - 1) * (h + oy) * 0.5;
+    return pt;
+  }
+
   private _circle(
     r: number | string, 
     s: number | string, 
@@ -204,8 +191,11 @@ export class Stamp {
   ) {
     let shapes: IShape[] = [];
     let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    let nr = $(r);
+    let ns = $(s);
+    let o = this._getGroupOffset(nr, nr, nnx, nny, nox, noy);
     for (let i = 0; i < nnx * nny; i++) {
-      shapes.push(new Circle(new Ray(0, 0, 0), $(r), $(s)));
+      shapes.push(new Circle(new Ray(nr * i * 2 + nox * i + o.x, nr * i * 2 + noy * i + o.y, 0), nr, ns));
     }
     this._make(shapes, nnx, nny, nox, noy);
   }
@@ -221,8 +211,14 @@ export class Stamp {
   ) {
     let shapes: IShape[] = [];
     let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    for (let i = 0; i < nnx * nny; i++) {
-      shapes.push(new Rectangle(new Ray(0, 0, 0), $(w), $(h), $(s)));
+    let nw = $(w);
+    let nh = $(h);
+    let ns = $(s);
+    let o = this._getGroupOffset(nw, nh, nnx, nny, nox, noy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        shapes.push(new Rectangle(new Ray(nw * i + nox * i - o.x, nh * j + noy * j - o.y, 0), nw, nh, ns));
+      }
     }
     this._make(shapes, nnx, nny, nox, noy);
   }
