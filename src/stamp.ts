@@ -1,6 +1,7 @@
 import { GeomHelpers } from "./geom/helpers";
-import { Circle, CornerRectangle, IShape, Point, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
+import { Circle, CornerRectangle, IShape, Point, Polygon, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
 import { Sequence } from "./sequence";
+import * as clipperLib from "js-angusj-clipper/web";
 
 interface INode {
   fName: string;
@@ -14,9 +15,19 @@ export class Stamp {
   static readonly UNION = 1;
   static readonly SUBTRACT = 2;
 
+  static clipper: clipperLib.ClipperLibWrapper;
+
+  static async init() {
+    Stamp.clipper = await clipperLib.loadNativeClipperLibInstanceAsync(
+      // let it autodetect which one to use, but also available WasmOnly and AsmJsOnly
+      clipperLib.NativeClipperLibRequestedFormat.WasmWithAsmJsFallback
+    );
+    return !!Stamp.clipper;
+  }
+
   _colors?: string[];
   _nodes: INode[] = [];
-  _bsp: any;
+  _bsp: IShape[] = [];
   _bsps: any[] = [];
   _mats: string[] = [];
 
@@ -36,7 +47,7 @@ export class Stamp {
 
   private _reset () {
     this._bsps = [];
-    this._bsp = null;
+    this._bsp = [];
     this.mode = Stamp.UNION;
     this.baked = false;
     this.offsetX = 0;
@@ -66,7 +77,7 @@ export class Stamp {
   private _next () {
     if (this._bsp) {
       this._bsps.push(this._bsp);
-      this._bsp = null;
+      this._bsp = [];
       this.mode = Stamp.UNION;
     }
   };
@@ -96,77 +107,102 @@ export class Stamp {
     this.cursor.direction = GeomHelpers.normalizeAngle(this.cursor.direction + $(r));
   };
 
-  private _make (shapes: IShape[], nx = 1, ny = 1, ox = 0, oy = 0) {
-      let n = 0;
+  private _toPaths (shapes: IShape[]): { data: any[], closed: boolean }[] {
+    let paths = [];
+    for (let i = 0; i < shapes.length; i++) {
+      let shape = shapes[i];
+      let rays = shape.generate();
+      let path = rays.map(r => ({ x: Math.round(r.x * 1000), y: Math.round(r.y * 1000) }));
+      path.pop();
+      paths.push({ data: path, closed: true });
+    }
+    return paths;
+  }
 
-      for (let iy = 0; iy < ny; iy++) {
-        for (let ix = 0; ix < nx; ix++) {
-          
-          let shape: IShape | undefined = shapes.shift();
-
-          if (!shape) {
-            break;
-          }
-
-          let g = shape.clone();
-n;
-          g.center.x += this.cursor.x;
-          g.center.y += this.cursor.y;
-          GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
-          g.center.direction = this.cursor.direction;
-
-          if (!this._bsp) {
-            this._bsp = [];
-          }
-
-          this._bsp.push(g);
-
-          /*
-          let b = null;
-          let b2 = null;
-
-          switch (this.mode) {
-            case Stamp.UNION:
-              console.log("MAKING", !!this._bsp);
-              if (!this._bsp) {
-                let g = new THREE.BoxGeometry(1, 1, 1);
-                g.vertices.forEach((v) => {
-                  v.x -= 10000;
-                  v.y -= 10000;
-                  v.z -= 10000;
-                });
-
-                b = new ThreeBSP(g, this.colorIdx);
-                this._bsp = b.subtract(b);
-              }
-              b2 = new ThreeBSP(m.geometry, this.colorIdx);
-              b = this._bsp.union(b2);
-
-              break;
-
-            case Stamp.SUBTRACT:
-              if (this._bsp) {
-                b2 = new ThreeBSP(m.geometry, this.colorIdx);
-                b = this._bsp.subtract(b2);
-              }
-              break;
-          }
-
-          n++;
-
-          if (b) {
-            this._bsp = b;
-            //this._next();
-          } else {
-            return this;
-          }
-
-          */
-
-          n++;
-
-        }
+  private _toPolygons (paths: clipperLib.Paths): IShape[] {
+    let polygons = [];
+    for (let i = 0; i < paths.length; i++) {
+      let path = paths[i];
+      let polygonPoints = [];
+      let centerX = 0;
+      let centerY = 0;
+      for (let j = 0; j < path.length; j++) {
+        let p = path[j];
+        polygonPoints.push(new Ray(p.x / 1000, p.y / 1000));
+        centerX += p.x / 1000;
+        centerY += p.y / 1000;
       }
+      centerX /= path.length;
+      centerY /= path.length;
+      polygonPoints.push(polygonPoints[0].clone());
+      const center = new Ray(centerX, centerY);
+      polygons.push(new Polygon(center, polygonPoints));
+    }
+    return polygons;
+  }
+
+  private _make (shapes: IShape[]) {
+
+      for (let i = 0; i < shapes.length; i++) {
+          
+        let shape: IShape | undefined = shapes[i];
+
+        if (!shape) {
+          break;
+        }
+
+        let g = shape.clone();
+
+        g.center.x += this.cursor.x;
+        g.center.y += this.cursor.y;
+        GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
+        g.center.direction = this.cursor.direction;
+
+        /*
+        if (!this._bsp) {
+          this._bsp = [];
+        }
+
+        this._bsp.push(g);
+        */
+
+        let b = null;
+        let b2 = null;
+
+        switch (this.mode) {
+          case Stamp.UNION:
+            if (this._bsp.length) {
+              b2 = this._toPaths([g]);
+              b = this._toPaths(this._bsp);
+              const polyResult = Stamp.clipper.clipToPaths({
+                clipType: clipperLib.ClipType.Union,
+                subjectInputs: b.concat(b2),
+                subjectFillType: clipperLib.PolyFillType.EvenOdd,
+              });
+              this._bsp = this._toPolygons(polyResult);
+            } else {
+              this._bsp = [g];
+            }
+            break;
+
+          case Stamp.SUBTRACT:
+            if (this._bsp) {
+              b2 = this._toPaths([g]);
+              b = this._toPaths(this._bsp);
+              const polyResult = Stamp.clipper.clipToPaths({
+                clipType: clipperLib.ClipType.Difference,
+                subjectInputs: b,
+                clipInputs: b2,
+                subjectFillType: clipperLib.PolyFillType.EvenOdd,
+              });
+              this._bsp = this._toPolygons(polyResult);
+            }
+            break;
+        }
+
+      }
+
+      return this;
       
   };
 
@@ -199,7 +235,7 @@ n;
         shapes.push(new Circle(new Ray(nr * 2 * i + nox * i - o.x, nr * 2 * j + noy * j - o.y, 0), nr, ns));
       }
     }
-    this._make(shapes, nnx, nny, nox, noy);
+    this._make(shapes);
   }
 
   private _rectangle(
@@ -222,24 +258,7 @@ n;
         shapes.push(new Rectangle(new Ray(nw * i + nox * i - o.x, nh * j + noy * j - o.y, 0), nw, nh, ns));
       }
     }
-    this._make(shapes, nnx, nny, nox, noy);
-  }
-
-  private _cornerRectangle(
-    w: number | string, 
-    h: number | string, 
-    s: number | string, 
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
-  ) {
-    let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    for (let i = 0; i < nnx * nny; i++) {
-      shapes.push(new CornerRectangle(new Ray(0, 0, 0), $(w), $(h), $(s)));
-    }
-    this._make(shapes, nnx, nny, nox, noy);
+    this._make(shapes);
   }
 
   private _roundedRectangle(
@@ -264,10 +283,7 @@ n;
         shapes.push(new RoundedRectangle(new Ray(nw * i + nox * i - o.x, nh * j + noy * j - o.y, 0), nw, nh, ncr, ns));
       }
     }
-    for (let i = 0; i < nnx * nny; i++) {
-      shapes.push(new RoundedRectangle(new Ray(0, 0, 0), $(w), $(h), $(cr), $(s)));
-    }
-    this._make(shapes, nnx, nny, nox, noy);
+    this._make(shapes);
   }
 
   reset() {
@@ -349,20 +365,6 @@ n;
     this._nodes.push({ fName: "_rectangle", args: [w, h, s, nx, ny, ox, oy] });
     return this;
   }
-
-  cornerRectangle(
-    w: number | string, 
-    h: number | string, 
-    s: number | string, 
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
-  ) {
-    this._nodes.push({ fName: "_cornerRectangle", args: [w, h, s, nx, ny, ox, oy] });
-    return this;
-  }
-
 
   roundedRectangle(
     w: number | string, 
@@ -480,7 +482,6 @@ n;
       _circle: this._circle,
       _rectangle: this._rectangle,
       _roundedRectangle: this._roundedRectangle,
-      _cornerRectangle: this._cornerRectangle,
     }
 
     for (let i = 0; i < nodes.length; i++) {

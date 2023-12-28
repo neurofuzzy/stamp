@@ -13,6 +13,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "arbit": "^0.1.1"
+    "arbit": "^0.1.1",
+    "js-angusj-clipper": "^1.3.1"
   }
 }
