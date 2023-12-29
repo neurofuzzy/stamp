@@ -128,7 +128,7 @@ export class Stamp {
       if (node.contour.length) {
         for (let j = 0; j < node.contour.length; j++) {
           let p = node.contour[j];
-          rays.push(new Ray(Math.round((p.x - 10000) / 10000), Math.round((p.y - 10000) / 10000)));
+          rays.push(new Ray(Math.round(p.x - 10000) / 10000, Math.round(p.y - 10000) / 10000));
         }
         rays.push(rays[0].clone());
       }

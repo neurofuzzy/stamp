@@ -6,7 +6,7 @@ import { Sequence } from './sequence';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
-    <canvas id="canvas" width="512" height="512" style="background-color: black;"></canvas>
+    <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
   </div>
 `;
 
@@ -21,17 +21,20 @@ ctx.fillStyle = 'white';
 
 let rot = 0;
 
-Sequence.fromStatement("repeat 50,60,70 as AA")
+Sequence.fromStatement("random 40,50,60,70 as AA", 14)
+Sequence.fromStatement("random 20,30,40,50 as AB", 14)
+Sequence.fromStatement("random 5,10,15,20 as AC", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
   const shapes = new Stamp()
     .moveTo(w / 2, h / 2)
     .rotate(rot)
-    .roundedRectangle("AA()", "AA", 8, 1, 5, 5, 80, 80)
+    .roundedRectangle("AA()", "AA", 8, 1, 9, 9, 80, 80)
     .subtract()
-    //.add()
-    .rectangle(40, 40, 1, 5, 5, 80, 80);//.circle(20, 16, 3, 4, 20, 20);//.rectangle(30, 30, 1, 10, 10, 20, 20);
+    .rectangle("AB()", "AB", 1, 9, 9, 80, 80)
+    .add()
+    .circle("AC()", 64, 9, 9, 80, 80);
   shapes.bake();
   shapes.polys().forEach(s => drawShape(ctx, s));
 }
@@ -53,7 +56,7 @@ function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0)
   if (shapeDepth === 0) {
     ctx.strokeStyle = 'white';
     ctx.fillStyle = '#333';
-    ctx.lineWidth = 0.25; 
+    ctx.lineWidth = 0.5; 
     ctx.fill('evenodd');
     ctx.stroke();
   }
