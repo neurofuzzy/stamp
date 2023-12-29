@@ -152,7 +152,7 @@ export class Stamp {
         polygons.push(polygon);
       }
     });
-    console.log(polygons)
+
     return polygons;
   }
 
