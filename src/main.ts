@@ -40,7 +40,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .circle("AC()", 64, 5, 5, 80, 80);
   //shapes.bake();
   drawShape(ctx, shapes);
-  drawBoundingBox(ctx, shapes);
+  //drawBoundingBox(ctx, shapes);
+  drawBoundingCircle(ctx, shapes);
+  shapes.children().forEach(child => drawBoundingCircle(ctx, child));
+  shapes.children().forEach(child => drawCenter(ctx, child));
   //shapes.polys().forEach(s => drawShape(ctx, s));
   //shapes.polys().forEach(s => drawBoundingBox(ctx, s));
 }
@@ -74,11 +77,33 @@ function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0)
 function drawBoundingBox(ctx: CanvasRenderingContext2D, shape: IShape) {
 
   const bb = shape.boundingBox();
-console.log(bb)
+
   ctx.beginPath();
   ctx.strokeStyle = 'cyan';
   ctx.lineWidth = 0.5; 
   ctx.strokeRect(bb.x, bb.y, bb.width, bb.height);
+
+}
+
+function drawBoundingCircle(ctx: CanvasRenderingContext2D, shape: IShape) {
+
+  const bc = shape.boundingCircle();
+
+  ctx.beginPath();
+  ctx.strokeStyle = 'magenta';
+  ctx.lineWidth = 0.5;
+  ctx.arc(bc.x, bc.y, bc.radius, 0, 2 * Math.PI);
+  ctx.stroke();
+
+}
+
+function drawCenter(ctx: CanvasRenderingContext2D, shape: IShape) {
+
+  const c = shape.center;
+  ctx.beginPath();
+  ctx.fillStyle = 'yellow';
+  ctx.arc(c.x, c.y, 2, 0, 2 * Math.PI);
+  ctx.fill();
 
 }
 

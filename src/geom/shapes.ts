@@ -1,3 +1,4 @@
+import { makeCircle } from "../lib/smallest-enclosing-circle";
 import { GeomHelpers } from "./helpers";
 
 export interface IShape {
@@ -8,6 +9,7 @@ export interface IShape {
   generate(): Ray[]
   clone(): IShape
   boundingBox(): BoundingBox
+  boundingCircle(): BoundingCircle
   children(): IShape[]
   addChild(shape: IShape): void
 }
@@ -45,6 +47,17 @@ export class BoundingBox {
     this.y = y
     this.width = width
     this.height = height
+  }
+}
+
+export class BoundingCircle {
+  x: number
+  y: number
+  radius: number
+  constructor(x: number, y: number, radius: number) {
+    this.x = x
+    this.y = y
+    this.radius = radius
   }
 }
 
@@ -88,6 +101,17 @@ export class AbstractShape implements IShape {
       if (bb.y + bb.height - this.center.y > maxY) maxY = bb.y + bb.height - this.center.y;
     })
     return new BoundingBox(minX + this.center.x, minY + this.center.y, maxX - minX, maxY - minY);
+  }
+  boundingCircle(): BoundingCircle {
+    const rays = this.generate();
+    this.children().forEach(shape => {
+      rays.push(...shape.generate());
+    });
+    let c = makeCircle(rays);
+    if (c) {
+      return new BoundingCircle(c.x, c.y, c.r);
+    }
+    return new BoundingCircle(this.center.x, this.center.y, 0);
   }
   children(): IShape[] {
     return this.childShapes;
@@ -145,6 +169,11 @@ export class Polygon extends AbstractShape {
   constructor(center?: Ray, rays: Ray[] = [], segments: number = 1, reverse: boolean = false) {
     super(center, segments, reverse)
     this.rays = rays;
+    const bc = makeCircle(rays);
+    if (bc) {
+      this.center.x = bc.x;
+      this.center.y = bc.y;
+    }
   }
   generate() {
     let rays = this.rays.slice().map(r => r.clone());
