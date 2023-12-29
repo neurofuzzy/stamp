@@ -6,7 +6,6 @@ export interface IShape {
   reverse: boolean
   isHole: boolean
   generate(): Ray[]
-  flatten(): number[][]
   clone(): IShape
   boundingBox(): BoundingBox
   children(): IShape[]
@@ -20,9 +19,6 @@ export class Point {
     this.x = x
     this.y = y
   }
-  flatten() {
-    return [this.x, this.y];
-  }
   clone() {
     return new Point(this.x, this.y);
   }
@@ -33,9 +29,6 @@ export class Ray extends Point {
   constructor(x: number, y: number, direction: number = 0) {
     super(x, y);
     this.direction = direction;
-  }
-  flatten() {
-    return [this.x, this.y, this.direction];
   }
   clone() {
     return new Ray(this.x, this.y, this.direction);
@@ -61,7 +54,7 @@ export class AbstractShape implements IShape {
   reverse: boolean
   childShapes: IShape[]
   isHole: boolean;
-  constructor (center: Ray, segments: number = 1, reverse: boolean = false) {
+  constructor (center?: Ray, segments: number = 1, reverse: boolean = false) {
     this.center = center || new Ray(0, 0);
     this.segments = Math.floor(Math.max(1, segments));
     this.reverse = reverse || false;
@@ -72,14 +65,29 @@ export class AbstractShape implements IShape {
     console.log("generate", this.segments)
     throw new Error("Method not implemented.");
   }
-  flatten(): number[][] {
-    return this.generate().map(r => r.flatten());
-  }
   clone(): IShape {
     return new AbstractShape(this.center.clone(), this.segments, this.reverse);
   }
   boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x, this.center.y, 0, 0);
+    const rays = this.generate();
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    rays.forEach(r => {
+      if (r.x < minX) minX = r.x
+      if (r.y < minY) minY = r.y
+      if (r.x > maxX) maxX = r.x
+      if (r.y > maxY) maxY = r.y
+    });
+    this.children().forEach(shape => {
+      const bb = shape.boundingBox();
+      if (bb.x - this.center.x < minX) minX = bb.x - this.center.x;
+      if (bb.y - this.center.y < minY) minY = bb.y - this.center.y;
+      if (bb.x + bb.width - this.center.x > maxX) maxX = bb.x + bb.width - this.center.x;
+      if (bb.y + bb.height - this.center.y > maxY) maxY = bb.y + bb.height - this.center.y;
+    })
+    return new BoundingBox(minX + this.center.x, minY + this.center.y, maxX - minX, maxY - minY);
   }
   children(): IShape[] {
     return this.childShapes;
@@ -93,7 +101,7 @@ export class Arc extends AbstractShape {
   radius: number
   startAngle: number
   endAngle: number
-  constructor(center: Ray, radius: number, startAngle: number, endAngle: number, segments: number = 1, reverse: boolean = false) {
+  constructor(center?: Ray, radius: number = 50, startAngle: number = 0, endAngle: number = Math.PI * 2, segments: number = 1, reverse: boolean = false) {
     super(center, segments, reverse)
     this.radius = radius
     this.startAngle = startAngle
@@ -130,14 +138,11 @@ export class Arc extends AbstractShape {
   clone() {
     return new Arc(this.center.clone(), this.radius, this.startAngle, this.endAngle, this.segments, this.reverse);
   }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2, this.radius * 2);
-  }
 }
 
 export class Polygon extends AbstractShape { 
   rays: Ray[];
-  constructor(center: Ray, rays: Ray[], segments: number = 1, reverse: boolean = false) {
+  constructor(center?: Ray, rays: Ray[] = [], segments: number = 1, reverse: boolean = false) {
     super(center, segments, reverse)
     this.rays = rays;
   }
@@ -161,24 +166,11 @@ export class Polygon extends AbstractShape {
   clone() {
     return new Polygon(this.center.clone(), this.rays, this.segments, this.reverse);
   }
-  boundingBox(): BoundingBox {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    this.rays.forEach(r => {
-      if (r.x < minX) minX = r.x
-      if (r.y < minY) minY = r.y
-      if (r.x > maxX) maxX = r.x
-      if (r.y > maxY) maxY = r.y
-    });
-    return new BoundingBox(minX + this.center.x, minY + this.center.y, maxX - minX, maxY - minY);
-  }
 }
 
 export class Circle extends AbstractShape {
   radius: number
-  constructor(center: Ray, radius: number, segments: number = 1, reverse: boolean = false) {
+  constructor(center?: Ray, radius: number = 50, segments: number = 1, reverse: boolean = false) {
     super(center, segments, reverse)
     this.radius = radius
   }
@@ -202,15 +194,12 @@ export class Circle extends AbstractShape {
   clone() {
     return new Circle(this.center.clone(), this.radius, this.segments, this.reverse);
   }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2, this.radius * 2);
-  }
 }
 
 export class Rectangle extends AbstractShape {
   width: number
   height: number
-  constructor(center: Ray, width: number, height: number, segments: number = 1, reverse: boolean = false) {
+  constructor(center?: Ray, width: number = 100, height: number = 100, segments: number = 1, reverse: boolean = false) {
     super(center, segments, reverse)
     this.width = width
     this.height = height
@@ -243,15 +232,12 @@ export class Rectangle extends AbstractShape {
   clone() {
     return new Rectangle(this.center.clone(), this.width, this.height, this.segments, this.reverse);
   }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x - this.width / 2, this.center.y - this.height / 2, this.width, this.height);
-  }
 }
 
 export class CornerRectangle extends AbstractShape {
   width: number
   height: number
-  constructor(center: Ray, width: number, height: number, segments: number = 1, reverse: boolean = false) {
+  constructor(center?: Ray, width: number = 100, height: number = 100, segments: number = 1, reverse: boolean = false) {
     super(center, segments, reverse)
     this.width = width
     this.height = height
@@ -284,16 +270,13 @@ export class CornerRectangle extends AbstractShape {
   clone() {
     return new CornerRectangle(this.center.clone(), this.width, this.height, this.segments, this.reverse);
   }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x, this.center.y, this.width, this.height);
-  }
 }
 
 export class RoundedRectangle extends AbstractShape {
   width: number
   height: number
   radius: number
-  constructor(center: Ray, width: number, height: number, radius: number, segments: number = 1, reverse: boolean = false) {
+  constructor(center?: Ray, width: number = 100, height: number = 100, radius: number = 25, segments: number = 1, reverse: boolean = false) {
     super(center, segments, reverse)
     this.width = width
     this.height = height
@@ -352,8 +335,5 @@ export class RoundedRectangle extends AbstractShape {
   }
   clone() {
     return new RoundedRectangle(this.center.clone(), this.width, this.height, this.radius, this.segments, this.reverse);
-  }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x - this.width / 2, this.center.y - this.height / 2, this.width, this.height);
   }
 }

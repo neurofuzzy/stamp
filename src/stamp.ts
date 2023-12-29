@@ -1,5 +1,5 @@
 import { GeomHelpers } from "./geom/helpers";
-import { Circle, CornerRectangle, IShape, Point, Polygon, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
+import { AbstractShape, Circle, IShape, Point, Polygon, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
 import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
 
@@ -10,10 +10,11 @@ interface INode {
 
 const $ = (arg: unknown) => typeof arg === "string" ? Sequence.resolve(arg) : typeof arg === "number" ? arg : 0;
 
-export class Stamp {
+export class Stamp extends AbstractShape {
 
   static readonly UNION = 1;
   static readonly SUBTRACT = 2;
+  static readonly INTERSECT = 3;
 
   static clipper: clipperLib.ClipperLibWrapper;
 
@@ -42,9 +43,8 @@ export class Stamp {
 
   baked: boolean = false;
 
-  constructor(colors?: string[]) {
-    this._reset();
-    this._colors = colors;
+  constructor(center?: Ray, segments: number = 1, reverse: boolean = false) {
+    super(center, segments, reverse);
   }
 
   private _reset () {
@@ -66,6 +66,10 @@ export class Stamp {
   private _subtract() {
     this.mode = Stamp.SUBTRACT;
   };
+
+  private _intersect() {
+    this.mode = Stamp.INTERSECT;
+  }
 
   private _boolean (type: string | number) {
     if (typeof type === "string") {
@@ -168,10 +172,11 @@ export class Stamp {
 
         let g = shape.clone();
 
-        g.center.x += this.cursor.x;
-        g.center.y += this.cursor.y;
+        g.center.x += this.cursor.x + this.center.x;
+        g.center.y += this.cursor.y + this.center.y;
+        GeomHelpers.rotatePointAboutOrigin(this.center, g.center);
         GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
-        g.center.direction += this.cursor.direction;
+        g.center.direction += this.center.direction + this.cursor.direction;
 
         /*
         if (!this._bsp) {
@@ -214,6 +219,21 @@ export class Stamp {
               let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
               const polyResult = Stamp.clipper.clipToPolyTree({
                 clipType: clipperLib.ClipType.Difference,
+                subjectInputs: [{ data: paths, closed: true }],
+                clipInputs: [b2],
+                subjectFillType: clipperLib.PolyFillType.EvenOdd,
+              });
+              //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
+              this._bsp = polyResult;
+            }
+            break;
+
+          case Stamp.INTERSECT:
+            if (this._bsp) {
+              b2 = this._toPaths(g);
+              let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+              const polyResult = Stamp.clipper.clipToPolyTree({
+                clipType: clipperLib.ClipType.Intersection,
                 subjectInputs: [{ data: paths, closed: true }],
                 clipInputs: [b2],
                 subjectFillType: clipperLib.PolyFillType.EvenOdd,
@@ -323,6 +343,11 @@ export class Stamp {
     return this;
   }
 
+  intersect() {
+    this._nodes.push({ fName: "_intersect", args: Array.from(arguments) });
+    return this;
+  }
+
   boolean(type: number | string) {
     this._nodes.push({ fName: "_boolean", args: [type] });
     return this;
@@ -404,7 +429,17 @@ export class Stamp {
     return this;
   }
 
-  polys() {
+  generate(): Ray[] {
+    if (!this.baked) {
+      this.bake();
+    }
+    return [];
+  }
+
+  children() {
+    if (!this.baked) {
+      this.bake();
+    }
     return this._bsp ? this._polyTreeToPolygons(this._bsp) : [];
   }
 
@@ -490,6 +525,7 @@ export class Stamp {
     const privateFunctionMap: { [key:string]: Function } = {
       _add: this._add,
       _subtract: this._subtract,
+      _intersect: this._intersect,
       _boolean: this._boolean,
       _next: this._next,
       _moveTo: this._moveTo,
@@ -500,6 +536,7 @@ export class Stamp {
       _colorIndex: this._colorIndex,
       _circle: this._circle,
       _rectangle: this._rectangle,
+      _reset: this._reset,
       _roundedRectangle: this._roundedRectangle,
     }
 
@@ -546,7 +583,7 @@ export class Stamp {
   }
 
   clone(): Stamp {
-    let stamp = new Stamp();
+    let stamp = new Stamp(this.center.clone(), this.segments, this.reverse);
     stamp._colors = this._colors?.concat();
     return stamp.fromString(this.toString());
   }

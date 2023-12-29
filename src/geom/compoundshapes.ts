@@ -3,7 +3,7 @@ import { AbstractShape, BoundingBox, Circle, Ray, Rectangle, RoundedRectangle } 
 export class Donut extends AbstractShape {
   innerRadius: number;
   outerRadius: number;
-  constructor(center: Ray, innerRadius: number, outerRadius: number, segments: number = 32) {
+  constructor(center?: Ray, innerRadius: number = 30, outerRadius: number = 50, segments: number = 32) {
     super(center, segments, false)
     this.innerRadius = innerRadius;
     this.outerRadius = outerRadius;
@@ -30,7 +30,7 @@ export class RectangularDonut extends AbstractShape {
   innerHeight: number
   outerWidth: number
   outerHeight: number
-  constructor(center: Ray, innerWidth: number, innerHeight: number, outerWidth: number, outerHeight: number, segments: number = 1) {
+  constructor(center?: Ray, innerWidth: number = 60, innerHeight: number = 60, outerWidth: number = 100, outerHeight: number = 100, segments: number = 1) {
     super(center, segments, false)
     this.innerWidth = innerWidth
     this.innerHeight = innerHeight
@@ -59,7 +59,7 @@ export class RoundedRectangularDonut extends AbstractShape {
   height: number
   radius: number
   thickness: number
-  constructor(center: Ray, width: number, height: number, radius: number, thickness: number, segments: number = 3) {
+  constructor(center?: Ray, width: number = 100, height: number = 100, radius: number = 25, thickness: number = 20, segments: number = 3) {
     super(center, segments, false)
     this.width = width
     this.height = height

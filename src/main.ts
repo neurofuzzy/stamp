@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { IShape } from './geom/shapes';
+import { IShape, Ray } from './geom/shapes';
 import { Stamp } from './stamp';
 import './style.css';
 import { Sequence } from './sequence';
@@ -26,31 +26,37 @@ Sequence.fromStatement("random 20,30,40,50 as AB", 14)
 Sequence.fromStatement("random 5,10,15,20 as AC", 14)
 Sequence.fromStatement("random 10,5,-5,0 as ARA", 14)
 Sequence.fromStatement("random 10,5,-5,0 as ARB", 14)
+Sequence.fromStatement("random 10,5,-5,0 as ARC", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
-  const shapes = new Stamp()
-    .moveTo(w / 2, h / 2)
+  const shapes = new Stamp(new Ray(w / 2, h / 2, Math.PI / 6))
     .rotate(rot)
-    .roundedRectangle("AA()", "AA", "ARA()", 8, 3, 9, 9, 80, 80)
+    .roundedRectangle("AA()", "AA", "ARA()", 8, 3, 5, 5, 80, 80)
+    //.rectangle(120, 20, "ARB()", 1, 9, 9, 80, 80)
     .subtract()
-    .rectangle("AB()", "AB", "ARB()", 1, 9, 9, 80, 80)
+    .rectangle("AB()", "AB", "ARC()", 1, 5, 5, 80, 80)
     .add()
-    .circle("AC()", 64, 9, 9, 80, 80);
-  shapes.bake();
-  shapes.polys().forEach(s => drawShape(ctx, s));
+    .circle("AC()", 64, 5, 5, 80, 80);
+  //shapes.bake();
+  drawShape(ctx, shapes);
+  drawBoundingBox(ctx, shapes);
+  //shapes.polys().forEach(s => drawShape(ctx, s));
+  //shapes.polys().forEach(s => drawBoundingBox(ctx, s));
 }
 
 function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0) {
 
-  const rays = shape.flatten();
+  const rays = shape.generate();
 
   if (shapeDepth === 0) {
     ctx.beginPath();
   }
-  ctx.moveTo(rays[0][0], rays[0][1]);
-  for (let i = 1; i < rays.length; i++) {
-    ctx.lineTo(rays[i][0], rays[i][1]);
+  if (rays.length) {
+    ctx.moveTo(rays[0].x, rays[0].y);
+    for (let i = 1; i < rays.length; i++) {
+      ctx.lineTo(rays[i].x, rays[i].y);
+    }
   }
   shape.children().forEach(child => drawShape(ctx, child, shapeDepth + 1));
   ctx.closePath();
@@ -62,6 +68,17 @@ function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0)
     ctx.fill('evenodd');
     ctx.stroke();
   }
+
+}
+
+function drawBoundingBox(ctx: CanvasRenderingContext2D, shape: IShape) {
+
+  const bb = shape.boundingBox();
+console.log(bb)
+  ctx.beginPath();
+  ctx.strokeStyle = 'cyan';
+  ctx.lineWidth = 0.5; 
+  ctx.strokeRect(bb.x, bb.y, bb.width, bb.height);
 
 }
 
