@@ -1,4 +1,4 @@
-import {arbit} from "arbit";
+import * as arbit from "arbit";
 
 export class Sequence {
 

@@ -2,6 +2,7 @@ import * as C2S from 'canvas2svg';
 import { IShape } from './geom/shapes';
 import { Stamp } from './stamp';
 import './style.css';
+import { Sequence } from './sequence';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -20,15 +21,17 @@ ctx.fillStyle = 'white';
 
 let rot = 0;
 
+Sequence.fromStatement("repeat 50,60,70 as AA")
+
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
   const shapes = new Stamp()
     .moveTo(w / 2, h / 2)
     .rotate(rot)
-    .roundedRectangle(60, 60, 8, 1, 5, 5, 20, 20)
+    .roundedRectangle("AA()", "AA", 8, 1, 5, 5, 80, 80)
     .subtract()
     //.add()
-    .rectangle(40, 40, 1, 5, 5, 40, 40);//.circle(20, 16, 3, 4, 20, 20);//.rectangle(30, 30, 1, 10, 10, 20, 20);
+    .rectangle(40, 40, 1, 5, 5, 80, 80);//.circle(20, 16, 3, 4, 20, 20);//.rectangle(30, 30, 1, 10, 10, 20, 20);
   shapes.bake();
   shapes.polys().forEach(s => drawShape(ctx, s));
 }
@@ -82,7 +85,7 @@ async function main() {
   function animate() {
     rot += Math.PI / 180 * 0.5;
     draw(ctx);
-    requestAnimationFrame(animate);
+    //requestAnimationFrame(animate);
   }
 
   animate();

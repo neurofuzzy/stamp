@@ -234,10 +234,10 @@ export class Stamp {
     this.colorIdx = idx;
   };
 
-  private _getGroupOffset (w: number, h: number, nx = 1, ny = 1, ox = 0, oy = 0): Point {
+  private _getGroupOffset (nx = 1, ny = 1, ox = 0, oy = 0): Point {
     const pt = new Point(0, 0);
-    pt.x = (nx - 1) * (w + ox) * 0.5;
-    pt.y = (ny - 1) * (h + oy) * 0.5;
+    pt.x = (nx - 1) * (ox) * 0.5;
+    pt.y = (ny - 1) * (oy) * 0.5;
     return pt;
   }
 
@@ -251,12 +251,10 @@ export class Stamp {
   ) {
     let shapes: IShape[] = [];
     let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let nr = $(r);
-    let ns = $(s);
-    let o = this._getGroupOffset(nr * 2, nr * 2, nnx, nny, nox, noy);
+    let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Circle(new Ray(nr * 2 * i + nox * i - o.x, nr * 2 * j + noy * j - o.y, 0), nr, ns));
+        shapes.push(new Circle(new Ray(nox * i - o.x, noy * j - o.y, 0), $(r), $(s)));
       }
     }
     this._make(shapes);
@@ -273,13 +271,10 @@ export class Stamp {
   ) {
     let shapes: IShape[] = [];
     let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let nw = $(w);
-    let nh = $(h);
-    let ns = $(s);
-    let o = this._getGroupOffset(nw, nh, nnx, nny, nox, noy);
+    let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Rectangle(new Ray(nw * i + nox * i - o.x, nh * j + noy * j - o.y, 0), nw, nh, ns));
+        shapes.push(new Rectangle(new Ray(nox * i - o.x, + noy * j - o.y, 0), $(w), $(h), $(s)));
       }
     }
     this._make(shapes);
@@ -297,14 +292,10 @@ export class Stamp {
   ) {
     let shapes: IShape[] = [];
     let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let nw = $(w);
-    let nh = $(h);
-    let ncr = $(cr);
-    let ns = $(s);
-    let o = this._getGroupOffset(nw, nh, nnx, nny, nox, noy);
+    let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new RoundedRectangle(new Ray(nw * i + nox * i - o.x, nh * j + noy * j - o.y, 0), nw, nh, ncr, ns));
+        shapes.push(new RoundedRectangle(new Ray(nox * i - o.x, + noy * j - o.y, 0), $(w), $(h), $(cr), $(s)));
       }
     }
     this._make(shapes);
