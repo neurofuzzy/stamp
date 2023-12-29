@@ -33,30 +33,31 @@ async function main() {
       //.add()
       .rectangle(40, 40, 1, 3, 3, 60, 60);//.circle(20, 16, 3, 4, 20, 20);//.rectangle(30, 30, 1, 10, 10, 20, 20);
     shapes.bake();
-    shapes.polys().forEach(drawShape);
+    shapes.polys().forEach(s => drawShape(s));
+    
   }
 
-  function drawShape(shape: IShape, depth = 0) {
+  function drawShape(shape: IShape, shapeDepth = 0) {
 
     const rays = shape.flatten();
-    if (depth === 0) {
+
+    if (shapeDepth === 0) {
       ctx.beginPath();
     }
     ctx.moveTo(rays[0][0], rays[0][1]);
     for (let i = 1; i < rays.length; i++) {
       ctx.lineTo(rays[i][0], rays[i][1]);
     }
+    shape.children().forEach(child => drawShape(child, shapeDepth + 1));
     ctx.closePath();
-    shape.children().forEach(child => drawShape(child, depth + 1));
 
-   // if (depth === 0) {
+    if (shapeDepth === 0) {
       ctx.strokeStyle = 'white';
-      ctx.lineWidth = 0.25;
-      
       ctx.fillStyle = '#333';
+      ctx.lineWidth = 0.25; 
       ctx.fill('evenodd');
       ctx.stroke();
-  //  }
+    }
     
 
     rays.forEach(r => {
