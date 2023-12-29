@@ -32,7 +32,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const shapes = new Stamp()
     .moveTo(w / 2, h / 2)
     .rotate(rot)
-    .roundedRectangle("AA()", "AA", "ARA()", 8, 1, 9, 9, 80, 80)
+    .roundedRectangle("AA()", "AA", "ARA()", 8, 3, 9, 9, 80, 80)
     .subtract()
     .rectangle("AB()", "AB", "ARB()", 1, 9, 9, 80, 80)
     .add()
@@ -71,10 +71,11 @@ document.onkeydown = function (e) {
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width, canvas.height);
     // draw the boundary
+    ctx2.backgroundColor = '#000';
     // draw the shapes
     draw(ctx2);
     // download the SVG
-    const svg = ctx2.getSerializedSvg(true);
+    const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
     const blob = new Blob([svg], {type: "image/svg+xml"});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
