@@ -27,8 +27,10 @@ export class Stamp {
 
   _colors?: string[];
   _nodes: INode[] = [];
-  _bsp: IShape[] = [];
-  _bsps: any[] = [];
+  _bsp: clipperLib.PolyTree | null = null;
+  _bsps: clipperLib.PolyTree[] = [];
+  _polys: IShape[] = [];
+  _polygroups: IShape[][] = [];
   _mats: string[] = [];
 
   colorIdx: number = 0;
@@ -46,8 +48,10 @@ export class Stamp {
   }
 
   private _reset () {
+    this._bsp = null;
     this._bsps = [];
-    this._bsp = [];
+    this._polys = [];
+    this._polygroups = [];
     this.mode = Stamp.UNION;
     this.baked = false;
     this.offsetX = 0;
@@ -77,7 +81,7 @@ export class Stamp {
   private _next () {
     if (this._bsp) {
       this._bsps.push(this._bsp);
-      this._bsp = [];
+      this._bsp = null
       this.mode = Stamp.UNION;
     }
   };
@@ -107,37 +111,48 @@ export class Stamp {
     this.cursor.direction = GeomHelpers.normalizeAngle(this.cursor.direction + $(r));
   };
 
-  private _toPaths (shapes: IShape[]): { data: any[], closed: boolean }[] {
-    let paths = [];
-    for (let i = 0; i < shapes.length; i++) {
-      let shape = shapes[i];
-      let rays = shape.generate();
-      let path = rays.map(r => ({ x: Math.round(r.x * 1000), y: Math.round(r.y * 1000) }));
-      path.pop();
-      paths.push({ data: path, closed: true });
-    }
-    return paths;
+  private _toPaths (shape: IShape): { data: clipperLib.IntPoint[], closed: boolean } {
+    let rays = shape.generate();
+    let path = rays.map(r => ({ x: Math.round(r.x * 10000), y: Math.round(r.y * 10000) } as clipperLib.IntPoint));
+    path.pop();
+    return { 
+      data: path, 
+      closed: true
+    };
   }
 
-  private _toPolygons (paths: clipperLib.Paths): IShape[] {
-    let polygons = [];
-    for (let i = 0; i < paths.length; i++) {
-      let path = paths[i];
-      let polygonPoints = [];
-      let centerX = 0;
-      let centerY = 0;
-      for (let j = 0; j < path.length; j++) {
-        let p = path[j];
-        polygonPoints.push(new Ray(p.x / 1000, p.y / 1000));
-        centerX += p.x / 1000;
-        centerY += p.y / 1000;
+  private _polyTreeToPolygons (polyTree: clipperLib.PolyTree): IShape[] {
+    let polygons: IShape[] = [];
+    const polyNodeToShape = (node: clipperLib.PolyNode): IShape => {
+      const rays: Ray[] = [];
+      if (node.contour.length) {
+        for (let j = 0; j < node.contour.length; j++) {
+          let p = node.contour[j];
+          rays.push(new Ray(Math.round((p.x - 10000) / 10000), Math.round((p.y - 10000) / 10000)));
+        }
+        rays.push(rays[0].clone());
       }
-      centerX /= path.length;
-      centerY /= path.length;
-      polygonPoints.push(polygonPoints[0].clone());
-      const center = new Ray(centerX, centerY);
-      polygons.push(new Polygon(center, polygonPoints));
+      let polygon: IShape = new Polygon(new Ray(0, 0), rays, 1);
+      polygon.isHole = node.isHole;
+      if (node.childs.length) {
+        for (let j = 0; j < node.childs.length; j++) {
+          let childNode = node.childs[j];
+          let child = polyNodeToShape(childNode);
+          if (child && polygon) {
+            polygon.addChild(child);
+          }
+        }
+      }
+      return polygon;
     }
+    
+    polyTree.childs.forEach(node => {
+      const polygon = polyNodeToShape(node);
+      if (polygon) {
+        polygons.push(polygon);
+      }
+    });
+    console.log(polygons)
     return polygons;
   }
 
@@ -166,36 +181,45 @@ export class Stamp {
         this._bsp.push(g);
         */
 
-        let b = null;
+        let b: clipperLib.SubjectInput;
         let b2 = null;
 
         switch (this.mode) {
           case Stamp.UNION:
-            if (this._bsp.length) {
-              b2 = this._toPaths([g]);
-              b = this._toPaths(this._bsp);
-              const polyResult = Stamp.clipper.clipToPaths({
+            if (this._bsp) {
+              b2 = this._toPaths(g);
+              let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+              const polyResult = Stamp.clipper.clipToPolyTree({
                 clipType: clipperLib.ClipType.Union,
-                subjectInputs: b.concat(b2),
+                subjectInputs: [{ data: paths, closed: true }],
+                clipInputs: [b2],
                 subjectFillType: clipperLib.PolyFillType.EvenOdd,
               });
-              this._bsp = this._toPolygons(polyResult);
+              //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
+              this._bsp = polyResult;
             } else {
-              this._bsp = [g];
+              b = this._toPaths(g);
+              const polyResult = Stamp.clipper.clipToPolyTree({
+                clipType: clipperLib.ClipType.Union,
+                subjectInputs: [b],
+                subjectFillType: clipperLib.PolyFillType.EvenOdd,
+              });
+              this._bsp = polyResult;
             }
             break;
 
           case Stamp.SUBTRACT:
             if (this._bsp) {
-              b2 = this._toPaths([g]);
-              b = this._toPaths(this._bsp);
-              const polyResult = Stamp.clipper.clipToPaths({
+              b2 = this._toPaths(g);
+              let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+              const polyResult = Stamp.clipper.clipToPolyTree({
                 clipType: clipperLib.ClipType.Difference,
-                subjectInputs: b,
-                clipInputs: b2,
+                subjectInputs: [{ data: paths, closed: true }],
+                clipInputs: [b2],
                 subjectFillType: clipperLib.PolyFillType.EvenOdd,
               });
-              this._bsp = this._toPolygons(polyResult);
+              //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
+              this._bsp = polyResult;
             }
             break;
         }
@@ -385,8 +409,8 @@ export class Stamp {
     return this;
   }
 
-  bsp() {
-    return this._bsp;
+  polys() {
+    return this._bsp ? this._polyTreeToPolygons(this._bsp) : [];
   }
 
   getCursor(): Ray {

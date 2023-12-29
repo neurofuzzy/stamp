@@ -143,4 +143,12 @@ export class GeomHelpers {
     }
   }
 
+  static raySetIsClockwise(rays: Ray[]) {
+    let sum = 0;
+    for (let i = 0; i < rays.length - 1; i++) {
+      sum += GeomHelpers.angleBetweenPoints(rays[i], rays[i + 1]);
+    }
+    return sum < 0
+  }
+
 }

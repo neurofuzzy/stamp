@@ -28,25 +28,36 @@ async function main() {
     const shapes = new Stamp()
       .moveTo(w / 2, h / 2)
       .rotate(rot)
-      .roundedRectangle(60, 60, 5, 1, 3, 3, 40, 40)
+      .roundedRectangle(60, 60, 8, 1, 3, 3, 40, 40)
       .subtract()
-      .rectangle(40, 80, 1, 3, 3, 60, 20);//.circle(20, 16, 3, 4, 20, 20);//.rectangle(30, 30, 1, 10, 10, 20, 20);
+      //.add()
+      .rectangle(40, 40, 1, 3, 3, 60, 60);//.circle(20, 16, 3, 4, 20, 20);//.rectangle(30, 30, 1, 10, 10, 20, 20);
     shapes.bake();
-    shapes.bsp().forEach(drawShape);
+    shapes.polys().forEach(drawShape);
   }
 
-  function drawShape(shape: IShape) {
+  function drawShape(shape: IShape, depth = 0) {
+
     const rays = shape.flatten();
-    ctx.beginPath();
+    if (depth === 0) {
+      ctx.beginPath();
+    }
     ctx.moveTo(rays[0][0], rays[0][1]);
     for (let i = 1; i < rays.length; i++) {
       ctx.lineTo(rays[i][0], rays[i][1]);
     }
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.fillStyle = '#333';
-    ctx.fill();
+    ctx.closePath();
+    shape.children().forEach(child => drawShape(child, depth + 1));
+
+   // if (depth === 0) {
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 0.25;
+      
+      ctx.fillStyle = '#333';
+      ctx.fill('evenodd');
+      ctx.stroke();
+  //  }
+    
 
     rays.forEach(r => {
       //drawRay(r);
@@ -56,7 +67,7 @@ async function main() {
   function animate() {
     rot += Math.PI / 180 * 0.5;
     draw();
-    requestAnimationFrame(animate);
+    //requestAnimationFrame(animate);
   }
 
   animate();

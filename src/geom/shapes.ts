@@ -4,10 +4,13 @@ export interface IShape {
   center: Ray
   segments: number
   reverse: boolean
+  isHole: boolean
   generate(): Ray[]
   flatten(): number[][]
   clone(): IShape
   boundingBox(): BoundingBox
+  children(): IShape[]
+  addChild(shape: IShape): void
 }
 
 export class Point {
@@ -56,10 +59,14 @@ export class AbstractShape implements IShape {
   center: Ray
   segments: number
   reverse: boolean
+  childShapes: IShape[]
+  isHole: boolean;
   constructor (center: Ray, segments: number = 1, reverse: boolean = false) {
     this.center = center || new Ray(0, 0);
     this.segments = Math.floor(Math.max(1, segments));
     this.reverse = reverse || false;
+    this.childShapes = [];
+    this.isHole = false;
   }
   generate(): Ray[] {
     console.log("generate", this.segments)
@@ -73,6 +80,12 @@ export class AbstractShape implements IShape {
   }
   boundingBox(): BoundingBox {
     return new BoundingBox(this.center.x, this.center.y, 0, 0);
+  }
+  children(): IShape[] {
+    return this.childShapes;
+  }
+  addChild(shape: IShape) {
+    this.childShapes.push(shape);
   }
 }
 
