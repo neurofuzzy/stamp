@@ -171,7 +171,7 @@ export class Stamp {
         g.center.x += this.cursor.x;
         g.center.y += this.cursor.y;
         GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
-        g.center.direction = this.cursor.direction;
+        g.center.direction += this.cursor.direction;
 
         /*
         if (!this._bsp) {
@@ -263,6 +263,7 @@ export class Stamp {
   private _rectangle(
     w: number | string, 
     h: number | string, 
+    ang: number | string, 
     s: number | string, 
     nx: number | string = 1, 
     ny: number | string = 1, 
@@ -274,7 +275,7 @@ export class Stamp {
     let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Rectangle(new Ray(nox * i - o.x, + noy * j - o.y, 0), $(w), $(h), $(s)));
+        shapes.push(new Rectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(s)));
       }
     }
     this._make(shapes);
@@ -282,7 +283,8 @@ export class Stamp {
 
   private _roundedRectangle(
     w: number | string, 
-    h: number | string, 
+    h: number | string,
+    ang: number | string,
     cr: number | string,
     s: number | string, 
     nx: number | string = 1, 
@@ -295,7 +297,7 @@ export class Stamp {
     let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new RoundedRectangle(new Ray(nox * i - o.x, + noy * j - o.y, 0), $(w), $(h), $(cr), $(s)));
+        shapes.push(new RoundedRectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(cr), $(s)));
       }
     }
     this._make(shapes);
@@ -371,19 +373,21 @@ export class Stamp {
   rectangle(
     w: number | string, 
     h: number | string, 
+    ang: number | string,
     s: number | string, 
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
     oy: number | string = 0
   ) {
-    this._nodes.push({ fName: "_rectangle", args: [w, h, s, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_rectangle", args: [w, h, ang, s, nx, ny, ox, oy] });
     return this;
   }
 
   roundedRectangle(
     w: number | string, 
     h: number | string, 
+    ang: number | string,
     cr: number | string, 
     s: number | string, 
     nx: number | string = 1, 
@@ -391,7 +395,7 @@ export class Stamp {
     ox: number | string = 0, 
     oy: number | string = 0
   ) {
-    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, cr, s, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, ang, cr, s, nx, ny, ox, oy] });
     return this;
   }
 

@@ -24,15 +24,17 @@ let rot = 0;
 Sequence.fromStatement("random 40,50,60,70 as AA", 14)
 Sequence.fromStatement("random 20,30,40,50 as AB", 14)
 Sequence.fromStatement("random 5,10,15,20 as AC", 14)
+Sequence.fromStatement("random 10,5,-5,0 as ARA", 14)
+Sequence.fromStatement("random 10,5,-5,0 as ARB", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
   const shapes = new Stamp()
     .moveTo(w / 2, h / 2)
     .rotate(rot)
-    .roundedRectangle("AA()", "AA", 8, 1, 9, 9, 80, 80)
+    .roundedRectangle("AA()", "AA", "ARA()", 8, 1, 9, 9, 80, 80)
     .subtract()
-    .rectangle("AB()", "AB", 1, 9, 9, 80, 80)
+    .rectangle("AB()", "AB", "ARB()", 1, 9, 9, 80, 80)
     .add()
     .circle("AC()", 64, 9, 9, 80, 80);
   shapes.bake();
