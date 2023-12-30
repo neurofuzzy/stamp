@@ -29,7 +29,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const building = new Stamp(new Ray(100, 100, 0))
     .rectangle(50, "BH()").subtract().rectangle(10, 20, 0, 1, ShapeAlignment.CENTER, 2, "BNW()", 20, 30)
   const city = new Stamp(new Ray(w / 2, h / 2, 0))
-    .stamp(building, 0, ShapeAlignment.CENTER, 4, 3, 80, 120);
+    .stamp(building, 0, ShapeAlignment.TOP, 8, 5, 70, 120);
   drawShape(ctx, city);
   //drawBoundingBox(ctx, shapes);
   //drawBoundingCircle(ctx, city);

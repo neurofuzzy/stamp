@@ -30,8 +30,8 @@ export class Stamp extends AbstractShape {
   _nodes: INode[] = [];
   _bsp: clipperLib.PolyTree | null = null;
   _bsps: clipperLib.PolyTree[] = [];
-  _polys: IShape[] = [];
-  _polygroups: IShape[][] = [];
+  _polys: Polygon[] = [];
+  _polygroups: Polygon[][] = [];
   _mats: string[] = [];
 
   colorIdx: number = 0;
@@ -134,9 +134,9 @@ export class Stamp extends AbstractShape {
     };
   }
 
-  private _polyTreeToPolygons (polyTree: clipperLib.PolyTree): IShape[] {
-    let polygons: IShape[] = [];
-    const polyNodeToShape = (node: clipperLib.PolyNode): IShape => {
+  private _polyTreeToPolygons (polyTree: clipperLib.PolyTree): Polygon[] {
+    let polygons: Polygon[] = [];
+    const polyNodeToPolygon = (node: clipperLib.PolyNode): Polygon => {
       const rays: Ray[] = [];
       if (node.contour.length) {
         for (let j = 0; j < node.contour.length; j++) {
@@ -145,12 +145,12 @@ export class Stamp extends AbstractShape {
         }
         rays.push(rays[0].clone());
       }
-      let polygon: IShape = new Polygon(new Ray(0, 0), rays, 1);
+      let polygon: Polygon = new Polygon(new Ray(0, 0), rays, 1);
       polygon.isHole = node.isHole;
       if (node.childs.length) {
         for (let j = 0; j < node.childs.length; j++) {
           let childNode = node.childs[j];
-          let child = polyNodeToShape(childNode);
+          let child = polyNodeToPolygon(childNode);
           if (child && polygon) {
             polygon.addChild(child);
           }
@@ -160,7 +160,7 @@ export class Stamp extends AbstractShape {
     }
     
     polyTree.childs.forEach(node => {
-      const polygon = polyNodeToShape(node);
+      const polygon = polyNodeToPolygon(node);
       if (polygon) {
         polygons.push(polygon);
       }
@@ -639,6 +639,22 @@ export class Stamp extends AbstractShape {
     }
 
     this._polys = this._bsp ? this._polyTreeToPolygons(this._bsp) : [];
+
+    const offset = this.alignmentOffset();
+
+    const applyOffsetToPoly = (p: Polygon) => {
+      p.rays.forEach(r => {
+        r.x += offset.x;
+        r.y += offset.y;
+      });
+      p.children().forEach(child => {
+        if (child instanceof Polygon) {
+          applyOffsetToPoly(child as Polygon);
+        }
+      });
+    }
+    
+    this._polys.forEach(applyOffsetToPoly);
 
     return this;
   }
