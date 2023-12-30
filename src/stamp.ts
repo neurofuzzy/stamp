@@ -115,12 +115,21 @@ export class Stamp extends AbstractShape {
     this.cursor.direction = GeomHelpers.normalizeAngle(this.cursor.direction + $(r));
   };
 
-  private _toPaths (shape: IShape): { data: clipperLib.IntPoint[], closed: boolean } {
+  private _toPaths (shape: IShape): { data: clipperLib.IntPoint[] | clipperLib.IntPoint[][], closed: boolean } {
     let rays = shape.generate();
+    if (rays.length === 0 && shape.children().length === 1) {
+      rays = shape.children()[0].generate();
+      shape = shape.children()[0];
+    }
+    const paths = [];
     let path = rays.map(r => ({ x: Math.round(r.x * 10000), y: Math.round(r.y * 10000) } as clipperLib.IntPoint));
-    path.pop();
+    paths.push(path);
+    shape.children().forEach((s) => {
+      let p = this._toPaths(s);
+      paths.push(...p.data);
+    })
     return { 
-      data: path, 
+      data: paths, 
       closed: true
     };
   }
@@ -326,6 +335,47 @@ export class Stamp extends AbstractShape {
     this._make(shapes);
   }
 
+  private _polygon(
+    rayStrings: string[],
+    ang: number | string = 0,
+    s: number | string = 1,
+    a: number | string = ShapeAlignment.CENTER,
+    nx: number | string = 1,
+    ny: number | string = 1,
+    ox: number | string = 0,
+    oy: number | string = 0
+  ) {
+    let shapes: IShape[] = [];
+    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    let o = this._getGroupOffset(nnx, nny, nox, noy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        shapes.push(new Polygon(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), rayStrings.map((s) => new Ray(0, 0).fromString(s)), $(s), $(a)));
+      }
+    }
+    this._make(shapes);
+  }
+
+  private _stamp(
+    subStampString: string,
+    ang: number | string = 0,
+    a: number | string = ShapeAlignment.CENTER,
+    nx: number | string = 1,
+    ny: number | string = 1,
+    ox: number | string = 0,
+    oy: number | string = 0
+  ) {
+    let shapes: IShape[] = [];
+    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
+    let o = this._getGroupOffset(nnx, nny, nox, noy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        shapes.push(new Stamp(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), 1, $(a)).fromString(subStampString));
+      }
+    }
+    this._make(shapes);
+  }
+
   reset() {
     this._nodes.push({ fName: "_reset", args: Array.from(arguments) });
     return this;
@@ -402,7 +452,7 @@ export class Stamp extends AbstractShape {
   rectangle(
     w: number | string, 
     h: number | string, 
-    ang: number | string,
+    ang: number | string = 0,
     s: number | string = 1, 
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
@@ -417,7 +467,7 @@ export class Stamp extends AbstractShape {
   roundedRectangle(
     w: number | string, 
     h: number | string, 
-    ang: number | string,
+    ang: number | string = 0,
     cr: number | string = 0, 
     s: number | string = 3, 
     a: number | string = ShapeAlignment.CENTER,
@@ -427,6 +477,33 @@ export class Stamp extends AbstractShape {
     oy: number | string = 0
   ) {
     this._nodes.push({ fName: "_roundedRectangle", args: [w, h, ang, cr, s, a, nx, ny, ox, oy] });
+    return this;
+  }
+
+  polygon(
+    rays: Ray[],
+    ang: number | string = 0,
+    s: number | string = 1,
+    a: number | string = ShapeAlignment.CENTER,
+    nx: number | string = 1,
+    ny: number | string = 1,
+    ox: number | string = 0,
+    oy: number | string = 0
+  ) {
+    this._nodes.push({ fName: "_polygon", args: [rays.map(r => r.toString()), ang, s, a, nx, ny, ox, oy] });
+    return this;
+  }
+
+  stamp(
+    subStamp: Stamp,
+    ang: number | string = 0,
+    a: number | string = ShapeAlignment.CENTER,
+    nx: number | string = 1,
+    ny: number | string = 1,
+    ox: number | string = 0,
+    oy: number | string = 0
+  ) {
+    this._nodes.push({ fName: "_stamp", args: [subStamp.toString(), ang, a, nx, ny, ox, oy] });
     return this;
   }
 
@@ -446,7 +523,7 @@ export class Stamp extends AbstractShape {
     if (!this.baked) {
       this.bake();
     }
-    return this._bsp ? this._polyTreeToPolygons(this._bsp) : [];
+    return this._polys;
   }
 
   getCursor(): Ray {
@@ -544,6 +621,8 @@ export class Stamp extends AbstractShape {
       _rectangle: this._rectangle,
       _reset: this._reset,
       _roundedRectangle: this._roundedRectangle,
+      _polygon: this._polygon,
+      _stamp: this._stamp,
     }
 
     for (let i = 0; i < nodes.length; i++) {
@@ -558,6 +637,8 @@ export class Stamp extends AbstractShape {
     if (!this._colors) {
       this._colors = ["white"];
     }
+
+    this._polys = this._bsp ? this._polyTreeToPolygons(this._bsp) : [];
 
     return this;
   }

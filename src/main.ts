@@ -21,31 +21,24 @@ ctx.fillStyle = 'white';
 
 let rot = 0;
 
-Sequence.fromStatement("random 40,50,60,70 as AA", 14)
-Sequence.fromStatement("random 20,30,40,50 as AB", 14)
-Sequence.fromStatement("random 5,10,15,20 as AC", 14)
-Sequence.fromStatement("random 10,5,-5,0 as ARA", 14)
-Sequence.fromStatement("random 10,5,-5,0 as ARB", 14)
-Sequence.fromStatement("random 10,5,-5,0 as ARC", 14)
+Sequence.fromStatement("repeat 40,70,100 AS BH", 14)
+Sequence.fromStatement("repeat 1,2,3 AS BNW", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
-  const shapes = new Stamp(new Ray(w / 2, h / 2, 0))
-    .rotate(rot)
-    .rectangle("AA()", "AA", 0, 1, ShapeAlignment.TOP, 5, 5, 80, 80)
-    //.rectangle(120, 20, "ARB()", 1, 9, 9, 80, 80)
-   // .subtract()
-   // .rectangle("AB()", "AB", 0, 1, ShapeAlignment.TOP, 5, 5, 80, 80);
-  //shapes.bake();
-  drawShape(ctx, shapes);
+  const building = new Stamp(new Ray(100, 100, 0))
+    .rectangle(50, "BH()").subtract().rectangle(10, 20, 0, 1, ShapeAlignment.CENTER, 2, "BNW()", 20, 30)
+  const city = new Stamp(new Ray(w / 2, h / 2, 0))
+    .stamp(building, 0, ShapeAlignment.CENTER, 4, 3, 80, 120);
+  drawShape(ctx, city);
   //drawBoundingBox(ctx, shapes);
-  drawBoundingCircle(ctx, shapes);
-  drawCenter(ctx, shapes);
-  drawBoundingBox(ctx, shapes);
-  shapes.children().forEach(child => drawBoundingCircle(ctx, child));
-  shapes.children().forEach(child => drawCenter(ctx, child));
+  //drawBoundingCircle(ctx, city);
+  //drawCenter(ctx, city);
+  //drawBoundingBox(ctx, city);
+  //city.children().forEach(child => drawBoundingCircle(ctx, child));
+  //city.children().forEach(child => drawCenter(ctx, child));
   //shapes.polys().forEach(s => drawShape(ctx, s));
-  shapes.children().forEach(s => drawBoundingBox(ctx, s));
+  //city.children().forEach(s => drawBoundingBox(ctx, s));
 }
 
 function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0) {
