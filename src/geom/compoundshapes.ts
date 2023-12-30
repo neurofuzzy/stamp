@@ -14,7 +14,7 @@ export class Donut extends Circle {
     innerRadius: number = 30,
     outerRadius: number = 50,
     segments: number = 32,
-    alignment: ShapeAlignment = ShapeAlignment.Center
+    alignment: ShapeAlignment = ShapeAlignment.CENTER
   ) {
     super(center, outerRadius, segments, alignment, false);
     this.innerRadius = innerRadius;
@@ -32,7 +32,7 @@ export class Donut extends Circle {
       offsetCenter,
       this.innerRadius,
       this.segments,
-      ShapeAlignment.Center,
+      ShapeAlignment.CENTER,
       true
     ).generate();
     const outer = new Circle(
@@ -71,7 +71,7 @@ export class RectangularDonut extends Rectangle {
     outerWidth: number = 100,
     outerHeight: number = 100,
     segments: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.Center
+    alignment: ShapeAlignment = ShapeAlignment.CENTER
   ) {
     super(center, outerWidth, outerHeight, segments, alignment, false);
     this.innerWidth = innerWidth;
@@ -91,7 +91,7 @@ export class RectangularDonut extends Rectangle {
       this.innerWidth,
       this.innerHeight,
       this.segments,
-      ShapeAlignment.Center,
+      ShapeAlignment.CENTER,
       true
     ).generate();
     const outer = new Rectangle(
@@ -135,7 +135,7 @@ export class RoundedRectangularDonut extends AbstractShape {
     radius: number = 25,
     thickness: number = 20,
     segments: number = 3,
-    alignment: ShapeAlignment = ShapeAlignment.Center
+    alignment: ShapeAlignment = ShapeAlignment.CENTER
   ) {
     super(center, segments, alignment, false);
     this.width = width;
@@ -167,7 +167,7 @@ export class RoundedRectangularDonut extends AbstractShape {
             this.height - this.thickness * 2,
             this.radius - this.thickness,
             this.segments,
-            ShapeAlignment.Center,
+            ShapeAlignment.CENTER,
             true
           ).generate()
         : new Rectangle(
@@ -175,7 +175,7 @@ export class RoundedRectangularDonut extends AbstractShape {
             this.width - this.thickness * 2,
             this.height - this.thickness * 2,
             this.segments,
-            ShapeAlignment.Center,
+            ShapeAlignment.CENTER,
             true
           ).generate();
     return [...outer, ...inner, outer[0]];

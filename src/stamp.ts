@@ -43,7 +43,7 @@ export class Stamp extends AbstractShape {
 
   baked: boolean = false;
 
-  constructor(center?: Ray, segments: number = 1, alignment: ShapeAlignment = ShapeAlignment.Center, reverse: boolean = false) {
+  constructor(center?: Ray, segments: number = 1, alignment: ShapeAlignment = ShapeAlignment.CENTER, reverse: boolean = false) {
     super(center, segments, alignment, reverse);
   }
 
@@ -264,7 +264,7 @@ export class Stamp extends AbstractShape {
   private _circle(
     r: number | string, 
     s: number | string = 32, 
-    a: number | string = ShapeAlignment.Center,
+    a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -286,7 +286,7 @@ export class Stamp extends AbstractShape {
     h: number | string, 
     ang: number | string, 
     s: number | string = 1,
-    a: number | string = ShapeAlignment.Center,
+    a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -309,7 +309,7 @@ export class Stamp extends AbstractShape {
     ang: number | string,
     cr: number | string = 0,
     s: number | string = 1, 
-    a: number | string = ShapeAlignment.Center,
+    a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -389,7 +389,7 @@ export class Stamp extends AbstractShape {
   circle(
     r: number | string, 
     s: number | string = 32, 
-    a: number | string = ShapeAlignment.Center,
+    a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -404,7 +404,7 @@ export class Stamp extends AbstractShape {
     h: number | string, 
     ang: number | string,
     s: number | string = 1, 
-    a: number | string = ShapeAlignment.Center,
+    a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -420,7 +420,7 @@ export class Stamp extends AbstractShape {
     ang: number | string,
     cr: number | string = 0, 
     s: number | string = 3, 
-    a: number | string = ShapeAlignment.Center,
+    a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 

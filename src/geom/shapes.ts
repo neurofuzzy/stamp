@@ -2,15 +2,15 @@ import { makeCircle } from "../lib/smallest-enclosing-circle";
 import { GeomHelpers } from "./helpers";
 
 export enum ShapeAlignment {
-  TopLeft = 0,
-  Top = 1,
-  TopRight = 2,
-  Left = 3,
-  Center = 4,
-  Right = 5,
-  BottomLeft = 6,
-  Bottom = 7,
-  BottomRight = 8,
+  TOP_LEFT = 0,
+  TOP = 1,
+  TOP_RIGHT = 2,
+  LEFT = 3,
+  CENTER = 4,
+  RIGHT = 5,
+  BOTTOM_LEFT = 6,
+  BOTTOM = 7,
+  BOTTOM_RIGHT = 8,
 }
 
 export interface IShape {
@@ -80,11 +80,11 @@ export class AbstractShape implements IShape {
   reverse: boolean;
   childShapes: IShape[];
   isHole: boolean;
-  alignment: ShapeAlignment = ShapeAlignment.Center;
+  alignment: ShapeAlignment = ShapeAlignment.CENTER;
   constructor(
     center?: Ray,
     segments: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.Center,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
     this.center = center || new Ray(0, 0);
@@ -108,33 +108,33 @@ export class AbstractShape implements IShape {
     this.center.direction = d;
     let pt = new Point(0, 0);
     switch (this.alignment) {
-      case ShapeAlignment.TopLeft:
+      case ShapeAlignment.TOP_LEFT:
         pt.x -= bb.width * 0.5;
         pt.y -= bb.height * 0.5;
         break;
-      case ShapeAlignment.Top:
+      case ShapeAlignment.TOP:
         pt.y -= bb.height * 0.5;
         break;
-      case ShapeAlignment.TopRight:
+      case ShapeAlignment.TOP_RIGHT:
         pt.x += bb.width * 0.5;
         pt.y -= bb.height * 0.5;
         break;
-      case ShapeAlignment.Left:
+      case ShapeAlignment.LEFT:
         pt.x -= bb.width * 0.5;
         break;
-      case ShapeAlignment.Center:
+      case ShapeAlignment.CENTER:
         break;
-      case ShapeAlignment.Right:
+      case ShapeAlignment.RIGHT:
         pt.x += bb.width * 0.5;
         break;
-      case ShapeAlignment.BottomLeft:
+      case ShapeAlignment.BOTTOM_LEFT:
         pt.x -= bb.width * 0.5;
         pt.y += bb.height * 0.5;
         break;
-      case ShapeAlignment.Bottom:
+      case ShapeAlignment.BOTTOM:
         pt.y += bb.height * 0.5;
         break;
-      case ShapeAlignment.BottomRight:
+      case ShapeAlignment.BOTTOM_RIGHT:
         pt.x += bb.width * 0.5;
     }
     return pt;
@@ -196,7 +196,7 @@ export class Arc extends AbstractShape {
     startAngle: number = 0,
     endAngle: number = Math.PI * 2,
     segments: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.Center,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
     super(center, segments, alignment, reverse);
@@ -255,15 +255,16 @@ export class Polygon extends AbstractShape {
     center?: Ray,
     rays: Ray[] = [],
     segments: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.Center,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
     super(center, segments, alignment, reverse);
     this.rays = rays;
     const bc = makeCircle(rays);
+    const offset = this.alignmentOffset();
     if (bc) {
-      this.center.x = bc.x;
-      this.center.y = bc.y;
+      this.center.x = bc.x + offset.x;
+      this.center.y = bc.y + offset.y;
     }
   }
   generate() {
@@ -300,7 +301,7 @@ export class Circle extends AbstractShape {
     center?: Ray,
     radius: number = 50,
     segments: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.Center,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
     super(center, segments, alignment, reverse);
@@ -308,24 +309,24 @@ export class Circle extends AbstractShape {
   }
   protected alignmentOffset(): Point {
     switch (this.alignment) {
-      case ShapeAlignment.TopLeft:
-        return new Point(-this.radius / 2, -this.radius / 2);
-      case ShapeAlignment.Top:
-        return new Point(0, -this.radius / 2);
-      case ShapeAlignment.TopRight:
-        return new Point(this.radius / 2, -this.radius / 2);
-      case ShapeAlignment.Left:
-        return new Point(-this.radius / 2, 0);
-      case ShapeAlignment.Center:
+      case ShapeAlignment.TOP_LEFT:
+        return new Point(-this.radius, -this.radius);
+      case ShapeAlignment.TOP:
+        return new Point(0, -this.radius);
+      case ShapeAlignment.TOP_RIGHT:
+        return new Point(this.radius, -this.radius);
+      case ShapeAlignment.LEFT:
+        return new Point(-this.radius, 0);
+      case ShapeAlignment.CENTER:
         return new Point(0, 0);
-      case ShapeAlignment.Right:
-        return new Point(this.radius / 2, 0);
-      case ShapeAlignment.BottomLeft:
-        return new Point(-this.radius / 2, this.radius / 2);
-      case ShapeAlignment.Bottom:
-        return new Point(0, this.radius / 2);
-      case ShapeAlignment.BottomRight:
-        return new Point(this.radius / 2, this.radius / 2);
+      case ShapeAlignment.RIGHT:
+        return new Point(this.radius, 0);
+      case ShapeAlignment.BOTTOM_LEFT:
+        return new Point(-this.radius, this.radius);
+      case ShapeAlignment.BOTTOM:
+        return new Point(0, this.radius);
+      case ShapeAlignment.BOTTOM_RIGHT:
+        return new Point(this.radius, this.radius);
       default:
         return new Point(0, 0);
     }
@@ -352,6 +353,11 @@ export class Circle extends AbstractShape {
         )
       );
     }
+    if (this.center.direction) {
+      rays.forEach((r) => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r);
+      });
+    }
     if (this.reverse) {
       rays.reverse();
       rays.forEach((r) => (r.direction += Math.PI));
@@ -377,7 +383,7 @@ export class Rectangle extends AbstractShape {
     width: number = 100,
     height: number = 100,
     segments: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.Center,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
     super(center, segments, alignment, reverse);
@@ -386,23 +392,23 @@ export class Rectangle extends AbstractShape {
   }
   protected alignmentOffset(): Point {
     switch (this.alignment) {
-      case ShapeAlignment.TopLeft:
+      case ShapeAlignment.TOP_LEFT:
         return new Point(-this.width / 2, -this.height / 2);
-      case ShapeAlignment.Top:
+      case ShapeAlignment.TOP:
         return new Point(0, -this.height / 2);
-      case ShapeAlignment.TopRight:
+      case ShapeAlignment.TOP_RIGHT:
         return new Point(this.width / 2, -this.height / 2);
-      case ShapeAlignment.Left:
+      case ShapeAlignment.LEFT:
         return new Point(-this.width / 2, 0);
-      case ShapeAlignment.Center:
+      case ShapeAlignment.CENTER:
         return new Point(0, 0);
-      case ShapeAlignment.Right:
+      case ShapeAlignment.RIGHT:
         return new Point(this.width / 2, 0);
-      case ShapeAlignment.BottomLeft:
+      case ShapeAlignment.BOTTOM_LEFT:
         return new Point(-this.width / 2, this.height / 2);
-      case ShapeAlignment.Bottom:
+      case ShapeAlignment.BOTTOM:
         return new Point(0, this.height / 2);
-      case ShapeAlignment.BottomRight:
+      case ShapeAlignment.BOTTOM_RIGHT:
         return new Point(this.width / 2, this.height / 2);
       default:
         return new Point(0, 0);
@@ -479,7 +485,7 @@ export class RoundedRectangle extends Rectangle {
     height: number = 100,
     radius: number = 25,
     segments: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.Center,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
     super(center, width, height, segments, alignment, reverse);
