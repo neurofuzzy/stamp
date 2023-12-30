@@ -23,13 +23,14 @@ let rot = 0;
 
 Sequence.fromStatement("repeat 40,70,100 AS BH", 14)
 Sequence.fromStatement("repeat 1,2,3 AS BNW", 14)
+Sequence.fromStatement("repeat 0,1,2 AS BA", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
   const building = new Stamp(new Ray(100, 100, 0))
     .rectangle(50, "BH()").subtract().rectangle(10, 20, 0, 1, ShapeAlignment.CENTER, 2, "BNW()", 20, 30)
   const city = new Stamp(new Ray(w / 2, h / 2, 0))
-    .stamp(building, 0, ShapeAlignment.TOP, 8, 5, 70, 120);
+    .stamp(building, 0, "BA()", 8, 5, 70, 90, 5);
   drawShape(ctx, city);
   //drawBoundingBox(ctx, shapes);
   //drawBoundingCircle(ctx, city);

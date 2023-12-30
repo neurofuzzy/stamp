@@ -169,7 +169,7 @@ export class Stamp extends AbstractShape {
     return polygons;
   }
 
-  private _make (shapes: IShape[]) {
+  private _make (shapes: IShape[], outln: number = 0) {
 
       for (let i = 0; i < shapes.length; i++) {
           
@@ -202,6 +202,31 @@ export class Stamp extends AbstractShape {
           case Stamp.UNION:
             if (this._bsp) {
               b2 = this._toPaths(g);
+              
+              if (outln) {
+                console.log('outln', outln);
+                const offsetResult = Stamp.clipper.offsetToPolyTree({
+                  delta: outln * 10000,
+                  offsetInputs: [{ 
+                    data: b2.data,  
+                    joinType: clipperLib.JoinType.Miter,
+                    endType: clipperLib.EndType.ClosedPolygon
+                  }]
+                });
+                if (offsetResult) {
+                  let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+                  let offsetPaths = Stamp.clipper.polyTreeToPaths(offsetResult);
+                  const polyResult = Stamp.clipper.clipToPolyTree({
+                    clipType: clipperLib.ClipType.Difference,
+                    subjectInputs: [{ data: paths, closed: true }],
+                    clipInputs: [{ data: offsetPaths }],
+                    subjectFillType: clipperLib.PolyFillType.EvenOdd,
+                  });
+                  this._bsp = polyResult;
+                } else {
+                  console.log("error offseting", outln);
+                }
+              }
               let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
               const polyResult = Stamp.clipper.clipToPolyTree({
                 clipType: clipperLib.ClipType.Union,
@@ -263,10 +288,10 @@ export class Stamp extends AbstractShape {
     this.colorIdx = idx;
   };
 
-  private _getGroupOffset (nx = 1, ny = 1, ox = 0, oy = 0): Point {
+  private _getGroupOffset (nx = 1, ny = 1, spx = 0, spy = 0): Point {
     const pt = new Point(0, 0);
-    pt.x = (nx - 1) * (ox) * 0.5;
-    pt.y = (ny - 1) * (oy) * 0.5;
+    pt.x = (nx - 1) * (spx) * 0.5;
+    pt.y = (ny - 1) * (spy) * 0.5;
     return pt;
   }
 
@@ -276,18 +301,19 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
+    spx: number | string = 0, 
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let o = this._getGroupOffset(nnx, nny, nox, noy);
+    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Circle(new Ray(nox * i - o.x, noy * j - o.y, 0), $(r), $(s), $(a)));
+        shapes.push(new Circle(new Ray(nspx * i - o.x, nspy * j - o.y, 0), $(r), $(s), $(a)));
       }
     }
-    this._make(shapes);
+    this._make(shapes, $(outln));
   }
 
   private _rectangle(
@@ -298,18 +324,19 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
+    spx: number | string = 0, 
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let o = this._getGroupOffset(nnx, nny, nox, noy);
+    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Rectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(s), $(a)));
+        shapes.push(new Rectangle(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(s), $(a)));
       }
     }
-    this._make(shapes);
+    this._make(shapes, $(outln));
   }
 
   private _roundedRectangle(
@@ -321,18 +348,19 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
+    spx: number | string = 0, 
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let o = this._getGroupOffset(nnx, nny, nox, noy);
+    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new RoundedRectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(cr), $(s), $(a)));
+        shapes.push(new RoundedRectangle(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(cr), $(s), $(a)));
       }
     }
-    this._make(shapes);
+    this._make(shapes, $(outln));
   }
 
   private _polygon(
@@ -342,18 +370,19 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1,
     ny: number | string = 1,
-    ox: number | string = 0,
-    oy: number | string = 0
+    spx: number | string = 0,
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let o = this._getGroupOffset(nnx, nny, nox, noy);
+    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Polygon(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), rayStrings.map((s) => new Ray(0, 0).fromString(s)), $(s), $(a)));
+        shapes.push(new Polygon(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), rayStrings.map((s) => new Ray(0, 0).fromString(s)), $(s), $(a)));
       }
     }
-    this._make(shapes);
+    this._make(shapes, $(outln));
   }
 
   private _stamp(
@@ -362,18 +391,19 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1,
     ny: number | string = 1,
-    ox: number | string = 0,
-    oy: number | string = 0
+    spx: number | string = 0,
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nox = $(ox), noy = $(oy);
-    let o = this._getGroupOffset(nnx, nny, nox, noy);
+    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Stamp(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), 1, $(a)).fromString(subStampString));
+        shapes.push(new Stamp(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), 1, $(a)).fromString(subStampString));
       }
     }
-    this._make(shapes);
+    this._make(shapes, $(outln));
   }
 
   reset() {
@@ -442,10 +472,11 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
+    spx: number | string = 0, 
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
-    this._nodes.push({ fName: "_circle", args: [r, s, a, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_circle", args: [r, s, a, nx, ny, spx, spy, outln] });
     return this;
   }
 
@@ -457,10 +488,11 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
+    spx: number | string = 0, 
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
-    this._nodes.push({ fName: "_rectangle", args: [w, h, ang, s, a, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_rectangle", args: [w, h, ang, s, a, nx, ny, spx, spy, outln] });
     return this;
   }
 
@@ -473,10 +505,11 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1, 
     ny: number | string = 1, 
-    ox: number | string = 0, 
-    oy: number | string = 0
+    spx: number | string = 0, 
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
-    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, ang, cr, s, a, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, ang, cr, s, a, nx, ny, spx, spy, outln] });
     return this;
   }
 
@@ -487,10 +520,11 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1,
     ny: number | string = 1,
-    ox: number | string = 0,
-    oy: number | string = 0
+    spx: number | string = 0,
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
-    this._nodes.push({ fName: "_polygon", args: [rays.map(r => r.toString()), ang, s, a, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_polygon", args: [rays.map(r => r.toString()), ang, s, a, nx, ny, spx, spy, outln] });
     return this;
   }
 
@@ -500,10 +534,11 @@ export class Stamp extends AbstractShape {
     a: number | string = ShapeAlignment.CENTER,
     nx: number | string = 1,
     ny: number | string = 1,
-    ox: number | string = 0,
-    oy: number | string = 0
+    spx: number | string = 0,
+    spy: number | string = 0,
+    outln: number | string = 0
   ) {
-    this._nodes.push({ fName: "_stamp", args: [subStamp.toString(), ang, a, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_stamp", args: [subStamp.toString(), ang, a, nx, ny, spx, spy, outln] });
     return this;
   }
 
@@ -653,7 +688,7 @@ export class Stamp extends AbstractShape {
         }
       });
     }
-    
+
     this._polys.forEach(applyOffsetToPoly);
 
     return this;
