@@ -43,13 +43,16 @@ export class Donut extends Circle {
     return [...outer, ...inner, outer[0]];
   }
   clone() {
-    return new Donut(
+    const s = new Donut(
       this.center.clone(),
       this.innerRadius,
       this.radius,
       this.segments,
       this.alignment
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
   boundingBox(): BoundingBox {
     return new BoundingBox(
@@ -103,7 +106,7 @@ export class RectangularDonut extends Rectangle {
     return [...outer, ...inner, outer[0]];
   }
   clone() {
-    return new RectangularDonut(
+    const s = new RectangularDonut(
       this.center.clone(),
       this.innerWidth,
       this.innerHeight,
@@ -112,6 +115,9 @@ export class RectangularDonut extends Rectangle {
       this.segments,
       this.alignment
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
   boundingBox(): BoundingBox {
     return new BoundingBox(
@@ -181,7 +187,7 @@ export class RoundedRectangularDonut extends AbstractShape {
     return [...outer, ...inner, outer[0]];
   }
   clone() {
-    return new RoundedRectangularDonut(
+    const s = new RoundedRectangularDonut(
       this.center.clone(),
       this.width,
       this.height,
@@ -190,6 +196,9 @@ export class RoundedRectangularDonut extends AbstractShape {
       this.segments,
       this.alignment
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
   boundingBox(): BoundingBox {
     return new BoundingBox(

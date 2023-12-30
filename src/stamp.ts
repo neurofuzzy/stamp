@@ -1,5 +1,15 @@
 import { GeomHelpers } from "./geom/helpers";
-import { AbstractShape, Circle, IShape, Point, Polygon, Ray, Rectangle, RoundedRectangle, ShapeAlignment } from "./geom/shapes";
+import {
+  AbstractShape,
+  Circle,
+  IShape,
+  Point,
+  Polygon,
+  Ray,
+  Rectangle,
+  RoundedRectangle,
+  ShapeAlignment,
+} from "./geom/shapes";
 import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
 
@@ -8,10 +18,14 @@ interface INode {
   args: any[];
 }
 
-const $ = (arg: unknown) => typeof arg === "string" ? Sequence.resolve(arg) : typeof arg === "number" ? arg : 0;
+const $ = (arg: unknown) =>
+  typeof arg === "string"
+    ? Sequence.resolve(arg)
+    : typeof arg === "number"
+    ? arg
+    : 0;
 
 export class Stamp extends AbstractShape {
-
   static readonly UNION = 1;
   static readonly SUBTRACT = 2;
   static readonly INTERSECT = 3;
@@ -43,11 +57,16 @@ export class Stamp extends AbstractShape {
 
   baked: boolean = false;
 
-  constructor(center?: Ray, segments: number = 1, alignment: ShapeAlignment = ShapeAlignment.CENTER, reverse: boolean = false) {
+  constructor(
+    center?: Ray,
+    segments: number = 1,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
+    reverse: boolean = false
+  ) {
     super(center, segments, alignment, reverse);
   }
 
-  private _reset () {
+  private _reset() {
     this._tree = null;
     this._trees = [];
     this._polys = [];
@@ -57,21 +76,21 @@ export class Stamp extends AbstractShape {
     this.offsetX = 0;
     this.offsetY = 0;
     this.cursor.x = this.cursor.y = this.cursor.direction = 0;
-  };
+  }
 
   private _add() {
     this.mode = Stamp.UNION;
-  };
+  }
 
   private _subtract() {
     this.mode = Stamp.SUBTRACT;
-  };
+  }
 
   private _intersect() {
     this.mode = Stamp.INTERSECT;
   }
 
-  private _boolean (type: string | number) {
+  private _boolean(type: string | number) {
     if (typeof type === "string") {
       type = Sequence.resolve(type);
     }
@@ -80,68 +99,84 @@ export class Stamp extends AbstractShape {
     } else {
       this.mode = Stamp.UNION;
     }
-  };
+  }
 
-  private _next () {
+  private _next() {
     if (this._tree) {
       this._trees.push(this._tree);
-      this._tree = null
+      this._tree = null;
       this.mode = Stamp.UNION;
     }
-  };
+  }
 
-  private _moveTo (x: number | string, y: number | string) {
+  private _moveTo(x: number | string, y: number | string) {
     this.cursor.x = $(x);
     this.cursor.y = $(y);
-  };
+  }
 
-  private _move (x: number | string, y: number | string) {
+  private _move(x: number | string, y: number | string) {
     const v = new Point($(x), $(y));
     GeomHelpers.rotatePoint(v, this.cursor.direction);
     this.cursor.x += v.x;
     this.cursor.y += v.y;
-  };
+  }
 
-  private _offset (x: number | string, y: number | string) {
+  private _offset(x: number | string, y: number | string) {
     this.offsetX += $(x);
     this.offsetY += $(y);
-  };
+  }
 
-  private _rotateTo (r: number | string) {
+  private _rotateTo(r: number | string) {
     this.cursor.direction = $(r);
-  };
+  }
 
-  private _rotate (r: number | string) {
-    this.cursor.direction = GeomHelpers.normalizeAngle(this.cursor.direction + $(r));
-  };
+  private _rotate(r: number | string) {
+    this.cursor.direction = GeomHelpers.normalizeAngle(
+      this.cursor.direction + $(r)
+    );
+  }
 
-  private _toPaths (shape: IShape): { data: clipperLib.IntPoint[] | clipperLib.IntPoint[][], closed: boolean } {
+  private _toPaths(shape: IShape): {
+    data: clipperLib.IntPoint[] | clipperLib.IntPoint[][];
+    closed: boolean;
+  } {
     let rays = shape.generate();
     if (rays.length === 0 && shape.children().length === 1) {
       rays = shape.children()[0].generate();
       shape = shape.children()[0];
     }
     const paths = [];
-    let path = rays.map(r => ({ x: Math.round(r.x * 10000), y: Math.round(r.y * 10000) } as clipperLib.IntPoint));
+    let path = rays.map(
+      (r) =>
+        ({
+          x: Math.round(r.x * 10000),
+          y: Math.round(r.y * 10000),
+        } as clipperLib.IntPoint)
+    );
     paths.push(path);
     shape.children().forEach((s) => {
       let p = this._toPaths(s);
       paths.push(...p.data);
-    })
-    return { 
-      data: paths, 
-      closed: true
+    });
+    return {
+      data: paths,
+      closed: true,
     };
   }
 
-  private _polyTreeToPolygons (polyTree: clipperLib.PolyTree): Polygon[] {
+  private _polyTreeToPolygons(polyTree: clipperLib.PolyTree): Polygon[] {
     let polygons: Polygon[] = [];
     const polyNodeToPolygon = (node: clipperLib.PolyNode): Polygon => {
       const rays: Ray[] = [];
       if (node.contour.length) {
         for (let j = 0; j < node.contour.length; j++) {
           let p = node.contour[j];
-          rays.push(new Ray(Math.round(p.x - 10000) / 10000, Math.round(p.y - 10000) / 10000));
+          rays.push(
+            new Ray(
+              Math.round(p.x - 10000) / 10000,
+              Math.round(p.y - 10000) / 10000
+            )
+          );
         }
         rays.push(rays[0].clone());
       }
@@ -157,9 +192,9 @@ export class Stamp extends AbstractShape {
         }
       }
       return polygon;
-    }
-    
-    polyTree.childs.forEach(node => {
+    };
+
+    polyTree.childs.forEach((node) => {
       const polygon = polyNodeToPolygon(node);
       if (polygon) {
         polygons.push(polygon);
@@ -169,25 +204,23 @@ export class Stamp extends AbstractShape {
     return polygons;
   }
 
-  private _make (shapes: IShape[], outln: number = 0) {
+  private _make(shapes: IShape[], outln: number = 0) {
+    for (let i = 0; i < shapes.length; i++) {
+      let shape: IShape | undefined = shapes[i];
 
-      for (let i = 0; i < shapes.length; i++) {
-          
-        let shape: IShape | undefined = shapes[i];
+      if (!shape) {
+        break;
+      }
 
-        if (!shape) {
-          break;
-        }
+      let g = shape.clone();
 
-        let g = shape.clone();
+      g.center.x += this.cursor.x + this.center.x;
+      g.center.y += this.cursor.y + this.center.y;
+      GeomHelpers.rotatePointAboutOrigin(this.center, g.center);
+      GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
+      g.center.direction += this.center.direction + this.cursor.direction;
 
-        g.center.x += this.cursor.x + this.center.x;
-        g.center.y += this.cursor.y + this.center.y;
-        GeomHelpers.rotatePointAboutOrigin(this.center, g.center);
-        GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
-        g.center.direction += this.center.direction + this.cursor.direction;
-
-        /*
+      /*
         if (!this._tree) {
           this._tree = [];
         }
@@ -195,167 +228,241 @@ export class Stamp extends AbstractShape {
         this._tree.push(g);
         */
 
-        let b: clipperLib.SubjectInput;
-        let b2 = null;
+      let b: clipperLib.SubjectInput;
+      let b2 = null;
 
-        switch (this.mode) {
-          case Stamp.UNION:
-            if (this._tree) {
-              b2 = this._toPaths(g);     
-              if (outln) {
-                const offsetResult = Stamp.clipper.offsetToPolyTree({
-                  delta: outln * 10000,
-                  offsetInputs: [{ 
-                    data: b2.data,  
+      switch (this.mode) {
+        case Stamp.UNION:
+          if (this._tree) {
+            b2 = this._toPaths(g);
+            if (g.hidden) {
+              continue;
+            }
+            if (outln) {
+              const offsetResult = Stamp.clipper.offsetToPolyTree({
+                delta: outln * 10000,
+                offsetInputs: [
+                  {
+                    data: b2.data,
                     joinType: clipperLib.JoinType.Miter,
-                    endType: clipperLib.EndType.ClosedPolygon
-                  }]
+                    endType: clipperLib.EndType.ClosedPolygon,
+                  },
+                ],
+              });
+              if (offsetResult) {
+                let paths = Stamp.clipper.polyTreeToPaths(this._tree);
+                let offsetPaths = Stamp.clipper.polyTreeToPaths(offsetResult);
+                const polyResult = Stamp.clipper.clipToPolyTree({
+                  clipType: clipperLib.ClipType.Difference,
+                  subjectInputs: [{ data: paths, closed: true }],
+                  clipInputs: [{ data: offsetPaths }],
+                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
                 });
-                if (offsetResult) {
-                  let paths = Stamp.clipper.polyTreeToPaths(this._tree);
-                  let offsetPaths = Stamp.clipper.polyTreeToPaths(offsetResult);
-                  const polyResult = Stamp.clipper.clipToPolyTree({
-                    clipType: clipperLib.ClipType.Difference,
-                    subjectInputs: [{ data: paths, closed: true }],
-                    clipInputs: [{ data: offsetPaths }],
-                    subjectFillType: clipperLib.PolyFillType.EvenOdd,
-                  });
-                  this._tree = polyResult;
-                } else {
-                  console.log("error offseting", outln);
-                }
+                this._tree = polyResult;
+              } else {
+                console.log("error offseting", outln);
               }
-              let paths = Stamp.clipper.polyTreeToPaths(this._tree);
-              const polyResult = Stamp.clipper.clipToPolyTree({
-                clipType: clipperLib.ClipType.Union,
-                subjectInputs: [{ data: paths, closed: true }],
-                clipInputs: [b2],
-                subjectFillType: clipperLib.PolyFillType.EvenOdd,
-              });
-              //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
-              this._tree = polyResult;
-            } else {
-              b = this._toPaths(g);
-              const polyResult = Stamp.clipper.clipToPolyTree({
-                clipType: clipperLib.ClipType.Union,
-                subjectInputs: [b],
-                subjectFillType: clipperLib.PolyFillType.EvenOdd,
-              });
-              this._tree = polyResult;
             }
-            break;
-
-          case Stamp.SUBTRACT:
-            if (this._tree) {
-              b2 = this._toPaths(g);
-              let paths = Stamp.clipper.polyTreeToPaths(this._tree);
-              const polyResult = Stamp.clipper.clipToPolyTree({
-                clipType: clipperLib.ClipType.Difference,
-                subjectInputs: [{ data: paths, closed: true }],
-                clipInputs: [b2],
-                subjectFillType: clipperLib.PolyFillType.EvenOdd,
-              });
-              //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
-              this._tree = polyResult;
+            let paths = Stamp.clipper.polyTreeToPaths(this._tree);
+            const polyResult = Stamp.clipper.clipToPolyTree({
+              clipType: clipperLib.ClipType.Union,
+              subjectInputs: [{ data: paths, closed: true }],
+              clipInputs: [b2],
+              subjectFillType: clipperLib.PolyFillType.EvenOdd,
+            });
+            //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
+            this._tree = polyResult;
+          } else {
+            b = this._toPaths(g);
+            if (g.hidden) {
+              continue;
             }
-            break;
+            const polyResult = Stamp.clipper.clipToPolyTree({
+              clipType: clipperLib.ClipType.Union,
+              subjectInputs: [b],
+              subjectFillType: clipperLib.PolyFillType.EvenOdd,
+            });
+            this._tree = polyResult;
+          }
+          break;
 
-          case Stamp.INTERSECT:
-            if (this._tree) {
-              b2 = this._toPaths(g);
-              let paths = Stamp.clipper.polyTreeToPaths(this._tree);
-              const polyResult = Stamp.clipper.clipToPolyTree({
-                clipType: clipperLib.ClipType.Intersection,
-                subjectInputs: [{ data: paths, closed: true }],
-                clipInputs: [b2],
-                subjectFillType: clipperLib.PolyFillType.EvenOdd,
-              });
-              //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
-              this._tree = polyResult;
+        case Stamp.SUBTRACT:
+          if (this._tree) {
+            b2 = this._toPaths(g);
+            if (g.hidden) {
+              continue;
             }
-            break;
-        }
+            let paths = Stamp.clipper.polyTreeToPaths(this._tree);
+            const polyResult = Stamp.clipper.clipToPolyTree({
+              clipType: clipperLib.ClipType.Difference,
+              subjectInputs: [{ data: paths, closed: true }],
+              clipInputs: [b2],
+              subjectFillType: clipperLib.PolyFillType.EvenOdd,
+            });
+            //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
+            this._tree = polyResult;
+          }
+          break;
 
+        case Stamp.INTERSECT:
+          if (this._tree) {
+            b2 = this._toPaths(g);
+            if (g.hidden) {
+              continue;
+            }
+            let paths = Stamp.clipper.polyTreeToPaths(this._tree);
+            const polyResult = Stamp.clipper.clipToPolyTree({
+              clipType: clipperLib.ClipType.Intersection,
+              subjectInputs: [{ data: paths, closed: true }],
+              clipInputs: [b2],
+              subjectFillType: clipperLib.PolyFillType.EvenOdd,
+            });
+            //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
+            this._tree = polyResult;
+          }
+          break;
       }
+    }
 
-      return this;
-      
-  };
+    return this;
+  }
 
-  private _colorIndex (idx: number) {
+  private _colorIndex(idx: number) {
     this.colorIdx = idx;
-  };
+  }
 
-  private _getGroupOffset (nx = 1, ny = 1, spx = 0, spy = 0): Point {
+  private _getGroupOffset(nx = 1, ny = 1, spx = 0, spy = 0): Point {
     const pt = new Point(0, 0);
-    pt.x = (nx - 1) * (spx) * 0.5;
-    pt.y = (ny - 1) * (spy) * 0.5;
+    pt.x = (nx - 1) * spx * 0.5;
+    pt.y = (ny - 1) * spy * 0.5;
     return pt;
   }
 
   private _circle(
-    r: number | string, 
-    s: number | string = 32, 
+    r: number | string,
+    s: number | string = 32,
     a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    spx: number | string = 0, 
+    nx: number | string = 1,
+    ny: number | string = 1,
+    spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let nnx = $(nx),
+      nny = $(ny),
+      nspx = $(spx),
+      nspy = $(spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Circle(new Ray(nspx * i - o.x, nspy * j - o.y, 0), $(r), $(s), $(a)));
+        shapes.push(
+          new Circle(
+            new Ray(nspx * i - o.x + $(ox), nspy * j - o.y + $(oy), 0),
+            $(r),
+            $(s),
+            $(a)
+          )
+        );
+        if ($(skip)) {
+          const s = shapes[shapes.length - 1];
+          s.hidden = true;
+        }
       }
     }
     this._make(shapes, $(outln));
   }
 
   private _rectangle(
-    w: number | string, 
-    h: number | string, 
-    ang: number | string, 
+    w: number | string,
+    h: number | string,
+    ang: number | string,
     s: number | string = 1,
     a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    spx: number | string = 0, 
+    nx: number | string = 1,
+    ny: number | string = 1,
+    spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let nnx = $(nx),
+      nny = $(ny),
+      nspx = $(spx),
+      nspy = $(spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Rectangle(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(s), $(a)));
+        shapes.push(
+          new Rectangle(
+            new Ray(
+              nspx * i - o.x + $(ox),
+              +nspy * j - o.y + $(oy),
+              ang ? ($(ang) * Math.PI) / 180 : 0
+            ),
+            $(w),
+            $(h),
+            $(s),
+            $(a)
+          )
+        );
+        if ($(skip)) {
+          const s = shapes[shapes.length - 1];
+          s.hidden = true;
+        }
       }
     }
     this._make(shapes, $(outln));
   }
 
   private _roundedRectangle(
-    w: number | string, 
+    w: number | string,
     h: number | string,
     ang: number | string,
     cr: number | string = 0,
-    s: number | string = 1, 
+    s: number | string = 1,
     a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    spx: number | string = 0, 
+    nx: number | string = 1,
+    ny: number | string = 1,
+    spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let nnx = $(nx),
+      nny = $(ny),
+      nspx = $(spx),
+      nspy = $(spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new RoundedRectangle(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(cr), $(s), $(a)));
+        shapes.push(
+          new RoundedRectangle(
+            new Ray(
+              nspx * i - o.x + $(ox),
+              +nspy * j - o.y + $(oy),
+              ang ? ($(ang) * Math.PI) / 180 : 0
+            ),
+            $(w),
+            $(h),
+            $(cr),
+            $(s),
+            $(a)
+          )
+        );
+        if ($(skip)) {
+          const s = shapes[shapes.length - 1];
+          s.hidden = true;
+        }
       }
     }
     this._make(shapes, $(outln));
@@ -370,14 +477,35 @@ export class Stamp extends AbstractShape {
     ny: number | string = 1,
     spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let nnx = $(nx),
+      nny = $(ny),
+      nspx = $(spx),
+      nspy = $(spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Polygon(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), rayStrings.map((s) => new Ray(0, 0).fromString(s)), $(s), $(a)));
+        shapes.push(
+          new Polygon(
+            new Ray(
+              nspx * i - o.x + $(ox),
+              +nspy * j - o.y + $(oy),
+              ang ? ($(ang) * Math.PI) / 180 : 0
+            ),
+            rayStrings.map((s) => new Ray(0, 0).fromString(s)),
+            $(s),
+            $(a)
+          )
+        );
+        if ($(skip)) {
+          const s = shapes[shapes.length - 1];
+          s.hidden = true;
+        }
       }
     }
     this._make(shapes, $(outln));
@@ -391,14 +519,34 @@ export class Stamp extends AbstractShape {
     ny: number | string = 1,
     spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
     let shapes: IShape[] = [];
-    let nnx = $(nx), nny = $(ny), nspx = $(spx), nspy = $(spy);
+    let nnx = $(nx),
+      nny = $(ny),
+      nspx = $(spx),
+      nspy = $(spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Stamp(new Ray(nspx * i - o.x, + nspy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), 1, $(a)).fromString(subStampString));
+        shapes.push(
+          new Stamp(
+            new Ray(
+              nspx * i - o.x + $(ox),
+              +nspy * j - o.y + $(oy),
+              ang ? ($(ang) * Math.PI) / 180 : 0
+            ),
+            1,
+            $(a)
+          ).fromString(subStampString)
+        );
+        if ($(skip)) {
+          const s = shapes[shapes.length - 1];
+          s.hidden = true;
+        }
       }
     }
     this._make(shapes, $(outln));
@@ -438,7 +586,7 @@ export class Stamp extends AbstractShape {
     this._nodes.push({ fName: "_next", args: Array.from(arguments) });
     return this;
   }
-  
+
   moveTo(x: number | string = 0, y: number | string = 0) {
     this._nodes.push({ fName: "_moveTo", args: [x, y] });
     return this;
@@ -465,49 +613,67 @@ export class Stamp extends AbstractShape {
   }
 
   circle(
-    r: number | string, 
-    s: number | string = 32, 
+    r: number | string,
+    s: number | string = 32,
     a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    spx: number | string = 0, 
+    nx: number | string = 1,
+    ny: number | string = 1,
+    spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
-    this._nodes.push({ fName: "_circle", args: [r, s, a, nx, ny, spx, spy, outln] });
+    this._nodes.push({
+      fName: "_circle",
+      args: [r, s, a, nx, ny, spx, spy, outln, ox, oy, skip],
+    });
     return this;
   }
 
   rectangle(
-    w: number | string, 
-    h: number | string, 
+    w: number | string,
+    h: number | string,
     ang: number | string = 0,
-    s: number | string = 1, 
+    s: number | string = 1,
     a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    spx: number | string = 0, 
+    nx: number | string = 1,
+    ny: number | string = 1,
+    spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
-    this._nodes.push({ fName: "_rectangle", args: [w, h, ang, s, a, nx, ny, spx, spy, outln] });
+    this._nodes.push({
+      fName: "_rectangle",
+      args: [w, h, ang, s, a, nx, ny, spx, spy, outln, ox, oy, skip],
+    });
     return this;
   }
 
   roundedRectangle(
-    w: number | string, 
-    h: number | string, 
+    w: number | string,
+    h: number | string,
     ang: number | string = 0,
-    cr: number | string = 0, 
-    s: number | string = 3, 
+    cr: number | string = 0,
+    s: number | string = 3,
     a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1, 
-    ny: number | string = 1, 
-    spx: number | string = 0, 
+    nx: number | string = 1,
+    ny: number | string = 1,
+    spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
-    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, ang, cr, s, a, nx, ny, spx, spy, outln] });
+    this._nodes.push({
+      fName: "_roundedRectangle",
+      args: [w, h, ang, cr, s, a, nx, ny, spx, spy, outln, ox, oy, skip],
+    });
     return this;
   }
 
@@ -520,9 +686,28 @@ export class Stamp extends AbstractShape {
     ny: number | string = 1,
     spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
-    this._nodes.push({ fName: "_polygon", args: [rays.map(r => r.toString()), ang, s, a, nx, ny, spx, spy, outln] });
+    this._nodes.push({
+      fName: "_polygon",
+      args: [
+        rays.map((r) => r.toString()),
+        ang,
+        s,
+        a,
+        nx,
+        ny,
+        spx,
+        spy,
+        outln,
+        ox,
+        oy,
+        skip,
+      ],
+    });
     return this;
   }
 
@@ -534,9 +719,27 @@ export class Stamp extends AbstractShape {
     ny: number | string = 1,
     spx: number | string = 0,
     spy: number | string = 0,
-    outln: number | string = 0
+    outln: number | string = 0,
+    ox: number | string = 0,
+    oy: number | string = 0,
+    skip: number | string = 0
   ) {
-    this._nodes.push({ fName: "_stamp", args: [subStamp.toString(), ang, a, nx, ny, spx, spy, outln] });
+    this._nodes.push({
+      fName: "_stamp",
+      args: [
+        subStamp.toString(),
+        ang,
+        a,
+        nx,
+        ny,
+        spx,
+        spy,
+        outln,
+        ox,
+        oy,
+        skip,
+      ],
+    });
     return this;
   }
 
@@ -638,7 +841,7 @@ export class Stamp extends AbstractShape {
       }
     }
 
-    const privateFunctionMap: { [key:string]: Function } = {
+    const privateFunctionMap: { [key: string]: Function } = {
       _add: this._add,
       _subtract: this._subtract,
       _intersect: this._intersect,
@@ -656,7 +859,7 @@ export class Stamp extends AbstractShape {
       _roundedRectangle: this._roundedRectangle,
       _polygon: this._polygon,
       _stamp: this._stamp,
-    }
+    };
 
     for (let i = 0; i < nodes.length; i++) {
       let fName = nodes[i].fName;
@@ -676,16 +879,16 @@ export class Stamp extends AbstractShape {
     const offset = this.alignmentOffset();
 
     const applyOffsetToPoly = (p: Polygon) => {
-      p.rays.forEach(r => {
+      p.rays.forEach((r) => {
         r.x += offset.x;
         r.y += offset.y;
       });
-      p.children().forEach(child => {
+      p.children().forEach((child) => {
         if (child instanceof Polygon) {
           applyOffsetToPoly(child as Polygon);
         }
       });
-    }
+    };
 
     this._polys.forEach(applyOffsetToPoly);
 
@@ -719,8 +922,15 @@ export class Stamp extends AbstractShape {
   }
 
   clone(): Stamp {
-    let stamp = new Stamp(this.center.clone(), this.segments, this.alignment, this.reverse);
+    let stamp = new Stamp(
+      this.center.clone(),
+      this.segments,
+      this.alignment,
+      this.reverse
+    );
     stamp._colors = this._colors?.concat();
+    stamp.isHole = this.isHole;
+    stamp.hidden = this.hidden;
     return stamp.fromString(this.toString());
   }
 

@@ -19,6 +19,7 @@ export interface IShape {
   reverse: boolean;
   isHole: boolean;
   alignment: ShapeAlignment;
+  hidden: boolean;
   generate(): Ray[];
   clone(): IShape;
   boundingBox(): BoundingBox;
@@ -100,6 +101,7 @@ export class AbstractShape implements IShape {
   childShapes: IShape[];
   isHole: boolean;
   alignment: ShapeAlignment = ShapeAlignment.CENTER;
+  hidden = false;
   constructor(
     center?: Ray,
     segments: number = 1,
@@ -118,7 +120,10 @@ export class AbstractShape implements IShape {
     throw new Error("Method not implemented.");
   }
   clone(): IShape {
-    return new AbstractShape(this.center.clone(), this.segments, this.alignment, this.reverse);
+    const s = new AbstractShape(this.center.clone(), this.segments, this.alignment, this.reverse);
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
   protected alignmentOffset(): Point {
     let d = this.center.direction;
@@ -256,7 +261,7 @@ export class Arc extends AbstractShape {
     return rays;
   }
   clone() {
-    return new Arc(
+    const s = new Arc(
       this.center.clone(),
       this.radius,
       this.startAngle,
@@ -265,6 +270,9 @@ export class Arc extends AbstractShape {
       this.alignment,
       this.reverse
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
 }
 
@@ -304,13 +312,16 @@ export class Polygon extends AbstractShape {
     return rays;
   }
   clone() {
-    return new Polygon(
+    const s = new Polygon(
       this.center.clone(),
       this.rays,
       this.segments,
       this.alignment,
       this.reverse
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
 }
 
@@ -384,13 +395,16 @@ export class Circle extends AbstractShape {
     return rays;
   }
   clone() {
-    return new Circle(
+    const s = new Circle(
       this.center.clone(),
       this.radius,
       this.segments,
       this.alignment,
       this.reverse
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
 }
 
@@ -485,7 +499,7 @@ export class Rectangle extends AbstractShape {
     return rays;
   }
   clone() {
-    return new Rectangle(
+    const s = new Rectangle(
       this.center.clone(),
       this.width,
       this.height,
@@ -493,6 +507,9 @@ export class Rectangle extends AbstractShape {
       this.alignment,
       this.reverse
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
 }
 
@@ -618,7 +635,7 @@ export class RoundedRectangle extends Rectangle {
     return rays;
   }
   clone() {
-    return new RoundedRectangle(
+    const s = new RoundedRectangle(
       this.center.clone(),
       this.width,
       this.height,
@@ -627,5 +644,8 @@ export class RoundedRectangle extends Rectangle {
       this.alignment,
       this.reverse
     );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    return s;
   }
 }
