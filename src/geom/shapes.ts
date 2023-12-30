@@ -153,16 +153,16 @@ export class AbstractShape implements IShape {
     });
     this.children().forEach((shape) => {
       const bb = shape.boundingBox();
-      if (bb.x - this.center.x < minX) minX = bb.x - this.center.x;
-      if (bb.y - this.center.y < minY) minY = bb.y - this.center.y;
-      if (bb.x + bb.width - this.center.x > maxX)
-        maxX = bb.x + bb.width - this.center.x;
-      if (bb.y + bb.height - this.center.y > maxY)
-        maxY = bb.y + bb.height - this.center.y;
+      if (bb.x < minX) minX = bb.x;
+      if (bb.y < minY) minY = bb.y;
+      if (bb.x + bb.width > maxX)
+        maxX = bb.x + bb.width;
+      if (bb.y + bb.height > maxY)
+        maxY = bb.y + bb.height;
     });
     return new BoundingBox(
-      minX + this.center.x,
-      minY + this.center.y,
+      minX,
+      minY,
       maxX - minX,
       maxY - minY
     );

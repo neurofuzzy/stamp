@@ -30,22 +30,22 @@ Sequence.fromStatement("random 10,5,-5,0 as ARC", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
-  const shapes = new Stamp(new Ray(w / 2, h / 2, Math.PI / 6))
+  const shapes = new Stamp(new Ray(w / 2, h / 2, 0))
     .rotate(rot)
-    .roundedRectangle("AA()", "AA", "ARA()", 8, 3, ShapeAlignment.CENTER, 5, 5, 80, 80)
+    .rectangle("AA()", "AA", 0, 1, ShapeAlignment.TOP, 5, 5, 80, 80)
     //.rectangle(120, 20, "ARB()", 1, 9, 9, 80, 80)
-    .subtract()
-    .rectangle("AB()", "AB", "ARC()", 1, ShapeAlignment.CENTER, 5, 5, 80, 80)
-    .add()
-    .circle("AC()", 64, ShapeAlignment.CENTER, 5, 5, 80, 80);
+   // .subtract()
+   // .rectangle("AB()", "AB", 0, 1, ShapeAlignment.TOP, 5, 5, 80, 80);
   //shapes.bake();
   drawShape(ctx, shapes);
   //drawBoundingBox(ctx, shapes);
   drawBoundingCircle(ctx, shapes);
+  drawCenter(ctx, shapes);
+  drawBoundingBox(ctx, shapes);
   shapes.children().forEach(child => drawBoundingCircle(ctx, child));
   shapes.children().forEach(child => drawCenter(ctx, child));
   //shapes.polys().forEach(s => drawShape(ctx, s));
-  //shapes.polys().forEach(s => drawBoundingBox(ctx, s));
+  shapes.children().forEach(s => drawBoundingBox(ctx, s));
 }
 
 function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0) {
