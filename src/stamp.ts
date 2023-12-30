@@ -367,7 +367,7 @@ export class Stamp extends AbstractShape {
             $(a)
           )
         );
-        if ($(skip)) {
+        if ($(skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
@@ -412,7 +412,7 @@ export class Stamp extends AbstractShape {
             $(a)
           )
         );
-        if ($(skip)) {
+        if ($(skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
@@ -459,7 +459,7 @@ export class Stamp extends AbstractShape {
             $(a)
           )
         );
-        if ($(skip)) {
+        if ($(skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
@@ -502,7 +502,7 @@ export class Stamp extends AbstractShape {
             $(a)
           )
         );
-        if ($(skip)) {
+        if ($(skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
@@ -543,7 +543,7 @@ export class Stamp extends AbstractShape {
             $(a)
           ).fromString(subStampString)
         );
-        if ($(skip)) {
+        if ($(skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
