@@ -20,7 +20,6 @@ export interface IShape {
   isHole: boolean;
   alignment: ShapeAlignment;
   generate(): Ray[];
-  generateRecursive(): Point[][];
   clone(): IShape;
   boundingBox(): BoundingBox;
   boundingCircle(): BoundingCircle;
@@ -117,14 +116,6 @@ export class AbstractShape implements IShape {
   generate(): Ray[] {
     console.log("generate", this.segments);
     throw new Error("Method not implemented.");
-  }
-  generateRecursive(): Point[][] {
-    const pts = this.generate().map((r) => ({ x: Math.round(r.x * 10000), y: Math.round(r.y * 10000) }));
-    const rayGroups: any = [pts];
-    this.children().forEach((c) => {
-      rayGroups.push(c.generateRecursive());
-    });
-    return rayGroups;
   }
   clone(): IShape {
     return new AbstractShape(this.center.clone(), this.segments, this.alignment, this.reverse);
