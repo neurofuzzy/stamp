@@ -22,8 +22,9 @@ ctx.fillStyle = 'white';
 let rot = 0;
 
 Sequence.fromStatement("repeat 40,70,100 AS BH", 14)
+Sequence.fromStatement("repeat 40,70,100 AS BHS", 14)
 Sequence.fromStatement("repeat 1,2,3 AS BNW", 14)
-Sequence.fromStatement("repeat 0,1,2 AS BA", 14)
+Sequence.fromStatement("random 1,1,1 AS BA", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);

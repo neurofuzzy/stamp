@@ -28,8 +28,8 @@ export class Stamp extends AbstractShape {
 
   _colors?: string[];
   _nodes: INode[] = [];
-  _bsp: clipperLib.PolyTree | null = null;
-  _bsps: clipperLib.PolyTree[] = [];
+  _tree: clipperLib.PolyTree | null = null;
+  _trees: clipperLib.PolyTree[] = [];
   _polys: Polygon[] = [];
   _polygroups: Polygon[][] = [];
   _mats: string[] = [];
@@ -48,8 +48,8 @@ export class Stamp extends AbstractShape {
   }
 
   private _reset () {
-    this._bsp = null;
-    this._bsps = [];
+    this._tree = null;
+    this._trees = [];
     this._polys = [];
     this._polygroups = [];
     this.mode = Stamp.UNION;
@@ -83,9 +83,9 @@ export class Stamp extends AbstractShape {
   };
 
   private _next () {
-    if (this._bsp) {
-      this._bsps.push(this._bsp);
-      this._bsp = null
+    if (this._tree) {
+      this._trees.push(this._tree);
+      this._tree = null
       this.mode = Stamp.UNION;
     }
   };
@@ -188,11 +188,11 @@ export class Stamp extends AbstractShape {
         g.center.direction += this.center.direction + this.cursor.direction;
 
         /*
-        if (!this._bsp) {
-          this._bsp = [];
+        if (!this._tree) {
+          this._tree = [];
         }
 
-        this._bsp.push(g);
+        this._tree.push(g);
         */
 
         let b: clipperLib.SubjectInput;
@@ -200,11 +200,9 @@ export class Stamp extends AbstractShape {
 
         switch (this.mode) {
           case Stamp.UNION:
-            if (this._bsp) {
-              b2 = this._toPaths(g);
-              
+            if (this._tree) {
+              b2 = this._toPaths(g);     
               if (outln) {
-                console.log('outln', outln);
                 const offsetResult = Stamp.clipper.offsetToPolyTree({
                   delta: outln * 10000,
                   offsetInputs: [{ 
@@ -214,7 +212,7 @@ export class Stamp extends AbstractShape {
                   }]
                 });
                 if (offsetResult) {
-                  let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+                  let paths = Stamp.clipper.polyTreeToPaths(this._tree);
                   let offsetPaths = Stamp.clipper.polyTreeToPaths(offsetResult);
                   const polyResult = Stamp.clipper.clipToPolyTree({
                     clipType: clipperLib.ClipType.Difference,
@@ -222,12 +220,12 @@ export class Stamp extends AbstractShape {
                     clipInputs: [{ data: offsetPaths }],
                     subjectFillType: clipperLib.PolyFillType.EvenOdd,
                   });
-                  this._bsp = polyResult;
+                  this._tree = polyResult;
                 } else {
                   console.log("error offseting", outln);
                 }
               }
-              let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+              let paths = Stamp.clipper.polyTreeToPaths(this._tree);
               const polyResult = Stamp.clipper.clipToPolyTree({
                 clipType: clipperLib.ClipType.Union,
                 subjectInputs: [{ data: paths, closed: true }],
@@ -235,7 +233,7 @@ export class Stamp extends AbstractShape {
                 subjectFillType: clipperLib.PolyFillType.EvenOdd,
               });
               //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
-              this._bsp = polyResult;
+              this._tree = polyResult;
             } else {
               b = this._toPaths(g);
               const polyResult = Stamp.clipper.clipToPolyTree({
@@ -243,14 +241,14 @@ export class Stamp extends AbstractShape {
                 subjectInputs: [b],
                 subjectFillType: clipperLib.PolyFillType.EvenOdd,
               });
-              this._bsp = polyResult;
+              this._tree = polyResult;
             }
             break;
 
           case Stamp.SUBTRACT:
-            if (this._bsp) {
+            if (this._tree) {
               b2 = this._toPaths(g);
-              let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+              let paths = Stamp.clipper.polyTreeToPaths(this._tree);
               const polyResult = Stamp.clipper.clipToPolyTree({
                 clipType: clipperLib.ClipType.Difference,
                 subjectInputs: [{ data: paths, closed: true }],
@@ -258,14 +256,14 @@ export class Stamp extends AbstractShape {
                 subjectFillType: clipperLib.PolyFillType.EvenOdd,
               });
               //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
-              this._bsp = polyResult;
+              this._tree = polyResult;
             }
             break;
 
           case Stamp.INTERSECT:
-            if (this._bsp) {
+            if (this._tree) {
               b2 = this._toPaths(g);
-              let paths = Stamp.clipper.polyTreeToPaths(this._bsp);
+              let paths = Stamp.clipper.polyTreeToPaths(this._tree);
               const polyResult = Stamp.clipper.clipToPolyTree({
                 clipType: clipperLib.ClipType.Intersection,
                 subjectInputs: [{ data: paths, closed: true }],
@@ -273,7 +271,7 @@ export class Stamp extends AbstractShape {
                 subjectFillType: clipperLib.PolyFillType.EvenOdd,
               });
               //const paths = Stamp.clipper.polyTreeToPaths(polyResult);
-              this._bsp = polyResult;
+              this._tree = polyResult;
             }
             break;
         }
@@ -595,7 +593,7 @@ export class Stamp extends AbstractShape {
   }
 
   /**
-   * Bakes the CSG solution into a final bsp
+   * Bakes the CSG solution into a final tree
    * @param {boolean} rebake whether to re-bake a baked shape
    */
   bake(rebake = false) {
@@ -673,7 +671,7 @@ export class Stamp extends AbstractShape {
       this._colors = ["white"];
     }
 
-    this._polys = this._bsp ? this._polyTreeToPolygons(this._bsp) : [];
+    this._polys = this._tree ? this._polyTreeToPolygons(this._tree) : [];
 
     const offset = this.alignmentOffset();
 
