@@ -1,16 +1,18 @@
 
 import { AbstractShape, BoundingBox, Circle, Ray, Rectangle, RoundedRectangle } from "./shapes";
-export class Donut extends AbstractShape {
+export class Donut extends Circle {
   innerRadius: number;
-  outerRadius: number;
   constructor(center?: Ray, innerRadius: number = 30, outerRadius: number = 50, segments: number = 32) {
-    super(center, segments, false)
+    super(center, outerRadius, segments, false);
     this.innerRadius = innerRadius;
-    this.outerRadius = outerRadius;
   }
   generate() {
-    const inner = new Circle(this.center, this.innerRadius, this.segments, true).generate()
-    const outer = new Circle(this.center, this.outerRadius, this.segments).generate()
+    const offset = this.alignmentOffset();
+    offset.x *= 0.5;
+    offset.y *= 0.5;
+    const offsetCenter = new Ray(this.center.x + offset.x, this.center.y + offset.y, this.center.direction);
+    const inner = new Circle(offsetCenter, this.innerRadius, this.segments, true).generate()
+    const outer = new Circle(offsetCenter, this.radius, this.segments).generate()
     return [
       ...outer,
       ...inner,
@@ -18,28 +20,28 @@ export class Donut extends AbstractShape {
     ]
   }
   clone() {
-    return new Donut(this.center.clone(), this.innerRadius, this.outerRadius, this.segments);
+    return new Donut(this.center.clone(), this.innerRadius, this.radius, this.segments);
   }
   boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x - this.outerRadius, this.center.y - this.outerRadius, this.outerRadius * 2, this.outerRadius * 2);
+    return new BoundingBox(this.center.x - this.radius, this.center.y - this.radius, this.radius * 2, this.radius * 2);
   }
 }
 
-export class RectangularDonut extends AbstractShape {
+export class RectangularDonut extends Rectangle {
   innerWidth: number
   innerHeight: number
-  outerWidth: number
-  outerHeight: number
   constructor(center?: Ray, innerWidth: number = 60, innerHeight: number = 60, outerWidth: number = 100, outerHeight: number = 100, segments: number = 1) {
-    super(center, segments, false)
+    super(center, outerWidth, outerHeight, segments, false);
     this.innerWidth = innerWidth
     this.innerHeight = innerHeight
-    this.outerWidth = outerWidth
-    this.outerHeight = outerHeight
   }
   generate() {
-    const inner = new Rectangle(this.center, this.innerWidth, this.innerHeight, this.segments, true).generate()
-    const outer = new Rectangle(this.center, this.outerWidth, this.outerHeight, this.segments).generate()
+    const offset = this.alignmentOffset();
+    offset.x *= 0.5;
+    offset.y *= 0.5;
+    const offsetCenter = new Ray(this.center.x + offset.x, this.center.y + offset.y, this.center.direction);
+    const inner = new Rectangle(offsetCenter, this.innerWidth, this.innerHeight, this.segments, true).generate()
+    const outer = new Rectangle(offsetCenter, this.width, this.height, this.segments).generate()
     return [
       ...outer,
       ...inner,
@@ -47,10 +49,10 @@ export class RectangularDonut extends AbstractShape {
     ]
   }
   clone() {
-    return new RectangularDonut(this.center.clone(), this.innerWidth, this.innerHeight, this.outerWidth, this.outerHeight, this.segments);
+    return new RectangularDonut(this.center.clone(), this.innerWidth, this.innerHeight, this.width, this.height, this.segments);
   }
   boundingBox(): BoundingBox {
-    return new BoundingBox(this.center.x - this.outerWidth / 2, this.center.y - this.outerHeight / 2, this.outerWidth, this.outerHeight);
+    return new BoundingBox(this.center.x - this.width / 2, this.center.y - this.height / 2, this.width, this.height);
   }
 }
 
@@ -67,10 +69,14 @@ export class RoundedRectangularDonut extends AbstractShape {
     this.thickness = thickness
   }
   generate() {
-    const outer = new RoundedRectangle(this.center, this.width, this.height, this.radius, this.segments).generate();
+    const offset = this.alignmentOffset();
+    offset.x *= 0.5;
+    offset.y *= 0.5;
+    const offsetCenter = new Ray(this.center.x + offset.x, this.center.y + offset.y, this.center.direction);
+    const outer = new RoundedRectangle(offsetCenter, this.width, this.height, this.radius, this.segments).generate();
     const inner = this.radius - this.thickness > 0 ? 
-      new RoundedRectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, this.radius - this.thickness, this.segments, true).generate() :
-      new Rectangle(this.center, this.width - this.thickness * 2, this.height - this.thickness * 2, this.segments, true).generate();
+      new RoundedRectangle(offsetCenter, this.width - this.thickness * 2, this.height - this.thickness * 2, this.radius - this.thickness, this.segments, true).generate() :
+      new Rectangle(offsetCenter, this.width - this.thickness * 2, this.height - this.thickness * 2, this.segments, true).generate();
       return [
         ...outer,
         ...inner,
