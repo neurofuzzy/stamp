@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { IShape, Ray } from './geom/shapes';
+import { IShape, Ray, ShapeAlignment } from './geom/shapes';
 import { Stamp } from './stamp';
 import './style.css';
 import { Sequence } from './sequence';
@@ -32,12 +32,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
   const shapes = new Stamp(new Ray(w / 2, h / 2, Math.PI / 6))
     .rotate(rot)
-    .roundedRectangle("AA()", "AA", "ARA()", 8, 3, 5, 5, 80, 80)
+    .roundedRectangle("AA()", "AA", "ARA()", 8, 3, ShapeAlignment.Center, 5, 5, 80, 80)
     //.rectangle(120, 20, "ARB()", 1, 9, 9, 80, 80)
     .subtract()
-    .rectangle("AB()", "AB", "ARC()", 1, 5, 5, 80, 80)
+    .rectangle("AB()", "AB", "ARC()", 1, ShapeAlignment.Center, 5, 5, 80, 80)
     .add()
-    .circle("AC()", 64, 5, 5, 80, 80);
+    .circle("AC()", 64, ShapeAlignment.Center, 5, 5, 80, 80);
   //shapes.bake();
   drawShape(ctx, shapes);
   //drawBoundingBox(ctx, shapes);

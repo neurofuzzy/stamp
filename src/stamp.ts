@@ -1,5 +1,5 @@
 import { GeomHelpers } from "./geom/helpers";
-import { AbstractShape, Circle, IShape, Point, Polygon, Ray, Rectangle, RoundedRectangle } from "./geom/shapes";
+import { AbstractShape, Circle, IShape, Point, Polygon, Ray, Rectangle, RoundedRectangle, ShapeAlignment } from "./geom/shapes";
 import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
 
@@ -43,8 +43,8 @@ export class Stamp extends AbstractShape {
 
   baked: boolean = false;
 
-  constructor(center?: Ray, segments: number = 1, reverse: boolean = false) {
-    super(center, segments, reverse);
+  constructor(center?: Ray, segments: number = 1, alignment: ShapeAlignment = ShapeAlignment.Center, reverse: boolean = false) {
+    super(center, segments, alignment, reverse);
   }
 
   private _reset () {
@@ -263,7 +263,8 @@ export class Stamp extends AbstractShape {
 
   private _circle(
     r: number | string, 
-    s: number | string, 
+    s: number | string = 32, 
+    a: number | string = ShapeAlignment.Center,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -274,7 +275,7 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Circle(new Ray(nox * i - o.x, noy * j - o.y, 0), $(r), $(s)));
+        shapes.push(new Circle(new Ray(nox * i - o.x, noy * j - o.y, 0), $(r), $(s), $(a)));
       }
     }
     this._make(shapes);
@@ -284,7 +285,8 @@ export class Stamp extends AbstractShape {
     w: number | string, 
     h: number | string, 
     ang: number | string, 
-    s: number | string, 
+    s: number | string = 1,
+    a: number | string = ShapeAlignment.Center,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -295,7 +297,7 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new Rectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(s)));
+        shapes.push(new Rectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(s), $(a)));
       }
     }
     this._make(shapes);
@@ -305,8 +307,9 @@ export class Stamp extends AbstractShape {
     w: number | string, 
     h: number | string,
     ang: number | string,
-    cr: number | string,
-    s: number | string, 
+    cr: number | string = 0,
+    s: number | string = 1, 
+    a: number | string = ShapeAlignment.Center,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
@@ -317,7 +320,7 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nox, noy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(new RoundedRectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(cr), $(s)));
+        shapes.push(new RoundedRectangle(new Ray(nox * i - o.x, + noy * j - o.y, ang ? $(ang) * Math.PI / 180 : 0), $(w), $(h), $(cr), $(s), $(a)));
       }
     }
     this._make(shapes);
@@ -385,13 +388,14 @@ export class Stamp extends AbstractShape {
 
   circle(
     r: number | string, 
-    s: number | string, 
+    s: number | string = 32, 
+    a: number | string = ShapeAlignment.Center,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
     oy: number | string = 0
   ) {
-    this._nodes.push({ fName: "_circle", args: [r, s, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_circle", args: [r, s, a, nx, ny, ox, oy] });
     return this;
   }
 
@@ -399,13 +403,14 @@ export class Stamp extends AbstractShape {
     w: number | string, 
     h: number | string, 
     ang: number | string,
-    s: number | string, 
+    s: number | string = 1, 
+    a: number | string = ShapeAlignment.Center,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
     oy: number | string = 0
   ) {
-    this._nodes.push({ fName: "_rectangle", args: [w, h, ang, s, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_rectangle", args: [w, h, ang, s, a, nx, ny, ox, oy] });
     return this;
   }
 
@@ -413,14 +418,15 @@ export class Stamp extends AbstractShape {
     w: number | string, 
     h: number | string, 
     ang: number | string,
-    cr: number | string, 
-    s: number | string, 
+    cr: number | string = 0, 
+    s: number | string = 3, 
+    a: number | string = ShapeAlignment.Center,
     nx: number | string = 1, 
     ny: number | string = 1, 
     ox: number | string = 0, 
     oy: number | string = 0
   ) {
-    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, ang, cr, s, nx, ny, ox, oy] });
+    this._nodes.push({ fName: "_roundedRectangle", args: [w, h, ang, cr, s, a, nx, ny, ox, oy] });
     return this;
   }
 
@@ -583,7 +589,7 @@ export class Stamp extends AbstractShape {
   }
 
   clone(): Stamp {
-    let stamp = new Stamp(this.center.clone(), this.segments, this.reverse);
+    let stamp = new Stamp(this.center.clone(), this.segments, this.alignment, this.reverse);
     stamp._colors = this._colors?.concat();
     return stamp.fromString(this.toString());
   }
