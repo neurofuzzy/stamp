@@ -14,17 +14,17 @@ import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
 
 interface IShapeParams {
-  ang: number | string;
-  s: number | string;
-  a: number | string;
-  nx: number | string;
-  ny: number | string;
-  spx: number | string;
-  spy: number | string;
-  outln: number | string;
-  ox: number | string;
-  oy: number | string;
-  skip: number | string;
+  ang?: number | string;
+  s?: number | string;
+  a?: number | string;
+  nx?: number | string;
+  ny?: number | string;
+  spx?: number | string;
+  spy?: number | string;
+  outln?: number | string;
+  ox?: number | string;
+  oy?: number | string;
+  skip?: number | string;
 }
 
 export interface ICircleParams extends IShapeParams {
@@ -44,13 +44,18 @@ export interface IRoundedRectangleParams extends IShapeParams {
 
 export interface IPolygonParams extends IShapeParams {
   rays: Ray[];
+  /* processed internally */
+  rayStrings?: string[];
 }
 
 export interface IStampParams extends IShapeParams {
   subStamp: Stamp;
+  /* processed internally */
+  subStampString?: string;
 }
 
-const applyParamDefaults = (params: IShapeParams) => {
+function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
+  params = Object.assign({}, params);
   params.ang = params.ang ?? 0;
   params.s = params.s ?? 1;
   params.a = params.a ?? ShapeAlignment.CENTER;
@@ -62,8 +67,8 @@ const applyParamDefaults = (params: IShapeParams) => {
   params.ox = params.ox ?? 0;
   params.oy = params.oy ?? 0;
   params.skip = params.skip ?? 0;
+  return params as T;
 }
-
 
 interface INode {
   fName: string;
@@ -272,14 +277,6 @@ export class Stamp extends AbstractShape {
       GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
       g.center.direction += this.center.direction + this.cursor.direction;
 
-      /*
-        if (!this._tree) {
-          this._tree = [];
-        }
-
-        this._tree.push(g);
-        */
-
       let b: clipperLib.SubjectInput;
       let b2 = null;
 
@@ -390,218 +387,162 @@ export class Stamp extends AbstractShape {
     return pt;
   }
 
-  private _circle(
-    r: number | string,
-    s: number | string = 32,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  private _circle(params: ICircleParams) {
     let shapes: IShape[] = [];
-    let nnx = $(nx),
-      nny = $(ny),
-      nspx = $(spx),
-      nspy = $(spy);
+    let nnx = $(params.nx),
+      nny = $(params.ny),
+      nspx = $(params.spx),
+      nspy = $(params.spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Circle(
-            new Ray(nspx * i - o.x + $(ox), nspy * j - o.y + $(oy), 0),
-            $(r),
-            $(s),
-            $(a)
+            new Ray(
+              nspx * i - o.x + $(params.ox),
+              nspy * j - o.y + $(params.oy),
+              0
+            ),
+            $(params.r),
+            $(params.s),
+            $(params.a)
           )
         );
-        if ($(skip) > 0) {
+        if ($(params.skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
       }
     }
-    this._make(shapes, $(outln));
+    this._make(shapes, $(params.outln));
   }
 
-  private _rectangle(
-    w: number | string,
-    h: number | string,
-    ang: number | string,
-    s: number | string = 1,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  private _rectangle(params: IRectangleParams) {
     let shapes: IShape[] = [];
-    let nnx = $(nx),
-      nny = $(ny),
-      nspx = $(spx),
-      nspy = $(spy);
+    let nnx = $(params.nx),
+      nny = $(params.ny),
+      nspx = $(params.spx),
+      nspy = $(params.spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Rectangle(
             new Ray(
-              nspx * i - o.x + $(ox),
-              +nspy * j - o.y + $(oy),
-              ang ? ($(ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.ox),
+              +nspy * j - o.y + $(params.oy),
+              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
             ),
-            $(w),
-            $(h),
-            $(s),
-            $(a)
+            $(params.w),
+            $(params.h),
+            $(params.s),
+            $(params.a)
           )
         );
-        if ($(skip) > 0) {
+        if ($(params.skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
       }
     }
-    this._make(shapes, $(outln));
+    this._make(shapes, $(params.outln));
   }
 
-  private _roundedRectangle(
-    w: number | string,
-    h: number | string,
-    ang: number | string,
-    cr: number | string = 0,
-    s: number | string = 1,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  private _roundedRectangle(params: IRoundedRectangleParams) {
     let shapes: IShape[] = [];
-    let nnx = $(nx),
-      nny = $(ny),
-      nspx = $(spx),
-      nspy = $(spy);
+    let nnx = $(params.nx),
+      nny = $(params.ny),
+      nspx = $(params.spx),
+      nspy = $(params.spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new RoundedRectangle(
             new Ray(
-              nspx * i - o.x + $(ox),
-              +nspy * j - o.y + $(oy),
-              ang ? ($(ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.ox),
+              +nspy * j - o.y + $(params.oy),
+              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
             ),
-            $(w),
-            $(h),
-            $(cr),
-            $(s),
-            $(a)
+            $(params.w),
+            $(params.h),
+            $(params.cr),
+            $(params.s),
+            $(params.a)
           )
         );
-        if ($(skip) > 0) {
+        if ($(params.skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
       }
     }
-    this._make(shapes, $(outln));
+    this._make(shapes, $(params.outln));
   }
 
-  private _polygon(
-    rayStrings: string[],
-    ang: number | string = 0,
-    s: number | string = 1,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  private _polygon(params: IPolygonParams) {
+    if (!params.rayStrings?.length) {
+      return;
+    }
     let shapes: IShape[] = [];
-    let nnx = $(nx),
-      nny = $(ny),
-      nspx = $(spx),
-      nspy = $(spy);
+    let nnx = $(params.nx),
+      nny = $(params.ny),
+      nspx = $(params.spx),
+      nspy = $(params.spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Polygon(
             new Ray(
-              nspx * i - o.x + $(ox),
-              +nspy * j - o.y + $(oy),
-              ang ? ($(ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.ox),
+              +nspy * j - o.y + $(params.oy),
+              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
             ),
-            rayStrings.map((s) => new Ray(0, 0).fromString(s)),
-            $(s),
-            $(a)
+            params.rayStrings.map((s) => new Ray(0, 0).fromString(s)),
+            $(params.s),
+            $(params.a)
           )
         );
-        if ($(skip) > 0) {
+        if ($(params.skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
       }
     }
-    this._make(shapes, $(outln));
+    this._make(shapes, $(params.outln));
   }
 
-  private _stamp(
-    subStampString: string,
-    ang: number | string = 0,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  private _stamp(params: IStampParams) {
+    if (!params.subStampString) {
+      return;
+    }
     let shapes: IShape[] = [];
-    let nnx = $(nx),
-      nny = $(ny),
-      nspx = $(spx),
-      nspy = $(spy);
+    let nnx = $(params.nx),
+      nny = $(params.ny),
+      nspx = $(params.spx),
+      nspy = $(params.spy);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Stamp(
             new Ray(
-              nspx * i - o.x + $(ox),
-              +nspy * j - o.y + $(oy),
-              ang ? ($(ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.ox),
+              +nspy * j - o.y + $(params.oy),
+              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
             ),
             1,
-            $(a)
-          ).fromString(subStampString)
+            $(params.a)
+          ).fromString(params.subStampString)
         );
-        if ($(skip) > 0) {
+        if ($(params.skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
       }
     }
-    this._make(shapes, $(outln));
+    this._make(shapes, $(params.outln));
   }
 
   reset() {
@@ -664,133 +605,49 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  circle(
-    r: number | string,
-    s: number | string = 32,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  circle(params: ICircleParams) {
+    params = paramsWithDefaults<ICircleParams>(params);
     this._nodes.push({
       fName: "_circle",
-      args: [r, s, a, nx, ny, spx, spy, outln, ox, oy, skip],
+      args: [params],
     });
     return this;
   }
 
-  rectangle(
-    w: number | string,
-    h: number | string,
-    ang: number | string = 0,
-    s: number | string = 1,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  rectangle(params: IRectangleParams) {
+    params = paramsWithDefaults<IRectangleParams>(params);
     this._nodes.push({
       fName: "_rectangle",
-      args: [w, h, ang, s, a, nx, ny, spx, spy, outln, ox, oy, skip],
+      args: [params],
     });
     return this;
   }
 
-  roundedRectangle(
-    w: number | string,
-    h: number | string,
-    ang: number | string = 0,
-    cr: number | string = 0,
-    s: number | string = 3,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  roundedRectangle(params: IRoundedRectangleParams) {
+    params = paramsWithDefaults<IRoundedRectangleParams>(params);
     this._nodes.push({
       fName: "_roundedRectangle",
-      args: [w, h, ang, cr, s, a, nx, ny, spx, spy, outln, ox, oy, skip],
+      args: [params],
     });
     return this;
   }
 
-  polygon(
-    rays: Ray[],
-    ang: number | string = 0,
-    s: number | string = 1,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  polygon(params: IPolygonParams) {
+    params = paramsWithDefaults<IPolygonParams>(params);
+    params.rayStrings = params.rays.map((r) => r.toString());
     this._nodes.push({
       fName: "_polygon",
-      args: [
-        rays.map((r) => r.toString()),
-        ang,
-        s,
-        a,
-        nx,
-        ny,
-        spx,
-        spy,
-        outln,
-        ox,
-        oy,
-        skip,
-      ],
+      args: [params],
     });
     return this;
   }
 
-  stamp(
-    subStamp: Stamp,
-    ang: number | string = 0,
-    a: number | string = ShapeAlignment.CENTER,
-    nx: number | string = 1,
-    ny: number | string = 1,
-    spx: number | string = 0,
-    spy: number | string = 0,
-    outln: number | string = 0,
-    ox: number | string = 0,
-    oy: number | string = 0,
-    skip: number | string = 0
-  ) {
+  stamp(params: IStampParams) {
+    params = paramsWithDefaults<IStampParams>(params);
+    params.subStampString = params.subStamp.toString();
     this._nodes.push({
       fName: "_stamp",
-      args: [
-        subStamp.toString(),
-        ang,
-        a,
-        nx,
-        ny,
-        spx,
-        spy,
-        outln,
-        ox,
-        oy,
-        skip,
-      ],
+      args: [params],
     });
     return this;
   }
