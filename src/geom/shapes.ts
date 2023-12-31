@@ -133,33 +133,40 @@ export class AbstractShape implements IShape {
     let pt = new Point(0, 0);
     switch (this.alignment) {
       case ShapeAlignment.TOP_LEFT:
-        pt.x -= bb.width * 0.5;
-        pt.y -= bb.height * 0.5;
+        pt.x -= (bb.x) - this.center.x;
+        pt.y -= (bb.y + bb.height) - this.center.y;
         break;
       case ShapeAlignment.TOP:
-        pt.y -= bb.height * 0.5;
+        pt.x -= (bb.x) - this.center.x;
+        pt.y -= (bb.y + bb.height) - this.center.y;
         break;
       case ShapeAlignment.TOP_RIGHT:
-        pt.x += bb.width * 0.5;
-        pt.y -= bb.height * 0.5;
+        pt.x -= (bb.x + bb.width) - this.center.x;
+        pt.y -= (bb.y + bb.height) - this.center.y;
         break;
       case ShapeAlignment.LEFT:
-        pt.x -= bb.width * 0.5;
+        pt.x -= (bb.x) - this.center.x;
+        pt.y -= (bb.y + bb.height / 2) - this.center.y;
         break;
       case ShapeAlignment.CENTER:
+        pt.x -= (bb.x + bb.width / 2) - this.center.x;
+        pt.y -= (bb.y + bb.height / 2) - this.center.y;
         break;
       case ShapeAlignment.RIGHT:
-        pt.x += bb.width * 0.5;
+        pt.x -= (bb.x + bb.width) - this.center.x;
+        pt.y -= (bb.y + bb.height / 2) - this.center.y;
         break;
       case ShapeAlignment.BOTTOM_LEFT:
-        pt.x -= bb.width * 0.5;
-        pt.y += bb.height * 0.5;
+        pt.x -= (bb.x) - this.center.x;
+        pt.y -= bb.y - this.center.y;
         break;
       case ShapeAlignment.BOTTOM:
-        pt.y += bb.height * 0.5;
+        pt.x -= (bb.x + bb.width / 2) - this.center.x;
+        pt.y -= bb.y - this.center.y;
         break;
       case ShapeAlignment.BOTTOM_RIGHT:
-        pt.x += bb.width * 0.5;
+        pt.x -= (bb.x + bb.width) - this.center.x;
+        pt.y -= bb.y - this.center.y;
     }
     return pt;
   }
@@ -287,12 +294,6 @@ export class Polygon extends AbstractShape {
   ) {
     super(center, segments, alignment, reverse);
     this.rays = rays;
-    const bc = makeCircle(rays);
-    const offset = this.alignmentOffset();
-    if (bc) {
-      this.center.x = bc.x + offset.x;
-      this.center.y = bc.y + offset.y;
-    }
   }
   generate() {
     let rays = this.rays.slice().map((r) => r.clone());
