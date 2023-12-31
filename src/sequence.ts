@@ -149,6 +149,13 @@ export class Sequence {
       parsedValues.forEach((val) => {
         if (Sequence.sequences[val]) {
           values.push(Sequence.sequences[val]);
+        } else if (val.indexOf("[") !== -1 && val.indexOf("]") !== -1) {
+          const repeatNum = parseInt(val.split("[")[1].split("]")[0]);
+          console.log(repeatNum);
+          const repeatVal = parseFloat(val.split("[")[0]);
+          for (let i = 0; i < repeatNum; i++) {
+            values.push(repeatVal);
+          }
         } else if (val.indexOf("0x") === 0) {
           values.push(parseInt(val, 16));
         } else if (val.indexOf(".") === -1) {

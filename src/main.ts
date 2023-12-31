@@ -1,8 +1,9 @@
 import * as C2S from 'canvas2svg';
-import { IShape, Ray, ShapeAlignment } from './geom/shapes';
+import { Ray, ShapeAlignment } from './geom/shapes';
 import { Stamp } from './stamp';
 import './style.css';
 import { Sequence } from './sequence';
+import { drawShape } from './draw';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -20,18 +21,19 @@ const h = canvas.height
 ctx.fillStyle = 'white';
 
 let rot = 0;
+let seed = 18;
 
-Sequence.fromStatement("random 50,60,70 AS BW", 16)
-Sequence.fromStatement("repeat 40,70,100 AS BH", 14)
-Sequence.fromStatement("repeat 35,35,35,35,35,35,0,0,0,0,0,0 AS BO", 14)
-Sequence.fromStatement("repeat 0,0,0,0,0,1,0,0,0,0,0,0 AS BSK", 14)
-Sequence.fromStatement("repeat 1,2,3 AS BNW", 14)
-Sequence.fromStatement("random 1,1,1 AS BA", 14)
+Sequence.fromStatement("repeat 40,70,100 AS BH", seed)
+Sequence.fromStatement("repeat 1,2,3 AS BNW", seed)
+Sequence.fromStatement("repeat 1,1,1 AS BA", seed)
+Sequence.fromStatement("repeat 35[6],0[6] AS BO")
+Sequence.fromStatement("repeat 0[5],1,0[6] AS BSK")
 
 const draw = (ctx: CanvasRenderingContext2D) => {
  
   ctx.clearRect(0, 0, w, h);
-  
+
+  // building
   const building = new Stamp(new Ray(100, 100, 0))
     .rectangle(50, "BH()")
     .moveTo(0, "0 - BH / 2")
@@ -42,68 +44,15 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .add()
     .rectangle(20, 10, 0, 1, ShapeAlignment.TOP, 1, 1, 0, 0, 0, 0, 0, "41 - BH")
   
-    const city = new Stamp(new Ray(w / 2, h / 2, 0))
+  // city grid
+  const city = new Stamp(new Ray(w / 2, h / 2, 0))
     .stamp(building, 0, ShapeAlignment.TOP, 6, 6, 70, 70, 6, "BO()", 0, "BSK()");
   
-    drawShape(ctx, city);
-}
+  // draw as single shape
+  //drawShape(ctx, city);
 
-function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0) {
-
-  const rays = shape.generate();
-
-  if (shapeDepth === 0) {
-    ctx.beginPath();
-  }
-  if (rays.length) {
-    ctx.moveTo(rays[0].x, rays[0].y);
-    for (let i = 1; i < rays.length; i++) {
-      ctx.lineTo(rays[i].x, rays[i].y);
-    }
-  }
-  shape.children().forEach(child => drawShape(ctx, child, shapeDepth + 1));
-  ctx.closePath();
-
-  if (shapeDepth === 0) {
-    ctx.strokeStyle = 'white';
-    ctx.fillStyle = '#333';
-    ctx.lineWidth = 0.5; 
-    ctx.fill('evenodd');
-    ctx.stroke();
-  }
-
-}
-
-function drawBoundingBox(ctx: CanvasRenderingContext2D, shape: IShape) {
-
-  const bb = shape.boundingBox();
-
-  ctx.beginPath();
-  ctx.strokeStyle = 'cyan';
-  ctx.lineWidth = 0.5; 
-  ctx.strokeRect(bb.x, bb.y, bb.width, bb.height);
-
-}
-
-function drawBoundingCircle(ctx: CanvasRenderingContext2D, shape: IShape) {
-
-  const bc = shape.boundingCircle();
-
-  ctx.beginPath();
-  ctx.strokeStyle = 'magenta';
-  ctx.lineWidth = 0.5;
-  ctx.arc(bc.x, bc.y, bc.radius, 0, 2 * Math.PI);
-  ctx.stroke();
-
-}
-
-function drawCenter(ctx: CanvasRenderingContext2D, shape: IShape) {
-
-  const c = shape.center;
-  ctx.beginPath();
-  ctx.fillStyle = 'yellow';
-  ctx.arc(c.x, c.y, 2, 0, 2 * Math.PI);
-  ctx.fill();
+  // draw children
+  city.children().forEach(child => drawShape(ctx, child));
 
 }
 
