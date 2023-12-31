@@ -23,29 +23,29 @@ let rot = 0;
 
 Sequence.fromStatement("random 50,60,70 AS BW", 16)
 Sequence.fromStatement("repeat 40,70,100 AS BH", 14)
-Sequence.fromStatement("repeat 0,0,0,0,0,0,35,35,35,35,35,35 AS BO", 14)
-Sequence.fromStatement("repeat 0,0,0,0,0,0,0,0,0,0,0,1 AS BSK", 14)
+Sequence.fromStatement("repeat 35,35,35,35,35,35,0,0,0,0,0,0 AS BO", 14)
+Sequence.fromStatement("repeat 0,0,0,0,0,1,0,0,0,0,0,0 AS BSK", 14)
 Sequence.fromStatement("repeat 1,2,3 AS BNW", 14)
 Sequence.fromStatement("random 1,1,1 AS BA", 14)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
+ 
   ctx.clearRect(0, 0, w, h);
+  
   const building = new Stamp(new Ray(100, 100, 0))
-    .rectangle("BW()", "BH()")
+    .rectangle(50, "BH()")
+    .moveTo(0, "0 - BH / 2")
+    .circle(25, 4, ShapeAlignment.CENTER, 1, 1, 0, 0, 0, 0, 0, "BH - 41")
+    .moveTo(0, 0)
     .subtract()
     .rectangle(10, 20, 0, 1, ShapeAlignment.CENTER, 2, "BNW()", 20, 30).moveTo(0, "0 - BH / 2")
     .add()
-    .rectangle(20, 20, 0, 1, ShapeAlignment.TOP, 1, 1, 0, 0, 0, 0, 0, "BH - 41")
-  const city = new Stamp(new Ray(w / 2, h / 2, 0))
-    .stamp(building, 0, ShapeAlignment.TOP, 6, 5, 70, 70, 5, "BO()", 0, "BSK()");
-  drawShape(ctx, city);
-  //drawBoundingBox(ctx, shapes);
-  //drawBoundingCircle(ctx, city);
-  //drawCenter(ctx, city);
-  //drawBoundingBox(ctx, city);
-  //city.children().forEach(child => drawBoundingCircle(ctx, child));
-  //city.children().forEach(child => drawCenter(ctx, child));
-  //city.children().forEach(s => drawBoundingBox(ctx, s));
+    .rectangle(20, 10, 0, 1, ShapeAlignment.TOP, 1, 1, 0, 0, 0, 0, 0, "41 - BH")
+  
+    const city = new Stamp(new Ray(w / 2, h / 2, 0))
+    .stamp(building, 0, ShapeAlignment.TOP, 6, 6, 70, 70, 6, "BO()", 0, "BSK()");
+  
+    drawShape(ctx, city);
 }
 
 function drawShape(ctx: CanvasRenderingContext2D, shape: IShape, shapeDepth = 0) {
