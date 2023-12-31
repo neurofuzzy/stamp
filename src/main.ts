@@ -35,31 +35,31 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // building
   const building = new Stamp(new Ray(100, 100, 0))
-    .rectangle({ w: 50, h: "BH()"})
+    .rectangle({ width: 50, height: "BH()"})
     .moveTo(0, "0 - BH / 2")
     .circle({
-      r: 25,
-      s: 4,
-      a: ShapeAlignment.CENTER,
+      radius: 25,
+      segments: 4,
+      align: ShapeAlignment.CENTER,
       skip: "BH - 41"
     })
     .moveTo(0, 0)
     .subtract()
     .rectangle({
-      w: 10,
-      h: 20,
-      a: ShapeAlignment.CENTER,
-      nx: 2,
-      ny: "BNW()",
-      spx: 20,
-      spy: 30
+      width: 10,
+      height: 20,
+      align: ShapeAlignment.CENTER,
+      numX: 2,
+      numY: "BNW()",
+      spacingX: 20,
+      spacingY: 30
     })
     .add()
     .moveTo(0, "0 - BH / 2")
     .rectangle({
-      w: 20,
-      h: 10,
-      a: ShapeAlignment.TOP,
+      width: 20,
+      height: 10,
+      align: ShapeAlignment.TOP,
       skip: "41 - BH"
     });
   
@@ -68,15 +68,15 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     //.stamp(building, 0, ShapeAlignment.TOP, 6, 6, 70, 70, 6, "BO()", 0, "BSK()");
     .stamp({
       subStamp: building,
-      ang: 0,
-      a: ShapeAlignment.TOP,
-      nx: 6,
-      ny: 6,
-      spx: 70,
-      spy: 70,
-      outln: 6,
-      ox: "BO()",
-      oy: 0,
+      angle: 0,
+      align: ShapeAlignment.TOP,
+      numX: 6,
+      numY: 6,
+      spacingX: 70,
+      spacingY: 70,
+      outlineThickness: 6,
+      offsetX: "BO()",
+      offsetY: 0,
       skip: "BSK()"
     });
   

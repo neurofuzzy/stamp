@@ -14,32 +14,32 @@ import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
 
 interface IShapeParams {
-  ang?: number | string;
-  s?: number | string;
-  a?: number | string;
-  nx?: number | string;
-  ny?: number | string;
-  spx?: number | string;
-  spy?: number | string;
-  outln?: number | string;
-  ox?: number | string;
-  oy?: number | string;
+  angle?: number | string;
+  segments?: number | string;
+  align?: number | string;
+  numX?: number | string;
+  numY?: number | string;
+  spacingX?: number | string;
+  spacingY?: number | string;
+  outlineThickness?: number | string;
+  offsetX?: number | string;
+  offsetY?: number | string;
   skip?: number | string;
 }
 
 export interface ICircleParams extends IShapeParams {
-  r: number | string;
+  radius: number | string;
 }
 
 export interface IRectangleParams extends IShapeParams {
-  w: number | string;
-  h: number | string;
+  width: number | string;
+  height: number | string;
 }
 
 export interface IRoundedRectangleParams extends IShapeParams {
-  w: number | string;
-  h: number | string;
-  cr: number | string;
+  width: number | string;
+  height: number | string;
+  cornerRadius: number | string;
 }
 
 export interface IPolygonParams extends IShapeParams {
@@ -56,16 +56,16 @@ export interface IStampParams extends IShapeParams {
 
 function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
   params = Object.assign({}, params);
-  params.ang = params.ang ?? 0;
-  params.s = params.s ?? 1;
-  params.a = params.a ?? ShapeAlignment.CENTER;
-  params.nx = params.nx ?? 1;
-  params.ny = params.ny ?? 1;
-  params.spx = params.spx ?? 0;
-  params.spy = params.spy ?? 0;
-  params.outln = params.outln ?? 0;
-  params.ox = params.ox ?? 0;
-  params.oy = params.oy ?? 0;
+  params.angle = params.angle ?? 0;
+  params.segments = params.segments ?? 1;
+  params.align = params.align ?? ShapeAlignment.CENTER;
+  params.numX = params.numX ?? 1;
+  params.numY = params.numY ?? 1;
+  params.spacingX = params.spacingX ?? 0;
+  params.spacingY = params.spacingY ?? 0;
+  params.outlineThickness = params.outlineThickness ?? 0;
+  params.offsetX = params.offsetX ?? 0;
+  params.offsetY = params.offsetY ?? 0;
   params.skip = params.skip ?? 0;
   return params as T;
 }
@@ -389,23 +389,23 @@ export class Stamp extends AbstractShape {
 
   private _circle(params: ICircleParams) {
     let shapes: IShape[] = [];
-    let nnx = $(params.nx),
-      nny = $(params.ny),
-      nspx = $(params.spx),
-      nspy = $(params.spy);
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Circle(
             new Ray(
-              nspx * i - o.x + $(params.ox),
-              nspy * j - o.y + $(params.oy),
+              nspx * i - o.x + $(params.offsetX),
+              nspy * j - o.y + $(params.offsetY),
               0
             ),
-            $(params.r),
-            $(params.s),
-            $(params.a)
+            $(params.radius),
+            $(params.segments),
+            $(params.align)
           )
         );
         if ($(params.skip) > 0) {
@@ -414,29 +414,29 @@ export class Stamp extends AbstractShape {
         }
       }
     }
-    this._make(shapes, $(params.outln));
+    this._make(shapes, $(params.outlineThickness));
   }
 
   private _rectangle(params: IRectangleParams) {
     let shapes: IShape[] = [];
-    let nnx = $(params.nx),
-      nny = $(params.ny),
-      nspx = $(params.spx),
-      nspy = $(params.spy);
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Rectangle(
             new Ray(
-              nspx * i - o.x + $(params.ox),
-              +nspy * j - o.y + $(params.oy),
-              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.offsetX),
+              +nspy * j - o.y + $(params.offsetY),
+              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
             ),
-            $(params.w),
-            $(params.h),
-            $(params.s),
-            $(params.a)
+            $(params.width),
+            $(params.height),
+            $(params.segments),
+            $(params.align)
           )
         );
         if ($(params.skip) > 0) {
@@ -445,30 +445,30 @@ export class Stamp extends AbstractShape {
         }
       }
     }
-    this._make(shapes, $(params.outln));
+    this._make(shapes, $(params.outlineThickness));
   }
 
   private _roundedRectangle(params: IRoundedRectangleParams) {
     let shapes: IShape[] = [];
-    let nnx = $(params.nx),
-      nny = $(params.ny),
-      nspx = $(params.spx),
-      nspy = $(params.spy);
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new RoundedRectangle(
             new Ray(
-              nspx * i - o.x + $(params.ox),
-              +nspy * j - o.y + $(params.oy),
-              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.offsetX),
+              +nspy * j - o.y + $(params.offsetY),
+              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
             ),
-            $(params.w),
-            $(params.h),
-            $(params.cr),
-            $(params.s),
-            $(params.a)
+            $(params.width),
+            $(params.height),
+            $(params.cornerRadius),
+            $(params.segments),
+            $(params.align)
           )
         );
         if ($(params.skip) > 0) {
@@ -477,7 +477,7 @@ export class Stamp extends AbstractShape {
         }
       }
     }
-    this._make(shapes, $(params.outln));
+    this._make(shapes, $(params.outlineThickness));
   }
 
   private _polygon(params: IPolygonParams) {
@@ -485,23 +485,23 @@ export class Stamp extends AbstractShape {
       return;
     }
     let shapes: IShape[] = [];
-    let nnx = $(params.nx),
-      nny = $(params.ny),
-      nspx = $(params.spx),
-      nspy = $(params.spy);
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Polygon(
             new Ray(
-              nspx * i - o.x + $(params.ox),
-              +nspy * j - o.y + $(params.oy),
-              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.offsetX),
+              +nspy * j - o.y + $(params.offsetY),
+              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
             ),
             params.rayStrings.map((s) => new Ray(0, 0).fromString(s)),
-            $(params.s),
-            $(params.a)
+            $(params.segments),
+            $(params.align)
           )
         );
         if ($(params.skip) > 0) {
@@ -510,7 +510,7 @@ export class Stamp extends AbstractShape {
         }
       }
     }
-    this._make(shapes, $(params.outln));
+    this._make(shapes, $(params.outlineThickness));
   }
 
   private _stamp(params: IStampParams) {
@@ -518,22 +518,22 @@ export class Stamp extends AbstractShape {
       return;
     }
     let shapes: IShape[] = [];
-    let nnx = $(params.nx),
-      nny = $(params.ny),
-      nspx = $(params.spx),
-      nspy = $(params.spy);
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         shapes.push(
           new Stamp(
             new Ray(
-              nspx * i - o.x + $(params.ox),
-              +nspy * j - o.y + $(params.oy),
-              params.ang ? ($(params.ang) * Math.PI) / 180 : 0
+              nspx * i - o.x + $(params.offsetX),
+              +nspy * j - o.y + $(params.offsetY),
+              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
             ),
             1,
-            $(params.a)
+            $(params.align)
           ).fromString(params.subStampString)
         );
         if ($(params.skip) > 0) {
@@ -542,7 +542,7 @@ export class Stamp extends AbstractShape {
         }
       }
     }
-    this._make(shapes, $(params.outln));
+    this._make(shapes, $(params.outlineThickness));
   }
 
   reset() {

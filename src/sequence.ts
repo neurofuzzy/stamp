@@ -151,7 +151,6 @@ export class Sequence {
           values.push(Sequence.sequences[val]);
         } else if (val.indexOf("[") !== -1 && val.indexOf("]") !== -1) {
           const repeatNum = parseInt(val.split("[")[1].split("]")[0]);
-          console.log(repeatNum);
           const repeatVal = parseFloat(val.split("[")[0]);
           for (let i = 0; i < repeatNum; i++) {
             values.push(repeatVal);
