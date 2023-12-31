@@ -45,7 +45,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rectangle(20, 10, 0, 1, ShapeAlignment.TOP, 1, 1, 0, 0, 0, 0, 0, "41 - BH")
   
   // city grid
-  const city = new Stamp(new Ray(w / 2, h / 2, 0))
+  const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
     .stamp(building, 0, ShapeAlignment.TOP, 6, 6, 70, 70, 6, "BO()", 0, "BSK()");
   
   // draw as single shape

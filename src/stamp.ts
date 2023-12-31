@@ -13,6 +13,58 @@ import {
 import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
 
+interface IShapeParams {
+  ang: number | string;
+  s: number | string;
+  a: number | string;
+  nx: number | string;
+  ny: number | string;
+  spx: number | string;
+  spy: number | string;
+  outln: number | string;
+  ox: number | string;
+  oy: number | string;
+  skip: number | string;
+}
+
+export interface ICircleParams extends IShapeParams {
+  r: number | string;
+}
+
+export interface IRectangleParams extends IShapeParams {
+  w: number | string;
+  h: number | string;
+}
+
+export interface IRoundedRectangleParams extends IShapeParams {
+  w: number | string;
+  h: number | string;
+  cr: number | string;
+}
+
+export interface IPolygonParams extends IShapeParams {
+  rays: Ray[];
+}
+
+export interface IStampParams extends IShapeParams {
+  subStamp: Stamp;
+}
+
+const applyParamDefaults = (params: IShapeParams) => {
+  params.ang = params.ang ?? 0;
+  params.s = params.s ?? 1;
+  params.a = params.a ?? ShapeAlignment.CENTER;
+  params.nx = params.nx ?? 1;
+  params.ny = params.ny ?? 1;
+  params.spx = params.spx ?? 0;
+  params.spy = params.spy ?? 0;
+  params.outln = params.outln ?? 0;
+  params.ox = params.ox ?? 0;
+  params.oy = params.oy ?? 0;
+  params.skip = params.skip ?? 0;
+}
+
+
 interface INode {
   fName: string;
   args: any[];
