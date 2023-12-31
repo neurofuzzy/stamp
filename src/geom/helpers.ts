@@ -166,11 +166,13 @@ export class GeomHelpers {
 
   static shapeWithinBoundingBox(
     shape: IShape,
-    outerBoundingBox: BoundingBox
+    outerBoundingBox: BoundingBox,
+    tolerance = 0
   ) {
     return GeomHelpers.boundingBoxIsWithinBoundingBox(
       shape.boundingBox(),
-      outerBoundingBox
+      outerBoundingBox,
+      tolerance
     );
   }
 

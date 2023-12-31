@@ -410,7 +410,6 @@ export class Sequence {
         return seq.next() || 0;
       }
     });
-
     return +eval(res.join(" "));
   }
 }

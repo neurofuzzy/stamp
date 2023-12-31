@@ -15,6 +15,13 @@ import {
 import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
 
+const $ = (arg: unknown) =>
+  typeof arg === "string"
+    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0 ? arg : Sequence.resolve(arg)
+    : typeof arg === "number"
+    ? arg
+    : 0;
+
 interface IShapeParams {
   angle?: number | string;
   segments?: number | string;
@@ -73,6 +80,16 @@ function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
   return params as T;
 }
 
+function resolveStyle(style: IStyle) {
+  const out = Object.assign({}, style);
+  if (out.strokeColor !== undefined) out.strokeColor = $(out.strokeColor);
+  if (out.fillColor !== undefined) out.fillColor = $(out.fillColor);
+  if (out.hatchPattern !== undefined) out.hatchPattern = $(out.hatchPattern);
+  if (out.hatchScale !== undefined) out.hatchScale = $(out.hatchScale);
+  if (out.hatchAngle !== undefined) out.hatchAngle = $(out.hatchAngle);
+  return out;
+}
+
 interface IStyleMap {
   bounds: BoundingBox;
   style: IStyle;
@@ -82,13 +99,6 @@ interface INode {
   fName: string;
   args: any[];
 }
-
-const $ = (arg: unknown) =>
-  typeof arg === "string"
-    ? Sequence.resolve(arg)
-    : typeof arg === "number"
-    ? arg
-    : 0;
 
 export class Stamp extends AbstractShape {
   static readonly UNION = 1;
@@ -277,12 +287,7 @@ export class Stamp extends AbstractShape {
         break;
       }
 
-      if (this.mode !== Stamp.SUBTRACT && shape.style && !shape.hidden) {
-        this._styleMap.push({
-          bounds: shape.boundingBox(),
-          style: shape.style,
-        })
-      }
+
 
       let g = shape.clone();
 
@@ -291,6 +296,19 @@ export class Stamp extends AbstractShape {
       GeomHelpers.rotatePointAboutOrigin(this.center, g.center);
       GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
       g.center.direction += this.center.direction + this.cursor.direction;
+
+      if (shape.style) {
+
+        const style = resolveStyle(shape.style);
+
+        if (this.mode !== Stamp.SUBTRACT && !shape.hidden) {
+          this._styleMap.push({
+            bounds: g.boundingBox(),
+            style,
+          })
+        }
+
+      }
 
       let b: clipperLib.SubjectInput;
       let b2 = null;
@@ -725,6 +743,25 @@ export class Stamp extends AbstractShape {
     return 0;
   }
 
+  mapStyles() {
+    // sort style map by bounds area
+    this._styleMap.sort((a, b) => {
+      const areaA = a.bounds.area();
+      const areaB = b.bounds.area();
+      return areaA - areaB;
+    });
+    let i = this._styleMap.length;
+    while (i--) {
+      let styleArea = this._styleMap[i];
+      for (let j = 0; j < this._polys.length; j++) {
+        let poly = this._polys[j];
+        if (GeomHelpers.shapeWithinBoundingBox(poly, styleArea.bounds, 1.1)) {
+          poly.style = styleArea.style;
+        }
+      }
+    }
+  }
+
   /**
    * Bakes the CSG solution into a final tree
    * @param {boolean} rebake whether to re-bake a baked shape
@@ -801,6 +838,8 @@ export class Stamp extends AbstractShape {
     }
 
     this._polys = this._tree ? this._polyTreeToPolygons(this._tree) : [];
+
+    this.mapStyles();
 
     const offset = this.alignmentOffset();
 
