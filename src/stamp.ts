@@ -1,8 +1,10 @@
 import { GeomHelpers } from "./geom/helpers";
 import {
   AbstractShape,
+  BoundingBox,
   Circle,
   IShape,
+  IStyle,
   Point,
   Polygon,
   Ray,
@@ -25,6 +27,7 @@ interface IShapeParams {
   offsetX?: number | string;
   offsetY?: number | string;
   skip?: number | string;
+  style?: IStyle;
 }
 
 export interface ICircleParams extends IShapeParams {
@@ -70,6 +73,11 @@ function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
   return params as T;
 }
 
+interface IStyleMap {
+  bounds: BoundingBox;
+  style: IStyle;
+}
+
 interface INode {
   fName: string;
   args: any[];
@@ -97,13 +105,12 @@ export class Stamp extends AbstractShape {
     return !!Stamp.clipper;
   }
 
-  _colors?: string[];
   _nodes: INode[] = [];
   _tree: clipperLib.PolyTree | null = null;
   _trees: clipperLib.PolyTree[] = [];
   _polys: Polygon[] = [];
   _polygroups: Polygon[][] = [];
-  _mats: string[] = [];
+  _styleMap: IStyleMap[] = [];
 
   colorIdx: number = 0;
   mode: number = Stamp.UNION;
@@ -128,6 +135,7 @@ export class Stamp extends AbstractShape {
     this._trees = [];
     this._polys = [];
     this._polygroups = [];
+    this._styleMap = [];
     this.mode = Stamp.UNION;
     this.baked = false;
     this.offsetX = 0;
@@ -269,6 +277,13 @@ export class Stamp extends AbstractShape {
         break;
       }
 
+      if (this.mode !== Stamp.SUBTRACT && shape.style && !shape.hidden) {
+        this._styleMap.push({
+          bounds: shape.boundingBox(),
+          style: shape.style,
+        })
+      }
+
       let g = shape.clone();
 
       g.center.x += this.cursor.x + this.center.x;
@@ -396,22 +411,23 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(
-          new Circle(
-            new Ray(
-              nspx * i - o.x + $(params.offsetX),
-              nspy * j - o.y + $(params.offsetY),
-              0
-            ),
-            $(params.radius),
-            $(params.segments),
-            $(params.align)
-          )
+        const s = new Circle(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            nspy * j - o.y + $(params.offsetY),
+            0
+          ),
+          $(params.radius),
+          $(params.segments),
+          $(params.align)
         );
         if ($(params.skip) > 0) {
-          const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
       }
     }
     this._make(shapes, $(params.outlineThickness));
@@ -426,23 +442,24 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(
-          new Rectangle(
-            new Ray(
-              nspx * i - o.x + $(params.offsetX),
-              +nspy * j - o.y + $(params.offsetY),
-              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
-            ),
-            $(params.width),
-            $(params.height),
-            $(params.segments),
-            $(params.align)
-          )
+        const s = new Rectangle(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            +nspy * j - o.y + $(params.offsetY),
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+          ),
+          $(params.width),
+          $(params.height),
+          $(params.segments),
+          $(params.align)
         );
         if ($(params.skip) > 0) {
-          const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
       }
     }
     this._make(shapes, $(params.outlineThickness));
@@ -457,24 +474,26 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(
-          new RoundedRectangle(
-            new Ray(
-              nspx * i - o.x + $(params.offsetX),
-              +nspy * j - o.y + $(params.offsetY),
-              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
-            ),
-            $(params.width),
-            $(params.height),
-            $(params.cornerRadius),
-            $(params.segments),
-            $(params.align)
-          )
+        const s = new RoundedRectangle(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            +nspy * j - o.y + $(params.offsetY),
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+          ),
+          $(params.width),
+          $(params.height),
+          $(params.cornerRadius),
+          $(params.segments),
+          $(params.align)
         );
         if ($(params.skip) > 0) {
           const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
       }
     }
     this._make(shapes, $(params.outlineThickness));
@@ -492,22 +511,23 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(
-          new Polygon(
-            new Ray(
-              nspx * i - o.x + $(params.offsetX),
-              +nspy * j - o.y + $(params.offsetY),
-              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
-            ),
-            params.rayStrings.map((s) => new Ray(0, 0).fromString(s)),
-            $(params.segments),
-            $(params.align)
-          )
+        const s = new Polygon(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            +nspy * j - o.y + $(params.offsetY),
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+          ),
+          params.rayStrings.map((s) => new Ray(0, 0).fromString(s)),
+          $(params.segments),
+          $(params.align)
         );
         if ($(params.skip) > 0) {
-          const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
       }
     }
     this._make(shapes, $(params.outlineThickness));
@@ -525,21 +545,22 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        shapes.push(
-          new Stamp(
-            new Ray(
-              nspx * i - o.x + $(params.offsetX),
-              +nspy * j - o.y + $(params.offsetY),
-              params.angle ? ($(params.angle) * Math.PI) / 180 : 0
-            ),
-            1,
-            $(params.align)
-          ).fromString(params.subStampString)
-        );
+        const s = new Stamp(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            +nspy * j - o.y + $(params.offsetY),
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+          ),
+          1,
+          $(params.align)
+        ).fromString(params.subStampString);
         if ($(params.skip) > 0) {
-          const s = shapes[shapes.length - 1];
           s.hidden = true;
         }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
       }
     }
     this._make(shapes, $(params.outlineThickness));
@@ -779,10 +800,6 @@ export class Stamp extends AbstractShape {
       }
     }
 
-    if (!this._colors) {
-      this._colors = ["white"];
-    }
-
     this._polys = this._tree ? this._polyTreeToPolygons(this._tree) : [];
 
     const offset = this.alignmentOffset();
@@ -837,7 +854,6 @@ export class Stamp extends AbstractShape {
       this.alignment,
       this.reverse
     );
-    stamp._colors = this._colors?.concat();
     stamp.isHole = this.isHole;
     stamp.hidden = this.hidden;
     return stamp.fromString(this.toString());
@@ -846,7 +862,6 @@ export class Stamp extends AbstractShape {
   copy(stamp: Stamp): Stamp {
     // @ts-ignore
     this._nodes = stamp._nodes.concat();
-    this._colors = stamp._colors?.concat();
     return stamp;
   }
 }

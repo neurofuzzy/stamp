@@ -42,6 +42,14 @@ export class Donut extends Circle {
     ).generate();
     return [...outer, ...inner, outer[0]];
   }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(
+      this.center.x - this.radius,
+      this.center.y - this.radius,
+      this.radius * 2,
+      this.radius * 2
+    );
+  }
   clone() {
     const s = new Donut(
       this.center.clone(),
@@ -52,15 +60,8 @@ export class Donut extends Circle {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
-  }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(
-      this.center.x - this.radius,
-      this.center.y - this.radius,
-      this.radius * 2,
-      this.radius * 2
-    );
   }
 }
 
@@ -105,6 +106,14 @@ export class RectangularDonut extends Rectangle {
     ).generate();
     return [...outer, ...inner, outer[0]];
   }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(
+      this.center.x - this.width / 2,
+      this.center.y - this.height / 2,
+      this.width,
+      this.height
+    );
+  }
   clone() {
     const s = new RectangularDonut(
       this.center.clone(),
@@ -117,15 +126,8 @@ export class RectangularDonut extends Rectangle {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
-  }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(
-      this.center.x - this.width / 2,
-      this.center.y - this.height / 2,
-      this.width,
-      this.height
-    );
   }
 }
 
@@ -186,6 +188,14 @@ export class RoundedRectangularDonut extends AbstractShape {
           ).generate();
     return [...outer, ...inner, outer[0]];
   }
+  boundingBox(): BoundingBox {
+    return new BoundingBox(
+      this.center.x - this.width / 2,
+      this.center.y - this.height / 2,
+      this.width,
+      this.height
+    );
+  }
   clone() {
     const s = new RoundedRectangularDonut(
       this.center.clone(),
@@ -198,14 +208,7 @@ export class RoundedRectangularDonut extends AbstractShape {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
-  }
-  boundingBox(): BoundingBox {
-    return new BoundingBox(
-      this.center.x - this.width / 2,
-      this.center.y - this.height / 2,
-      this.width,
-      this.height
-    );
   }
 }

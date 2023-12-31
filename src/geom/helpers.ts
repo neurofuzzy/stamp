@@ -1,4 +1,4 @@
-import { Point, Ray } from "./shapes"
+import { Point, Ray, BoundingBox, IShape } from "./shapes"
 
 export class GeomHelpers {
 
@@ -149,6 +149,29 @@ export class GeomHelpers {
       sum += GeomHelpers.angleBetweenPoints(rays[i], rays[i + 1]);
     }
     return sum < 0
+  }
+
+  static boundingBoxIsWithinBoundingBox(
+    boundingBox: BoundingBox,
+    outerBoundingBox: BoundingBox,
+    tolerance = 0
+  ) {
+    return (
+      boundingBox.x + tolerance >= outerBoundingBox.x &&
+      boundingBox.y + tolerance >= outerBoundingBox.y &&
+      boundingBox.x + boundingBox.width - tolerance <= outerBoundingBox.x + outerBoundingBox.width &&
+      boundingBox.y + boundingBox.height - tolerance <= outerBoundingBox.y + outerBoundingBox.height
+    );
+  }
+
+  static shapeWithinBoundingBox(
+    shape: IShape,
+    outerBoundingBox: BoundingBox
+  ) {
+    return GeomHelpers.boundingBoxIsWithinBoundingBox(
+      shape.boundingBox(),
+      outerBoundingBox
+    );
   }
 
 }

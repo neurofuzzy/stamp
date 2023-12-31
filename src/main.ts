@@ -23,11 +23,10 @@ ctx.fillStyle = 'white';
 let rot = 0;
 let seed = 18;
 
-Sequence.fromStatement("repeat 40,70,100 AS BH", seed)
-Sequence.fromStatement("repeat 1,2,3 AS BNW", seed)
-Sequence.fromStatement("repeat 1,1,1 AS BA", seed)
-Sequence.fromStatement("repeat 35[6],0[6] AS BO")
-Sequence.fromStatement("repeat 0[5],1,0[6] AS BSK")
+Sequence.fromStatement("repeat 40,70,100 AS BHEIGHT", seed)
+Sequence.fromStatement("repeat 1,2,3 AS STORIES", seed)
+Sequence.fromStatement("repeat 35[6],0[6] AS BOFFSET")
+Sequence.fromStatement("repeat 0[5],1,0[6] AS BSKIP")
 
 const draw = (ctx: CanvasRenderingContext2D) => {
  
@@ -35,13 +34,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // building
   const building = new Stamp(new Ray(100, 100, 0))
-    .rectangle({ width: 50, height: "BH()"})
-    .moveTo(0, "0 - BH / 2")
+    .rectangle({ width: 50, height: "BHEIGHT()"})
+    .moveTo(0, "0 - BHEIGHT / 2")
     .circle({
       radius: 25,
       segments: 4,
       align: ShapeAlignment.CENTER,
-      skip: "BH - 41"
+      skip: "BHEIGHT - 41"
     })
     .moveTo(0, 0)
     .subtract()
@@ -50,22 +49,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       height: 20,
       align: ShapeAlignment.CENTER,
       numX: 2,
-      numY: "BNW()",
+      numY: "STORIES()",
       spacingX: 20,
       spacingY: 30
     })
     .add()
-    .moveTo(0, "0 - BH / 2")
+    .moveTo(0, "0 - BHEIGHT / 2")
     .rectangle({
       width: 20,
       height: 10,
       align: ShapeAlignment.TOP,
-      skip: "41 - BH"
+      skip: "41 - BHEIGHT"
     });
   
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
-    //.stamp(building, 0, ShapeAlignment.TOP, 6, 6, 70, 70, 6, "BO()", 0, "BSK()");
+    //.stamp(building, 0, ShapeAlignment.TOP, 6, 6, 70, 70, 6, "BOFFSET()", 0, "BSKIP()");
     .stamp({
       subStamp: building,
       angle: 0,
@@ -74,16 +73,17 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       numY: 6,
       spacingX: 70,
       spacingY: 70,
-      outlineThickness: 6,
-      offsetX: "BO()",
+      outlineThickness: 5,
+      offsetX: "BOFFSET()",
       offsetY: 0,
-      skip: "BSK()"
+      skip: "BSKIP()"
     });
   
   // draw as single shape
   //drawShape(ctx, city);
 
   // draw children
+  console.log(city.children());
   city.children().forEach(child => drawShape(ctx, child));
 
 }

@@ -14,18 +14,29 @@ export enum ShapeAlignment {
 }
 
 export interface IShape {
+  id: number;
   center: Ray;
   segments: number;
   reverse: boolean;
   isHole: boolean;
   alignment: ShapeAlignment;
   hidden: boolean;
+  style: IStyle;
   generate(): Ray[];
   clone(): IShape;
   boundingBox(): BoundingBox;
   boundingCircle(): BoundingCircle;
   children(): IShape[];
   addChild(shape: IShape): void;
+}
+
+export interface IStyle {
+  strokeColor?: number | string;
+  strokeThickness?: number | string;
+  fillColor?: number | string;
+  hatchPattern?: number | string;
+  hatchScale?: number | string;
+  hatchAngle?: number | string;
 }
 
 export class Point {
@@ -81,6 +92,12 @@ export class BoundingBox {
     this.width = width;
     this.height = height;
   }
+  area() {
+    return (this.width || 0) * (this.height || 0);
+  }
+  clone() {
+    return new BoundingBox(this.x, this.y, this.width, this.height);
+  }
 }
 
 export class BoundingCircle {
@@ -92,9 +109,17 @@ export class BoundingCircle {
     this.y = y;
     this.radius = radius;
   }
+  area() {
+    return Math.PI * (this.radius || 0) * (this.radius || 0);
+  }
+  clone() {
+    return new BoundingCircle(this.x, this.y, this.radius);
+  }
 }
 
 export class AbstractShape implements IShape {
+  static id = 0;
+  id: number = ++AbstractShape.id;
   center: Ray;
   segments: number;
   reverse: boolean;
@@ -102,6 +127,11 @@ export class AbstractShape implements IShape {
   isHole: boolean;
   alignment: ShapeAlignment = ShapeAlignment.CENTER;
   hidden = false;
+  style: IStyle = {
+    strokeColor: "#ccc",
+    strokeThickness: 2,
+    fillColor: "#333"
+  }
   constructor(
     center?: Ray,
     segments: number = 1,
@@ -118,12 +148,6 @@ export class AbstractShape implements IShape {
   generate(): Ray[] {
     console.log("generate", this.segments);
     throw new Error("Method not implemented.");
-  }
-  clone(): IShape {
-    const s = new AbstractShape(this.center.clone(), this.segments, this.alignment, this.reverse);
-    s.isHole = this.isHole;
-    s.hidden = this.hidden;
-    return s;
   }
   protected alignmentOffset(): Point {
     let d = this.center.direction;
@@ -215,6 +239,13 @@ export class AbstractShape implements IShape {
   addChild(shape: IShape) {
     this.childShapes.push(shape);
   }
+  clone(): IShape {
+    const s = new AbstractShape(this.center.clone(), this.segments, this.alignment, this.reverse);
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
+    return s;
+  }
 }
 
 export class Arc extends AbstractShape {
@@ -279,6 +310,7 @@ export class Arc extends AbstractShape {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
   }
 }
@@ -322,6 +354,7 @@ export class Polygon extends AbstractShape {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
   }
 }
@@ -405,6 +438,7 @@ export class Circle extends AbstractShape {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
   }
 }
@@ -510,6 +544,7 @@ export class Rectangle extends AbstractShape {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
   }
 }
@@ -647,6 +682,7 @@ export class RoundedRectangle extends Rectangle {
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
     return s;
   }
 }
