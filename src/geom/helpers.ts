@@ -82,16 +82,16 @@ export class GeomHelpers {
     ray.direction += origin.direction;
   }
 
-  static subdivideRays(start: Ray, end: Ray, segments: number, flipRays = false) {
+  static subdivideRays(start: Ray, end: Ray, divisions: number, flipRays = false) {
     const rays = [];
-    for (let i = 0; i <= segments; i++) {
+    for (let i = 0; i <= divisions; i++) {
       const ray = new Ray(
-        start.x + (end.x - start.x) * i / segments,
-        start.y + (end.y - start.y) * i / segments
+        start.x + (end.x - start.x) * i / divisions,
+        start.y + (end.y - start.y) * i / divisions
       );
       if (i === 0) {
         ray.direction = start.direction;
-      } else if (i === segments) {
+      } else if (i === divisions) {
         ray.direction = end.direction;
       } else {
         ray.direction = GeomHelpers.angleBetweenPoints(rays[i - 1], ray) - Math.PI / 2;
@@ -99,7 +99,7 @@ export class GeomHelpers {
       rays.push(ray);
     }
     if (flipRays) {
-      for (let i = 0; i < segments; i++) {
+      for (let i = 0; i < divisions; i++) {
         rays[i].direction += Math.PI;
       }
     }
@@ -107,14 +107,14 @@ export class GeomHelpers {
   }
 
   static subdivideRaysByDistance(start: Ray, end: Ray, distance: number) {
-    const segments = Math.round(GeomHelpers.distanceBetweenPoints(start, end) / distance);
-    return GeomHelpers.subdivideRays(start, end, segments);
+    const divisions = Math.round(GeomHelpers.distanceBetweenPoints(start, end) / distance);
+    return GeomHelpers.subdivideRays(start, end, divisions);
   }
 
-  static subdivideRaySet(rays: Ray[], segments: number) {
+  static subdivideRaySet(rays: Ray[], divisions: number) {
     const newRays = [];
     for (let i = 0; i < rays.length - 1; i++) {
-      newRays.push(...GeomHelpers.subdivideRays(rays[i], rays[i + 1], segments));
+      newRays.push(...GeomHelpers.subdivideRays(rays[i], rays[i + 1], divisions));
     }
     return newRays
   }

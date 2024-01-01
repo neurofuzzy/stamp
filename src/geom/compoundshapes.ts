@@ -13,10 +13,10 @@ export class Donut extends Circle {
     center?: Ray,
     innerRadius: number = 30,
     outerRadius: number = 50,
-    segments: number = 32,
+    divisions: number = 32,
     alignment: ShapeAlignment = ShapeAlignment.CENTER
   ) {
-    super(center, outerRadius, segments, alignment, false);
+    super(center, outerRadius, divisions, alignment, false);
     this.innerRadius = innerRadius;
   }
   generate() {
@@ -31,14 +31,14 @@ export class Donut extends Circle {
     const inner = new Circle(
       offsetCenter,
       this.innerRadius,
-      this.segments,
+      this.divisions,
       ShapeAlignment.CENTER,
       true
     ).generate();
     const outer = new Circle(
       offsetCenter,
       this.radius,
-      this.segments
+      this.divisions
     ).generate();
     return [...outer, ...inner, outer[0]];
   }
@@ -55,7 +55,7 @@ export class Donut extends Circle {
       this.center.clone(),
       this.innerRadius,
       this.radius,
-      this.segments,
+      this.divisions,
       this.alignment
     );
     s.isHole = this.isHole;
@@ -74,10 +74,10 @@ export class RectangularDonut extends Rectangle {
     innerHeight: number = 60,
     outerWidth: number = 100,
     outerHeight: number = 100,
-    segments: number = 1,
+    divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER
   ) {
-    super(center, outerWidth, outerHeight, segments, alignment, false);
+    super(center, outerWidth, outerHeight, divisions, alignment, false);
     this.innerWidth = innerWidth;
     this.innerHeight = innerHeight;
   }
@@ -94,7 +94,7 @@ export class RectangularDonut extends Rectangle {
       offsetCenter,
       this.innerWidth,
       this.innerHeight,
-      this.segments,
+      this.divisions,
       ShapeAlignment.CENTER,
       true
     ).generate();
@@ -102,7 +102,7 @@ export class RectangularDonut extends Rectangle {
       offsetCenter,
       this.width,
       this.height,
-      this.segments
+      this.divisions
     ).generate();
     return [...outer, ...inner, outer[0]];
   }
@@ -121,7 +121,7 @@ export class RectangularDonut extends Rectangle {
       this.innerHeight,
       this.width,
       this.height,
-      this.segments,
+      this.divisions,
       this.alignment
     );
     s.isHole = this.isHole;
@@ -142,10 +142,10 @@ export class RoundedRectangularDonut extends AbstractShape {
     height: number = 100,
     radius: number = 25,
     thickness: number = 20,
-    segments: number = 3,
+    divisions: number = 3,
     alignment: ShapeAlignment = ShapeAlignment.CENTER
   ) {
-    super(center, segments, alignment, false);
+    super(center, divisions, alignment, false);
     this.width = width;
     this.height = height;
     this.radius = radius;
@@ -165,7 +165,7 @@ export class RoundedRectangularDonut extends AbstractShape {
       this.width,
       this.height,
       this.radius,
-      this.segments
+      this.divisions
     ).generate();
     const inner =
       this.radius - this.thickness > 0
@@ -174,7 +174,7 @@ export class RoundedRectangularDonut extends AbstractShape {
             this.width - this.thickness * 2,
             this.height - this.thickness * 2,
             this.radius - this.thickness,
-            this.segments,
+            this.divisions,
             ShapeAlignment.CENTER,
             true
           ).generate()
@@ -182,7 +182,7 @@ export class RoundedRectangularDonut extends AbstractShape {
             offsetCenter,
             this.width - this.thickness * 2,
             this.height - this.thickness * 2,
-            this.segments,
+            this.divisions,
             ShapeAlignment.CENTER,
             true
           ).generate();
@@ -203,7 +203,7 @@ export class RoundedRectangularDonut extends AbstractShape {
       this.height,
       this.radius,
       this.thickness,
-      this.segments,
+      this.divisions,
       this.alignment
     );
     s.isHole = this.isHole;

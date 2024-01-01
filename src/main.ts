@@ -1,9 +1,10 @@
 import * as C2S from 'canvas2svg';
 import { Ray, ShapeAlignment } from './geom/shapes';
-import { Stamp } from './stamp';
+import { Stamp } from './lib/stamp';
 import './style.css';
-import { Sequence } from './sequence';
-import { drawBoundingBox, drawShape } from './draw';
+import { Sequence } from './lib/sequence';
+import { drawShape } from './draw';
+import { ClipperHelpers } from './lib/clipper-helpers';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -39,7 +40,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .moveTo(0, "0 - BHEIGHT / 2")
     .circle({
       radius: 25,
-      segments: 4,
+      divisions: 4,
       align: ShapeAlignment.CENTER,
       skip: "BHEIGHT - 41"
     })
@@ -115,7 +116,7 @@ document.onkeydown = function (e) {
 
 async function main() {
   
-  await Stamp.init();
+  await ClipperHelpers.init();
 
   function animate() {
     rot += Math.PI / 180 * 0.5;
