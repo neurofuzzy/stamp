@@ -35,8 +35,10 @@ export function drawHatchPattern(ctx: CanvasRenderingContext2D, hatch: IHatchPat
 
   ctx.beginPath();
   segments.forEach(seg => {
-    ctx.moveTo(seg.a.x, seg.a.y);
-    ctx.lineTo(seg.b.x, seg.b.y);
+    ctx.moveTo(seg.points[0].x, seg.points[0].y);
+    for (let i = 1; i < seg.points.length; i++) {
+      ctx.lineTo(seg.points[i].x, seg.points[i].y);
+    }
   });
 
   ctx.strokeStyle = hatch.style.strokeColor !== undefined && !isNaN(parseInt(`${hatch.style.strokeColor}`)) ? `#${hatch.style.strokeColor.toString(16)}` : `${hatch.style.strokeColor}`;

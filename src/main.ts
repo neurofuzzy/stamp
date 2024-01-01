@@ -93,7 +93,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // draw children
   city.children().forEach(child => drawShape(ctx, child));
   city.children().forEach(child => {
-    const fillPattern = Hatch.applyHatchToShape(child, 1, Math.PI / 4, 0.5, 2);
+    const fillPattern = Hatch.applyHatchToShape(child, 1, Math.PI / 2, 0.5, 2);
     drawHatchPattern(ctx, fillPattern);
   });
 }

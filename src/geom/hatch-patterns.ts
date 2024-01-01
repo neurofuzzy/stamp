@@ -31,26 +31,6 @@ export class HatchPattern implements IHatchPattern {
   }
 }
 
-export class LineHatchPattern extends HatchPattern {
-  generate(): Segment[] {
-    const hatchStep = this.scale * 10;
-    const segments: Segment[] = [];
-    let radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
-    for (let i = 0; i < numSegments; i++) {
-      const a = new Point(startX + i * hatchStep, this.center.y - radius);
-      const b = new Point(startX + i * hatchStep, this.center.y + radius);
-      segments.push(new Segment(a, b));
-    }
-    segments.forEach((s) => {
-      GeomHelpers.rotatePointAboutOrigin(this.center, s.a);
-      GeomHelpers.rotatePointAboutOrigin(this.center, s.b);
-    })
-    return segments;
-  }
-}
-
 export class HatchFillShape implements IHatchPattern {
   protected segments: Segment[];
   style: IStyle = {
@@ -67,5 +47,49 @@ export class HatchFillShape implements IHatchPattern {
   }
   clone() {
     return new HatchFillShape(this.segments.map((s) => s.clone()));
+  }
+}
+
+export class LineHatchPattern extends HatchPattern {
+  generate(): Segment[] {
+    const hatchStep = this.scale * 10;
+    const segments: Segment[] = [];
+    let radius = Math.max(this.width, this.height) * 0.5;
+    let startX = this.center.x - radius;
+    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    for (let i = 0; i < numSegments; i++) {
+      const a = new Point(startX + i * hatchStep, this.center.y - radius);
+      const b = new Point(startX + i * hatchStep, this.center.y + radius);
+      segments.push(new Segment([a, b]));
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    return segments;
+  }
+}
+
+export class SawtoothHatchPattern extends HatchPattern {
+  generate(): Segment[] {
+    const segments: Segment[] = [];
+    const hatchStep = this.scale * 10;
+    const radius = Math.max(this.width, this.height) * 0.5;
+    let startX = this.center.x - radius;
+    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    for (let i = 0; i < numSegments; i++) {
+      const a = new Point(startX + i * hatchStep, this.center.y - radius);
+      const b = new Point(startX + i * hatchStep, this.center.y + radius);
+      const pts = GeomHelpers.subdividePointsByDistance(a, b, hatchStep);
+      pts.forEach((p, idx) => {
+        if (idx % 2 === 1) {
+          p.x += hatchStep;
+        }
+      });
+      segments.push(new Segment(pts));
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    return segments;
   }
 }

@@ -83,22 +83,22 @@ export class Ray extends Point {
 }
 
 export class Segment {
-  a: Point
-  b: Point
-  constructor(a: Point, b: Point) {
-    this.a = a;
-    this.b = b;
+  points: Point[];
+  constructor(points: Point[]) {
+    this.points = points;
   }
   clone() {
-    return new Segment(this.a.clone(), this.b.clone());
+    return new Segment(this.points.map((p) => p.clone()));
   }
   toString() {
-    return `(${this.a}, ${this.b})`;
+    return `[${this.points.map((p) => p.toString()).join(', ')}]`;
   }
   fromString(s: string) {
-    const [a, b] = s.slice(1, -1).split(',').map(Number);
-    this.a = new Point(a, 0);
-    this.b = new Point(b, 0);
+    const points = s.slice(1, -1).split(', ').map((s) => {
+      const [x, y] = s.split(',').map(Number);
+      return new Point(x, y);
+    });
+    this.points = points;
     return this;
   }
 }

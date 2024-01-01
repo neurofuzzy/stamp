@@ -74,6 +74,23 @@ export class GeomHelpers {
     point.y = x * Math.sin(origin.direction) + y * Math.cos(origin.direction) + origin.y;
   }
 
+  static subdividePoints(start: Point, end: Point, divisions: number): Point[] {
+    const points = [];
+    for (let i = 0; i <= divisions; i++) {
+      const pt = new Point(
+        start.x + (end.x - start.x) * i / divisions,
+        start.y + (end.y - start.y) * i / divisions
+      );
+      points.push(pt);
+    }
+    return points
+  }
+
+  static subdividePointsByDistance(start: Point, end: Point, distance: number): Point[] {
+    const divisions = Math.round(GeomHelpers.distanceBetweenPoints(start, end) / distance);
+    return GeomHelpers.subdividePoints(start, end, divisions);
+  }
+
   static rotateRayAboutOrigin(origin: Ray, ray: Ray) {
     const x = ray.x - origin.x;
     const y = ray.y - origin.y;
@@ -82,7 +99,7 @@ export class GeomHelpers {
     ray.direction += origin.direction;
   }
 
-  static subdivideRays(start: Ray, end: Ray, divisions: number, flipRays = false) {
+  static subdivideRays(start: Ray, end: Ray, divisions: number, flipRays = false): Ray[] {
     const rays = [];
     for (let i = 0; i <= divisions; i++) {
       const ray = new Ray(
@@ -106,7 +123,7 @@ export class GeomHelpers {
     return rays
   }
 
-  static subdivideRaysByDistance(start: Ray, end: Ray, distance: number) {
+  static subdivideRaysByDistance(start: Ray, end: Ray, distance: number): Ray[] {
     const divisions = Math.round(GeomHelpers.distanceBetweenPoints(start, end) / distance);
     return GeomHelpers.subdivideRays(start, end, divisions);
   }

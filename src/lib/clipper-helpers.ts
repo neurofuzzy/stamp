@@ -95,16 +95,13 @@ export class ClipperHelpers {
     let segments = shape.generate();
     const paths = segments.map(
       (seg) =>
-        [
-          {
-            x: Math.round(seg.a.x * 10000),
-            y: Math.round(seg.a.y * 10000),
-          } as clipperLib.IntPoint,
-          {
-            x: Math.round(seg.b.x * 10000),
-            y: Math.round(seg.b.y * 10000),
-          } as clipperLib.IntPoint,
-        ]
+        seg.points.map(
+          (p) =>
+            ({
+              x: Math.round(p.x * 10000),
+              y: Math.round(p.y * 10000),
+            } as clipperLib.IntPoint)
+        )
     );
     return {
       data: paths,
@@ -116,13 +113,10 @@ export class ClipperHelpers {
     let segments: Segment[] = [];
     const polyNodeToSegments = (node: clipperLib.PolyNode): void => {
       if (node.contour.length > 1) {
-        for (let j = 1; j < node.contour.length; j++) {
-          let cA = node.contour[j - 1];
-          let cB = node.contour[j];
-          let a = new Point(cA.x / 10000, cA.y / 10000);
-          let b = new Point(cB.x / 10000, cB.y / 10000);
-          segments.push(new Segment(a, b));
-        }
+        let segPts = node.contour.map(
+          (p) => new Point(p.x / 10000, p.y / 10000)
+        )
+        segments.push(new Segment(segPts));
       }
       if (node.childs.length) {
         for (let j = 0; j < node.childs.length; j++) {
