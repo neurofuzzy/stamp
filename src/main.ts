@@ -1,11 +1,11 @@
 import * as C2S from 'canvas2svg';
-import { Ray, ShapeAlignment } from "./geom/core";
-import { Stamp } from './lib/stamp';
-import './style.css';
-import { Sequence } from './lib/sequence';
 import { drawHatchPattern, drawShape } from './draw';
+import { Ray, ShapeAlignment } from "./geom/core";
 import { ClipperHelpers } from './lib/clipper-helpers';
 import { Hatch } from './lib/hatch';
+import { Sequence } from './lib/sequence';
+import { Stamp } from './lib/stamp';
+import './style.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>

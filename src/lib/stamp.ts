@@ -510,9 +510,6 @@ export class Stamp extends AbstractShape {
   }
 
   private _tangram(params: ITangramParams) {
-    if (!params.subStampString) {
-      return;
-    }
     let shapes: IShape[] = [];
     let nnx = $(params.numX),
       nny = $(params.numY),
@@ -794,6 +791,7 @@ export class Stamp extends AbstractShape {
       _roundedRectangle: this._roundedRectangle,
       _polygon: this._polygon,
       _stamp: this._stamp,
+      _tangram: this._tangram,
     };
 
     for (let i = 0; i < nodes.length; i++) {
