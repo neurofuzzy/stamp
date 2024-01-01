@@ -1,5 +1,5 @@
 import * as clipperLib from "js-angusj-clipper/web";
-import { HatchFillShape, LineHatchPattern, SawtoothHatchPattern } from "../geom/hatch-patterns";
+import { BuntingHatchPattern, CrossHatchPattern, DashedHatchPattern, HatchFillShape, HatchPatternType, IHatchPattern, LineHatchPattern, RockHatchPattern, SawtoothHatchPattern, SinewaveHatchPattern, SlateHatchPattern } from "../geom/hatch-patterns";
 import { IShape, Ray } from "../geom/shapes";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
@@ -24,19 +24,40 @@ export class Hatch {
     const nscale = $(scale);
     const ninset = $(inset);
     const bc = shape.boundingCircle();
-    // TODO: switch pattern type
-    const hatchPattern1 = new LineHatchPattern(
-      new Ray(bc.x, bc.y, nangle),
+    const args:[Ray, number, number, number] = [new Ray(bc.x, bc.y, nangle * Math.PI / 180),
       bc.radius * 2,
       bc.radius * 2,
-      nscale
-    );
-    const hatchPattern = new SawtoothHatchPattern(
-      new Ray(bc.x, bc.y, nangle),
-      bc.radius * 2,
-      bc.radius * 2,
-      nscale
-    )
+      nscale];
+    let hatchPattern: IHatchPattern;
+    switch (npattern) {
+      case HatchPatternType.LINE:
+        hatchPattern = new LineHatchPattern(...args);
+        break;
+      case HatchPatternType.CROSS:
+        hatchPattern = new CrossHatchPattern(...args);
+        break;
+      case HatchPatternType.DASHED:
+        hatchPattern = new DashedHatchPattern(...args);
+        break;
+      case HatchPatternType.SAWTOOTH:
+        hatchPattern = new SawtoothHatchPattern(...args);
+        break;
+      case HatchPatternType.SINEWAVE:
+        hatchPattern = new SinewaveHatchPattern(...args);
+        break;
+      case HatchPatternType.BUNTING:
+        hatchPattern = new BuntingHatchPattern(...args);
+        break;
+      case HatchPatternType.SLATE:
+        hatchPattern = new SlateHatchPattern(...args);
+        break;
+      case HatchPatternType.ROCK:
+        hatchPattern = new RockHatchPattern(...args);
+        break;
+      default:
+        hatchPattern = new LineHatchPattern(...args);
+        break;
+    }
     let shapePaths = ClipperHelpers.shapeToPaths(shape);
     const hatchPaths = ClipperHelpers.hatchAreaToPaths(hatchPattern);
 

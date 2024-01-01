@@ -74,6 +74,16 @@ export class GeomHelpers {
     point.y = x * Math.sin(origin.direction) + y * Math.cos(origin.direction) + origin.y;
   }
 
+  static averagePoints(points: Point[]) {
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i < points.length; i++) {
+      x += points[i].x;
+      y += points[i].y;
+    }
+    return new Point(x / points.length, y / points.length);
+  }
+
   static subdividePoints(start: Point, end: Point, divisions: number): Point[] {
     const points = [];
     for (let i = 0; i <= divisions; i++) {

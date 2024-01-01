@@ -27,6 +27,8 @@ let seed = 18;
 
 Sequence.fromStatement("repeat 40,70,100 AS BHEIGHT", seed)
 Sequence.fromStatement("repeat 1,2,3 AS STORIES", seed)
+Sequence.fromStatement("repeat 1,4,5,6,7 AS HATCH", seed)
+Sequence.fromStatement("repeat 45,90,45,90,45 AS HATCHANG", seed)
 Sequence.fromStatement("repeat 35[6],0[6] AS BOFFSET")
 Sequence.fromStatement("repeat 0[5],1,0[6] AS BSKIP")
 Sequence.fromStatement("random 0x111111, 0x222222, 0x333333, 0x444444, 0x555555 AS BCOL", 12)
@@ -83,7 +85,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillColor: "BCOL()",
         strokeColor: "#FFF",
-        strokeThickness: 1
+        strokeThickness: 1,
+        hatchPattern: "HATCH()",
+        hatchAngle: "HATCHANG()",
       }
     });
   
@@ -93,8 +97,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // draw children
   city.children().forEach(child => drawShape(ctx, child));
   city.children().forEach(child => {
-    const fillPattern = Hatch.applyHatchToShape(child, 1, Math.PI / 2, 0.5, 2);
-    drawHatchPattern(ctx, fillPattern);
+    if (child.style.hatchPattern) {
+      const fillPattern = Hatch.applyHatchToShape(child, child.style.hatchPattern, child.style.hatchAngle, 0.5, 2);
+      drawHatchPattern(ctx, fillPattern);
+    }
   });
 }
 
