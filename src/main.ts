@@ -26,6 +26,7 @@ let rot = 0;
 let seed = 18;
 
 Sequence.fromStatement("repeat 40,70,100 AS BHEIGHT", seed)
+Sequence.fromStatement("random 0,0,0,0 AS BANG", seed)
 Sequence.fromStatement("repeat 1,2,3 AS STORIES", seed)
 Sequence.fromStatement("repeat 1,4,5,6,7 AS HATCH", seed)
 Sequence.fromStatement("repeat 45,90,45,90,45 AS HATCHANG", seed)
@@ -72,7 +73,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     //.stamp(building, 0, ShapeAlignment.TOP, 6, 6, 70, 70, 6, "BOFFSET()", 0, "BSKIP()");
     .stamp({
       subStamp: building,
-      angle: 0,
+      angle: "BANG()",
       align: ShapeAlignment.TOP,
       numX: 6,
       numY: 6,
