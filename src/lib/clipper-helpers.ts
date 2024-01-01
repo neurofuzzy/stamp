@@ -1,11 +1,11 @@
 import * as clipperLib from "js-angusj-clipper/web";
 import {
+  Polygon} from "../geom/shapes";
+import {
   IShape,
-  Point,
-  Polygon,
-  Ray,
+  Point, Ray,
   Segment
-} from "../geom/shapes";
+} from "../geom/core";
 import { HatchFillShape, IHatchPattern } from "../geom/hatch-patterns";
 
 export class ClipperHelpers {

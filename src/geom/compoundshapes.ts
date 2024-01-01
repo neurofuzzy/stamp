@@ -1,12 +1,11 @@
 import {
   AbstractShape,
-  BoundingBox,
   Circle,
-  Ray,
   Rectangle,
   RoundedRectangle,
-  ShapeAlignment,
 } from "./shapes";
+import { BoundingBox, Ray, ShapeAlignment } from "./core";
+
 export class Donut extends Circle {
   innerRadius: number;
   constructor(

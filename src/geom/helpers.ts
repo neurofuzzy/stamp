@@ -1,4 +1,4 @@
-import { Point, Ray, BoundingBox, IShape } from "./shapes"
+import { Point, Ray, BoundingBox, IShape } from "./core";
 
 export class GeomHelpers {
 

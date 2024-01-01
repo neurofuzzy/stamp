@@ -2,19 +2,19 @@ import { ClipperHelpers } from "./clipper-helpers";
 import { GeomHelpers } from "../geom/helpers";
 import {
   AbstractShape,
-  BoundingBox,
   Circle,
-  IShape,
-  IStyle,
-  Point,
   Polygon,
-  Ray,
   Rectangle,
   RoundedRectangle,
-  ShapeAlignment,
 } from "../geom/shapes";
+import {
+  BoundingBox, IShape,
+  IStyle,
+  Point, Ray, ShapeAlignment
+} from "../geom/core";
 import { Sequence } from "./sequence";
 import * as clipperLib from "js-angusj-clipper/web";
+import { Tangram } from "../geom/tangram";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -63,6 +63,12 @@ export interface IStampParams extends IShapeParams {
   subStamp: Stamp;
   /* processed internally */
   subStampString?: string;
+}
+
+export interface ITangramParams extends IShapeParams {
+  width: number | string;
+  height: number | string;
+  type: number | string;
 }
 
 function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
@@ -503,6 +509,40 @@ export class Stamp extends AbstractShape {
     this._make(shapes, $(params.outlineThickness));
   }
 
+  private _tangram(params: ITangramParams) {
+    if (!params.subStampString) {
+      return;
+    }
+    let shapes: IShape[] = [];
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        const s = new Tangram(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            +nspy * j - o.y + $(params.offsetY),
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+          ),
+          $(params.width),
+          $(params.height),
+          $(params.type),
+          $(params.align)
+        );
+        if ($(params.skip) > 0) {
+          s.hidden = true;
+        }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
+      }
+    }
+  }
+
   reset() {
     this._nodes.push({ fName: "_reset", args: Array.from(arguments) });
     return this;
@@ -605,6 +645,15 @@ export class Stamp extends AbstractShape {
     params.subStampString = params.subStamp.toString();
     this._nodes.push({
       fName: "_stamp",
+      args: [params],
+    });
+    return this;
+  }
+
+  tangram(params: ITangramParams) {
+    params = paramsWithDefaults<ITangramParams>(params);
+    this._nodes.push({
+      fName: "_tangram",
       args: [params],
     });
     return this;

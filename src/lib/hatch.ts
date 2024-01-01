@@ -1,6 +1,6 @@
 import * as clipperLib from "js-angusj-clipper/web";
 import { BuntingHatchPattern, CrossHatchPattern, DashedHatchPattern, HatchFillShape, HatchPatternType, IHatchPattern, LineHatchPattern, RockHatchPattern, SawtoothHatchPattern, SinewaveHatchPattern, SlateHatchPattern } from "../geom/hatch-patterns";
-import { IShape, Ray } from "../geom/shapes";
+import { IShape, Ray } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
 

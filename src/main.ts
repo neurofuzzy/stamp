@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { Ray, ShapeAlignment } from './geom/shapes';
+import { Ray, ShapeAlignment } from "./geom/core";
 import { Stamp } from './lib/stamp';
 import './style.css';
 import { Sequence } from './lib/sequence';

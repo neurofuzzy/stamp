@@ -1,6 +1,6 @@
 import * as arbit from "arbit";
 import { GeomHelpers } from "./helpers";
-import { IStyle, Point, Ray, Segment } from "./shapes";
+import { IStyle, Point, Ray, Segment } from "./core";
 
 const prng = arbit(29374);
 
