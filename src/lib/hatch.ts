@@ -16,11 +16,13 @@ export class Hatch {
     shape: IShape,
     pattern: number | string = 1,
     angle: number | string = 0,
-    scale: number | string = 1
+    scale: number | string = 1,
+    inset: number | string = 0
   ): HatchFillShape {
     const npattern = $(pattern);
     const nangle = $(angle);
     const nscale = $(scale);
+    const ninset = $(inset);
     const bc = shape.boundingCircle();
     // TODO: switch pattern type
     const hatchPattern = new LineHatchPattern(
@@ -29,8 +31,26 @@ export class Hatch {
       bc.radius * 2,
       nscale
     );
-    const shapePaths = ClipperHelpers.shapeToPaths(shape);
+    let shapePaths = ClipperHelpers.shapeToPaths(shape);
     const hatchPaths = ClipperHelpers.hatchAreaToPaths(hatchPattern);
+
+    if (ninset > 0) {
+      const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
+        delta: 0 - ninset * 10000,
+        offsetInputs: [
+          {
+            data: shapePaths.data,
+            joinType: clipperLib.JoinType.Miter,
+            endType: clipperLib.EndType.ClosedPolygon,
+          },
+        ],
+      });
+      if (offsetResult) {
+        shapePaths = { data: ClipperHelpers.clipper.polyTreeToPaths(offsetResult), closed: true };
+      } else {
+        console.log("error offseting for hatch", ninset);
+      }
+    }
 
     const hatchResult = ClipperHelpers.clipper.clipToPolyTree({
       clipType: clipperLib.ClipType.Intersection,

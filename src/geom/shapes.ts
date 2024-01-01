@@ -37,6 +37,7 @@ export interface IStyle {
   hatchPattern?: number | string;
   hatchScale?: number | string;
   hatchAngle?: number | string;
+  hatchInset?: number | string;
 }
 
 export class Point {
