@@ -154,7 +154,7 @@ export class BuntingHatchPattern extends HatchPattern {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
       const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(2, Math.floor(hatchStep / 6)));
-      pts.forEach((p, idx) => {
+      pts.forEach((p) => {
         p.x += Math.abs(Math.sin((p.y - this.center.y) / Math.PI / this.scale / 2) * hatchStep * 0.5) - hatchStep * 0.25;
       });
       segments.push(new Segment(pts));

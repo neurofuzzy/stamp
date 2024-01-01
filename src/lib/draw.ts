@@ -1,5 +1,5 @@
-import { IHatchPattern } from "./geom/hatch-patterns";
-import { BoundingBox, BoundingCircle, IShape, Point } from "./geom/core";
+import { IHatchPattern } from "../geom/hatch-patterns";
+import { BoundingBox, BoundingCircle, IShape, Point } from "../geom/core";
 
 export function drawShape(
   ctx: CanvasRenderingContext2D,

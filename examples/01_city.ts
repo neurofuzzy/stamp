@@ -1,11 +1,11 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from './lib/draw';
-import { Ray, ShapeAlignment } from "./geom/core";
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from "../src/geom/core";
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -23,7 +23,7 @@ const h = canvas.height
 ctx.fillStyle = 'white';
 
 let rot = 0;
-let seed = 18;
+let seed = 10;
 
 Sequence.fromStatement("repeat 40,70,100 AS BHEIGHT", seed)
 Sequence.fromStatement("random 0,0,0,0 AS BANG", seed)
