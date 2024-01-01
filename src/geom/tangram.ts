@@ -22,9 +22,9 @@ export class Tangram extends AbstractShape {
   height: number;
   constructor(center?: Ray, width: number = 100, height: number = 100, type: TangramType = TangramType.TOP_LEFT, divisions: number = 1, alignment: ShapeAlignment = ShapeAlignment.CENTER, reverse: boolean = false) {
     super(center, divisions, alignment, reverse);
-    this.type = type;
     this.width = width;
     this.height = height;
+    this.type = type;
   }
   generate(): Ray[] {
     const topLeftCorner = new Ray(this.center.x - this.width / 2, this.center.y - this.height / 2);
@@ -77,5 +77,12 @@ export class Tangram extends AbstractShape {
       });
     }
     return corners;
+  }
+  clone() {
+    const s = new Tangram(this.center, this.width, this.height, this.type, this.divisions, this.alignment, this.reverse);
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
+    return s;
   }
 }

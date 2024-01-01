@@ -1,4 +1,12 @@
-import { ClipperHelpers } from "./clipper-helpers";
+import * as clipperLib from "js-angusj-clipper/web";
+import {
+  BoundingBox,
+  IShape,
+  IStyle,
+  Point,
+  Ray,
+  ShapeAlignment,
+} from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 import {
   AbstractShape,
@@ -7,18 +15,15 @@ import {
   Rectangle,
   RoundedRectangle,
 } from "../geom/shapes";
-import {
-  BoundingBox, IShape,
-  IStyle,
-  Point, Ray, ShapeAlignment
-} from "../geom/core";
-import { Sequence } from "./sequence";
-import * as clipperLib from "js-angusj-clipper/web";
 import { Tangram } from "../geom/tangram";
+import { ClipperHelpers } from "./clipper-helpers";
+import { Sequence } from "./sequence";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
-    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0 ? parseInt(arg.replace("#", "0x"), 16) : Sequence.resolve(arg)
+    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
+      ? parseInt(arg.replace("#", "0x"), 16)
+      : Sequence.resolve(arg)
     : typeof arg === "number"
     ? arg
     : 0;
@@ -198,12 +203,12 @@ export class Stamp extends AbstractShape {
   }
 
   private _rotateTo(r: number | string) {
-    this.cursor.direction = $(r) * Math.PI / 180;
+    this.cursor.direction = ($(r) * Math.PI) / 180;
   }
 
   private _rotate(r: number | string) {
     this.cursor.direction = GeomHelpers.normalizeAngle(
-      this.cursor.direction + $(r) * Math.PI / 180
+      this.cursor.direction + ($(r) * Math.PI) / 180
     );
   }
 
@@ -224,16 +229,14 @@ export class Stamp extends AbstractShape {
       g.center.direction += this.center.direction + this.cursor.direction;
 
       if (shape.style) {
-
         const style = resolveStyle(shape.style);
 
         if (this.mode !== Stamp.SUBTRACT && !shape.hidden) {
           this._styleMap.push({
             bounds: g.boundingBox(),
             style,
-          })
+          });
         }
-
       }
 
       let b: clipperLib.SubjectInput;
@@ -259,7 +262,8 @@ export class Stamp extends AbstractShape {
               });
               if (offsetResult) {
                 let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-                let offsetPaths = ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
+                let offsetPaths =
+                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
                 const polyResult = ClipperHelpers.clipper.clipToPolyTree({
                   clipType: clipperLib.ClipType.Difference,
                   subjectInputs: [{ data: paths, closed: true }],
@@ -285,12 +289,20 @@ export class Stamp extends AbstractShape {
             if (g.hidden) {
               continue;
             }
-            const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-              clipType: clipperLib.ClipType.Union,
-              subjectInputs: [b],
-              subjectFillType: clipperLib.PolyFillType.EvenOdd,
-            });
-            this._tree = polyResult;
+            let polyResult: clipperLib.PolyTree;
+
+            try {
+              polyResult = ClipperHelpers.clipper.clipToPolyTree({
+                clipType: clipperLib.ClipType.Union,
+                subjectInputs: [b],
+                subjectFillType: clipperLib.PolyFillType.EvenOdd,
+              });
+              if (polyResult) {
+                this._tree = polyResult;
+              }
+            } catch (e) {
+              console.log("error unioning", e);
+            }
           }
           break;
 
@@ -301,14 +313,22 @@ export class Stamp extends AbstractShape {
               continue;
             }
             let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-            const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-              clipType: clipperLib.ClipType.Difference,
-              subjectInputs: [{ data: paths, closed: true }],
-              clipInputs: [b2],
-              subjectFillType: clipperLib.PolyFillType.EvenOdd,
-            });
-            //const paths = ClipperHelpers.clipper.polyTreeToPaths(polyResult);
-            this._tree = polyResult;
+
+            let polyResult: clipperLib.PolyTree;
+
+            try {
+              polyResult = ClipperHelpers.clipper.clipToPolyTree({
+                clipType: clipperLib.ClipType.Difference,
+                subjectInputs: [{ data: paths, closed: true }],
+                clipInputs: [b2],
+                subjectFillType: clipperLib.PolyFillType.EvenOdd,
+              });
+              if (polyResult) {
+                this._tree = polyResult;
+              }
+            } catch (e) {
+              console.log("error subtracting", e);
+            }
           }
           break;
 
@@ -319,14 +339,22 @@ export class Stamp extends AbstractShape {
               continue;
             }
             let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-            const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-              clipType: clipperLib.ClipType.Intersection,
-              subjectInputs: [{ data: paths, closed: true }],
-              clipInputs: [b2],
-              subjectFillType: clipperLib.PolyFillType.EvenOdd,
-            });
-            //const paths = ClipperHelpers.clipper.polyTreeToPaths(polyResult);
-            this._tree = polyResult;
+
+            let polyResult: clipperLib.PolyTree;
+
+            try {
+              polyResult = ClipperHelpers.clipper.clipToPolyTree({
+                clipType: clipperLib.ClipType.Intersection,
+                subjectInputs: [{ data: paths, closed: true }],
+                clipInputs: [b2],
+                subjectFillType: clipperLib.PolyFillType.EvenOdd,
+              });
+              if (polyResult) {
+                this._tree = polyResult;
+              }
+            } catch (e) {
+              console.log("error intersecting", e);
+            }
           }
           break;
       }
@@ -538,6 +566,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
+    this._make(shapes, $(params.outlineThickness));
   }
 
   reset() {
@@ -695,20 +724,7 @@ export class Stamp extends AbstractShape {
     return Stamp.UNION;
   }
 
-  getLastColorIndex() {
-    let i = this._nodes.length;
-
-    while (i--) {
-      let node = this._nodes[i];
-      if (node.fName == "_colorIndex") {
-        return node.args[0];
-      }
-    }
-
-    return 0;
-  }
-
-  mapStyles() {
+  private mapStyles() {
     // sort style map by bounds area
     this._styleMap.sort((a, b) => {
       const areaA = a.bounds.area();
@@ -728,7 +744,7 @@ export class Stamp extends AbstractShape {
   }
 
   /**
-   * Bakes the CSG solution into a final tree
+   * Bakes the clipped solution into a final polytree
    * @param {boolean} rebake whether to re-bake a baked shape
    */
   bake(rebake = false) {
@@ -803,7 +819,9 @@ export class Stamp extends AbstractShape {
       }
     }
 
-    this._polys = this._tree ? ClipperHelpers.polyTreeToPolygons(this._tree) : [];
+    this._polys = this._tree
+      ? ClipperHelpers.polyTreeToPolygons(this._tree)
+      : [];
 
     this.mapStyles();
 
@@ -853,11 +871,7 @@ export class Stamp extends AbstractShape {
   }
 
   clone(): Stamp {
-    let stamp = new Stamp(
-      this.center.clone(),
-      this.alignment,
-      this.reverse
-    );
+    let stamp = new Stamp(this.center.clone(), this.alignment, this.reverse);
     stamp.isHole = this.isHole;
     stamp.hidden = this.hidden;
     return stamp.fromString(this.toString());
