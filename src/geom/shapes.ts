@@ -152,7 +152,7 @@ export class AbstractShape implements IShape {
   hidden = false;
   style: IStyle = {
     strokeColor: "#ccc",
-    strokeThickness: 0.5,
+    strokeThickness: 1,
     fillColor: "#333"
   }
   constructor(

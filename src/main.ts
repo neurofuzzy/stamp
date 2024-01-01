@@ -3,8 +3,9 @@ import { Ray, ShapeAlignment } from './geom/shapes';
 import { Stamp } from './lib/stamp';
 import './style.css';
 import { Sequence } from './lib/sequence';
-import { drawShape } from './draw';
+import { drawHatchPattern, drawShape } from './draw';
 import { ClipperHelpers } from './lib/clipper-helpers';
+import { Hatch } from './lib/hatch';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -28,7 +29,7 @@ Sequence.fromStatement("repeat 40,70,100 AS BHEIGHT", seed)
 Sequence.fromStatement("repeat 1,2,3 AS STORIES", seed)
 Sequence.fromStatement("repeat 35[6],0[6] AS BOFFSET")
 Sequence.fromStatement("repeat 0[5],1,0[6] AS BSKIP")
-Sequence.fromStatement("random 0x336699, 0x993366, 0x663399, 0x337766, 0x555555 AS BCOL", 12)
+Sequence.fromStatement("random 0x111111, 0x222222, 0x333333, 0x444444, 0x555555 AS BCOL", 12)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
  
@@ -82,7 +83,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillColor: "BCOL()",
         strokeColor: "#FFF",
-        strokeThickness: 0.5
+        strokeThickness: 1
       }
     });
   
@@ -91,8 +92,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // draw children
   city.children().forEach(child => drawShape(ctx, child));
-  //city._styleMap.forEach(m => drawBoundingBox(ctx, m.bounds));
-
+  city.children().forEach(child => {
+    const fillPattern = Hatch.applyHatchToShape(child, 1, Math.PI / 4, 0.5);
+    drawHatchPattern(ctx, fillPattern);
+  });
 }
 
 document.onkeydown = function (e) {

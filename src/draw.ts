@@ -1,3 +1,4 @@
+import { IHatchPattern } from "./geom/hatch-patterns";
 import { BoundingBox, BoundingCircle, IShape, Point } from "./geom/shapes";
 
 export function drawShape(
@@ -27,6 +28,21 @@ export function drawShape(
     ctx.fill("evenodd");
     ctx.stroke();
   }
+}
+
+export function drawHatchPattern(ctx: CanvasRenderingContext2D, hatch: IHatchPattern) {
+  const segments = hatch.generate();
+
+  ctx.beginPath();
+  segments.forEach(seg => {
+    ctx.moveTo(seg.a.x, seg.a.y);
+    ctx.lineTo(seg.b.x, seg.b.y);
+  });
+
+  ctx.strokeStyle = hatch.style.strokeColor !== undefined && !isNaN(parseInt(`${hatch.style.strokeColor}`)) ? `#${hatch.style.strokeColor.toString(16)}` : `${hatch.style.strokeColor}`;
+  ctx.lineWidth = parseFloat(`${hatch.style.strokeThickness}`) || 0;
+  ctx.stroke();
+
 }
 
 export function drawBoundingBox(
