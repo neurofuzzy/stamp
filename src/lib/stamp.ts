@@ -192,12 +192,12 @@ export class Stamp extends AbstractShape {
   }
 
   private _rotateTo(r: number | string) {
-    this.cursor.direction = $(r);
+    this.cursor.direction = $(r) * Math.PI / 180;
   }
 
   private _rotate(r: number | string) {
     this.cursor.direction = GeomHelpers.normalizeAngle(
-      this.cursor.direction + $(r)
+      this.cursor.direction + $(r) * Math.PI / 180
     );
   }
 
