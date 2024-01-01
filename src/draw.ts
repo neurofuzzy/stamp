@@ -22,7 +22,6 @@ export function drawShape(
 
   if (shapeDepth === 0) {
     ctx.fillStyle = shape.style.fillColor !== undefined && !isNaN(parseInt(`${shape.style.fillColor}`)) ? `#${shape.style.fillColor.toString(16)}` : `${shape.style.fillColor}`;
-    console.log(shape.style.strokeColor)
     ctx.strokeStyle = shape.style.strokeColor !== undefined && !isNaN(parseInt(`${shape.style.strokeColor}`)) ? `#${shape.style.strokeColor.toString(16)}` : `${shape.style.strokeColor}`;
     ctx.lineWidth = parseFloat(`${shape.style.strokeThickness}`) || 0;
     ctx.fill("evenodd");
