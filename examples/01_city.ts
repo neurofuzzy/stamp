@@ -14,11 +14,15 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
-
+const ratio = 2;
+canvas.width = 768 * ratio
+canvas.height = 768 * ratio
+canvas.style.width = '768px'
+canvas.style.height = '768px'
 const ctx = canvas.getContext('2d')!
-
-const w = canvas.width
-const h = canvas.height
+ctx.scale(ratio, ratio)
+const w = canvas.width / ratio;
+const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
@@ -85,10 +89,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       skip: "BSKIP()",
       style: {
         fillColor: "BCOL()",
-        strokeColor: "#FFF",
+        strokeColor: "#FFFFFF",
         strokeThickness: 1,
         hatchPattern: "HATCH()",
         hatchAngle: "HATCHANG()",
+        hatchScale: 0.5
       }
     });
   
@@ -99,7 +104,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   city.children().forEach(child => drawShape(ctx, child));
   city.children().forEach(child => {
     if (child.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(child, child.style.hatchPattern, child.style.hatchAngle, 0.5, 2);
+      const fillPattern = Hatch.applyHatchToShape(child);
       drawHatchPattern(ctx, fillPattern);
     }
   });
@@ -109,7 +114,7 @@ document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
     // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width, canvas.height);
+    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
     ctx2.backgroundColor = '#000';
     // draw the shapes

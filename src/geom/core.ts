@@ -32,6 +32,7 @@ export interface IStyle {
   strokeColor?: number | string;
   strokeThickness?: number | string;
   fillColor?: number | string;
+  fillAlpha?: number | string;
   hatchPattern?: number | string;
   hatchScale?: number | string;
   hatchStrokeColor?: number | string;

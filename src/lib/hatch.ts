@@ -1,29 +1,43 @@
 import * as clipperLib from "js-angusj-clipper/web";
-import { BuntingHatchPattern, CrossHatchPattern, DashedHatchPattern, HatchFillShape, HatchPatternType, IHatchPattern, LineHatchPattern, RockHatchPattern, SawtoothHatchPattern, SinewaveHatchPattern, SlateHatchPattern } from "../geom/hatch-patterns";
+import {
+  BuntingHatchPattern,
+  CrossHatchPattern,
+  DashedHatchPattern,
+  HatchFillShape,
+  HatchPatternType,
+  IHatchPattern,
+  LineHatchPattern,
+  RockHatchPattern,
+  SawtoothHatchPattern,
+  SinewaveHatchPattern,
+  SlateHatchPattern,
+} from "../geom/hatch-patterns";
 import { IShape, Ray } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
-    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0 ? parseInt(arg.replace("#", "0x"), 16) : Sequence.resolve(arg)
+    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
+      ? parseInt(arg.replace("#", "0x"), 16)
+      : Sequence.resolve(arg)
     : typeof arg === "number"
     ? arg
     : 0;
 
 export class Hatch {
-  static applyHatchToShape(
-    shape: IShape
-  ): HatchFillShape {
+  static applyHatchToShape(shape: IShape): HatchFillShape {
     const npattern = $(shape.style.hatchPattern) || 0;
     const nangle = $(shape.style.hatchAngle) || 0;
     const nscale = $(shape.style.hatchScale) || 1;
     const ninset = $(shape.style.hatchInset) || 0;
     const bc = shape.boundingCircle();
-    const args:[Ray, number, number, number] = [new Ray(bc.x, bc.y, nangle * Math.PI / 180),
+    const args: [Ray, number, number, number] = [
+      new Ray(bc.x, bc.y, (nangle * Math.PI) / 180),
       bc.radius * 2,
       bc.radius * 2,
-      nscale];
+      nscale,
+    ];
     let hatchPattern: IHatchPattern;
     switch (npattern) {
       case HatchPatternType.LINE:
@@ -69,7 +83,10 @@ export class Hatch {
         ],
       });
       if (offsetResult) {
-        shapePaths = { data: ClipperHelpers.clipper.polyTreeToPaths(offsetResult), closed: true };
+        shapePaths = {
+          data: ClipperHelpers.clipper.polyTreeToPaths(offsetResult),
+          closed: true,
+        };
       } else {
         console.log("error offseting for hatch", ninset);
       }

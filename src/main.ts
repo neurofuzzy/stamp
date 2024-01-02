@@ -14,11 +14,15 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
-
+const ratio = 2;
+canvas.width = 768 * ratio
+canvas.height = 768 * ratio
+canvas.style.width = '768px'
+canvas.style.height = '768px'
 const ctx = canvas.getContext('2d')!
-
-const w = canvas.width
-const h = canvas.height
+ctx.scale(ratio, ratio)
+const w = canvas.width / ratio;
+const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
@@ -35,7 +39,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
  
   ctx.clearRect(0, 0, w, h);
 
-  const grid = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+  const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .tangram({
       width: 60,
       height: 60,
@@ -48,8 +52,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         hatchAngle: "HATCHANG()",
         hatchPattern: "HATCH()",
         hatchScale: "HATCHSCALE()",
-        fillColor: "0x101010",//"COLOR()",
+        fillColor: "0x000000",//"COLOR()",
+        fillAlpha: 0,
         strokeColor: "0xFFFFFF",
+        hatchStrokeColor: "0xFFFFFF",
+        hatchStrokeThickness: 0.5,
+        hatchInset: 1,
         strokeThickness: 1
       }
     })
@@ -63,7 +71,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       spacingY: 70,
     });
 
-  const grid2 = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+  const grid2 = new Stamp(new Ray(w / 2, h / 2, 0))
     .circle({
       radius: 20,
       divisions: 32,
@@ -75,9 +83,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         hatchAngle: "HATCHANG()",
         hatchPattern: "HATCH()",
         hatchScale: "HATCHSCALE()",
-        fillColor: "0x101010",//"COLOR()","COLOR()",
+        fillColor: "0x000000",//"COLOR()","COLOR()",
+        fillAlpha: 0,
         strokeColor: "0xFFFFFF",
-        strokeThickness: 1
+        hatchStrokeColor: "0xFFFFFF",
+        hatchStrokeThickness: 1,
+        hatchInset: 0.5,
+        strokeThickness: 0
       }
     });
 
@@ -103,7 +115,7 @@ document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
     // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width, canvas.height);
+    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
     ctx2.backgroundColor = '#000';
     // draw the shapes

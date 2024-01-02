@@ -6,6 +6,9 @@ export function drawShape(
   shape: IShape,
   shapeDepth = 0
 ) {
+  if (shape.style.fillAlpha === 0 && shape.style.strokeThickness === 0) {
+    return;
+  }
   const rays = shape.generate();
 
   if (shapeDepth === 0) {
@@ -21,21 +24,26 @@ export function drawShape(
   ctx.closePath();
 
   if (shapeDepth === 0) {
-    const fs =
-      shape.style.fillColor !== undefined &&
-      !isNaN(parseInt(`${shape.style.fillColor}`))
-        ? `#${shape.style.fillColor.toString(16).padStart(6, "0")}`
-        : `${shape.style.fillColor}`;
-    ctx.fillStyle = fs || "transparent";
+    if (shape.style.fillAlpha === 0) {
+      ctx.fillStyle = "rgba(0, 0, 0, 0)";
+    } else {
+      const fs =
+        shape.style.fillColor !== undefined &&
+        !isNaN(parseInt(`${shape.style.fillColor}`))
+          ? `#${shape.style.fillColor.toString(16).padStart(6, "0")}`
+          : `${shape.style.fillColor}`;
+      ctx.fillStyle = fs || "rgba(0, 0, 0, 0)";
+    }
+
     const ss =
       shape.style.strokeColor !== undefined &&
       !isNaN(parseInt(`${shape.style.strokeColor}`))
-        ? `#${shape.style.strokeColor.toString(16).padStart(6, "0")}`
+        ? `#${shape.style.strokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
         : `${shape.style.strokeColor}`;
-    ctx.strokeStyle = ss || "transparent";
+    ctx.strokeStyle = ss || "rgba(0, 0, 0, 0)";
     const lw = parseFloat(`${shape.style.strokeThickness}`) || 0;
     ctx.lineWidth = lw;
-    if (!lw) ctx.strokeStyle = "transparent";
+    if (!lw) ctx.strokeStyle = "rgba(0, 0, 0, 0)";
 
     ctx.fill("evenodd");
     ctx.stroke();
@@ -56,16 +64,17 @@ export function drawHatchPattern(
     }
   });
 
-  const ss =
+  let ss =
     hatch.style.hatchStrokeColor !== undefined &&
     !isNaN(parseInt(`${hatch.style.hatchStrokeColor}`))
-      ? `#${hatch.style.hatchStrokeColor.toString(16).padStart(6, "0")}`
+      ? `#${hatch.style.hatchStrokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
       : `${hatch.style.strokeColor}`;
-
-  ctx.strokeStyle = ss || "transparent";
+  if (ss === "#FFFFFF") ss = "#EEEEEE";
+  ctx.fillStyle = "rgba(0, 0, 0, 0)";
+  ctx.strokeStyle = ss || "#999999";
   const lw = parseFloat(`${hatch.style.hatchStrokeThickness}`) || 0.5;
   ctx.lineWidth = lw;
-  if (!lw) ctx.strokeStyle = "transparent";
+  //if (!lw) ctx.strokeStyle = "rgba(0, 0, 0, 0)";
   ctx.stroke();
 }
 
