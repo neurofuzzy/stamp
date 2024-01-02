@@ -1,5 +1,6 @@
 import { IHatchPattern } from "../geom/hatch-patterns";
 import { BoundingBox, BoundingCircle, IShape, Point } from "../geom/core";
+import { GeomHelpers } from "../geom/helpers";
 
 export function drawShape(
   ctx: CanvasRenderingContext2D,
@@ -16,13 +17,16 @@ export function drawShape(
   }
   if (rays.length) {
     ctx.moveTo(rays[0].x, rays[0].y);
-    for (let i = 1; i < rays.length; i++) {
+    for (let i = 1; i < rays.length - 1; i++) {
       ctx.lineTo(rays[i].x, rays[i].y);
     }
+    if (!GeomHelpers.pointsAreEqual(rays[0], rays[rays.length - 1])) {
+      ctx.lineTo(rays[rays.length - 1].x, rays[rays.length - 1].y);
+    }
+    ctx.closePath();
   }
   shape.children().forEach((child) => drawShape(ctx, child, shapeDepth + 1));
-  ctx.closePath();
-
+  
   if (shapeDepth === 0) {
     if (shape.style.fillAlpha === 0) {
       ctx.fillStyle = "rgba(0, 0, 0, 0)";

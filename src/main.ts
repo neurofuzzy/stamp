@@ -64,7 +64,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .subtract()
     .circle({
       radius: 20,
-      divisions: 32,
+      divisions: 64,
       numX: 6,
       numY: 6,
       spacingX: 70,
@@ -74,7 +74,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const grid2 = new Stamp(new Ray(w / 2, h / 2, 0))
     .circle({
       radius: 20,
-      divisions: 32,
+      divisions: 64,
       numX: 6,
       numY: 6,
       spacingX: 70,
