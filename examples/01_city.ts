@@ -26,7 +26,6 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
-let rot = 0;
 let seed = 10;
 
 Sequence.fromStatement("repeat 40,70,100 AS BHEIGHT", seed)
@@ -133,13 +132,9 @@ async function main() {
   
   await ClipperHelpers.init();
 
-  function animate() {
-    rot += Math.PI / 180 * 0.5;
-    draw(ctx);
-    //requestAnimationFrame(animate);
-  }
-
-  animate();
+  const now = new Date().getTime();
+  draw(ctx);
+  console.log(`${new Date().getTime() - now}ms`);
 
 }
 

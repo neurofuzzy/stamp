@@ -26,26 +26,26 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
-let rot = 0;
+Sequence.seed = 1795;
 
-Sequence.seed = 1793;
-
-Sequence.fromStatement("repeat 1,4,5,6,7 AS HATCH")
+Sequence.fromStatement("random 1,2,3,4,5,6,7 AS HATCH")
 Sequence.fromStatement("random 0.25,0.25,0.5 AS HATCHSCALE")
-Sequence.fromStatement("repeat 45,90,45,90,45 AS HATCHANG")
+Sequence.fromStatement("random 45,90,45,90,45 AS HATCHANG")
 Sequence.fromStatement("random 0x111111, 0x222222, 0x333333, 0x444444, 0x555555 AS COLOR")
 
 const draw = (ctx: CanvasRenderingContext2D) => {
  
   ctx.clearRect(0, 0, w, h);
 
+  const gridSize = 10;
+
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .tangram({
       width: 60,
       height: 60,
       type: 10,//"random 0,1,2,3,4,5,6,8",
-      numX: 6,
-      numY: 6,
+      numX: gridSize,
+      numY: gridSize,
       spacingX: 70,
       spacingY: 70,
       style: {
@@ -65,8 +65,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .circle({
       radius: 20,
       divisions: 64,
-      numX: 6,
-      numY: 6,
+      numX: gridSize,
+      numY: gridSize,
       spacingX: 70,
       spacingY: 70,
     });
@@ -75,8 +75,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .circle({
       radius: 20,
       divisions: 64,
-      numX: 6,
-      numY: 6,
+      numX: gridSize,
+      numY: gridSize,
       spacingX: 70,
       spacingY: 70,
       style: {
@@ -134,13 +134,9 @@ async function main() {
   
   await ClipperHelpers.init();
 
-  function animate() {
-    rot += Math.PI / 180 * 0.5;
-    draw(ctx);
-    //requestAnimationFrame(animate);
-  }
-
-  animate();
+  const now = new Date().getTime();
+  draw(ctx);
+  console.log(`${new Date().getTime() - now}ms`);
 
 }
 
