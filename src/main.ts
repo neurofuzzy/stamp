@@ -39,7 +39,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .tangram({
       width: 60,
       height: 60,
-      type: "random 0,1,2,3,4,5,6,8",
+      type: 10,//"random 0,1,2,3,4,5,6,8",
       numX: 6,
       numY: 6,
       spacingX: 70,
@@ -48,9 +48,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         hatchAngle: "HATCHANG()",
         hatchPattern: "HATCH()",
         hatchScale: "HATCHSCALE()",
-        fillColor: "COLOR()",
+        fillColor: "0x101010",//"COLOR()",
         strokeColor: "0xFFFFFF",
-        strokeThickness: 0
+        strokeThickness: 1
       }
     })
     .subtract()
@@ -75,9 +75,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         hatchAngle: "HATCHANG()",
         hatchPattern: "HATCH()",
         hatchScale: "HATCHSCALE()",
-        fillColor: "COLOR()",
+        fillColor: "0x101010",//"COLOR()","COLOR()",
         strokeColor: "0xFFFFFF",
-        strokeThickness: 0
+        strokeThickness: 1
       }
     });
 

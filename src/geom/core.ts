@@ -34,6 +34,8 @@ export interface IStyle {
   fillColor?: number | string;
   hatchPattern?: number | string;
   hatchScale?: number | string;
+  hatchStrokeColor?: number | string;
+  hatchStrokeThickness?: number | string;
   hatchAngle?: number | string;
   hatchInset?: number | string;
 }

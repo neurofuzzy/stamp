@@ -15,7 +15,10 @@ export class AbstractShape implements IShape {
   style: IStyle = {
     strokeColor: "#ccc",
     strokeThickness: 1,
-    fillColor: "#333"
+    fillColor: "#333",
+    hatchStrokeColor: "#ccc",
+    hatchStrokeThickness: 0.5,
+    hatchScale: 1,
   }
   constructor(
     center?: Ray,

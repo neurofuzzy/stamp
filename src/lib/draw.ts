@@ -21,29 +21,52 @@ export function drawShape(
   ctx.closePath();
 
   if (shapeDepth === 0) {
-    ctx.fillStyle = shape.style.fillColor !== undefined && !isNaN(parseInt(`${shape.style.fillColor}`)) ? `#${shape.style.fillColor.toString(16)}` : `${shape.style.fillColor}`;
-    ctx.strokeStyle = shape.style.strokeColor !== undefined && !isNaN(parseInt(`${shape.style.strokeColor}`)) ? `#${shape.style.strokeColor.toString(16)}` : `${shape.style.strokeColor}`;
-    ctx.lineWidth = parseFloat(`${shape.style.strokeThickness}`) || 0;
+    const fs =
+      shape.style.fillColor !== undefined &&
+      !isNaN(parseInt(`${shape.style.fillColor}`))
+        ? `#${shape.style.fillColor.toString(16).padStart(6, "0")}`
+        : `${shape.style.fillColor}`;
+    ctx.fillStyle = fs || "transparent";
+    const ss =
+      shape.style.strokeColor !== undefined &&
+      !isNaN(parseInt(`${shape.style.strokeColor}`))
+        ? `#${shape.style.strokeColor.toString(16).padStart(6, "0")}`
+        : `${shape.style.strokeColor}`;
+    ctx.strokeStyle = ss || "transparent";
+    const lw = parseFloat(`${shape.style.strokeThickness}`) || 0;
+    ctx.lineWidth = lw;
+    if (!lw) ctx.strokeStyle = "transparent";
+
     ctx.fill("evenodd");
     ctx.stroke();
   }
 }
 
-export function drawHatchPattern(ctx: CanvasRenderingContext2D, hatch: IHatchPattern) {
+export function drawHatchPattern(
+  ctx: CanvasRenderingContext2D,
+  hatch: IHatchPattern
+) {
   const segments = hatch.generate();
 
   ctx.beginPath();
-  segments.forEach(seg => {
+  segments.forEach((seg) => {
     ctx.moveTo(seg.points[0].x, seg.points[0].y);
     for (let i = 1; i < seg.points.length; i++) {
       ctx.lineTo(seg.points[i].x, seg.points[i].y);
     }
   });
 
-  ctx.strokeStyle = hatch.style.strokeColor !== undefined && !isNaN(parseInt(`${hatch.style.strokeColor}`)) ? `#${hatch.style.strokeColor.toString(16)}` : `${hatch.style.strokeColor}`;
-  ctx.lineWidth = parseFloat(`${hatch.style.strokeThickness}`) || 0;
-  ctx.stroke();
+  const ss =
+    hatch.style.hatchStrokeColor !== undefined &&
+    !isNaN(parseInt(`${hatch.style.hatchStrokeColor}`))
+      ? `#${hatch.style.hatchStrokeColor.toString(16).padStart(6, "0")}`
+      : `${hatch.style.strokeColor}`;
 
+  ctx.strokeStyle = ss || "transparent";
+  const lw = parseFloat(`${hatch.style.hatchStrokeThickness}`) || 0.5;
+  ctx.lineWidth = lw;
+  if (!lw) ctx.strokeStyle = "transparent";
+  ctx.stroke();
 }
 
 export function drawBoundingBox(

@@ -83,6 +83,7 @@ export class Hatch {
     });
 
     const fillShape = ClipperHelpers.polyTreeToHatchFillShape(hatchResult);
+    fillShape.style = shape.style;
     return fillShape;
   }
 }

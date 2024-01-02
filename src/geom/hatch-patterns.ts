@@ -37,9 +37,8 @@ export class HatchPattern implements IHatchPattern {
 export class HatchFillShape implements IHatchPattern {
   protected segments: Segment[];
   style: IStyle = {
-    strokeColor: "#ccc",
-    strokeThickness: 0.5,
-    fillColor: "#333"
+    hatchStrokeColor: "#ccc",
+    hatchStrokeThickness: 0.5,
   }
   constructor(segments: Segment[], style?: IStyle) {
     this.segments = segments;
@@ -132,7 +131,7 @@ export class SinewaveHatchPattern extends HatchPattern {
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
       const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 6)));
       pts.forEach((p, idx) => {
-        p.x += Math.sin(idx / Math.PI / 2) * hatchStep * 0.25;
+        p.x += Math.sin(idx * Math.PI / 16) * hatchStep * 0.25;
       });
       segments.push(new Segment(pts));
     }
@@ -153,9 +152,10 @@ export class BuntingHatchPattern extends HatchPattern {
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
-      const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(2, Math.floor(hatchStep / 6)));
-      pts.forEach((p) => {
-        p.x += Math.abs(Math.sin((p.y - this.center.y) / Math.PI / this.scale / 2) * hatchStep * 0.5) - hatchStep * 0.25;
+      const dist = Math.max(0.5, Math.floor(hatchStep / 6));
+      const pts = GeomHelpers.subdividePointsByDistance(a, b, dist);
+      pts.forEach((p, idx) => {
+        p.x += Math.abs(Math.sin(idx * Math.PI / 12) * hatchStep * 0.5) - hatchStep * 0.25;
       });
       segments.push(new Segment(pts));
     }
