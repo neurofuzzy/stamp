@@ -87,7 +87,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         fillAlpha: 0,
         strokeColor: "0xFFFFFF",
         hatchStrokeColor: "0xFFFFFF",
-        hatchStrokeThickness: 1,
+        hatchStrokeThickness: 0.5,
         hatchInset: 0.5,
         strokeThickness: 0
       }
