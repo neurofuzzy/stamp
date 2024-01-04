@@ -1,13 +1,22 @@
 import { IHatchPattern } from "../geom/hatch-patterns";
-import { BoundingBox, BoundingCircle, IShape, Point } from "../geom/core";
+import { BoundingBox, BoundingCircle, IShape, IStyle, Point } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
+
+const applyDefaults = (style: IStyle) => {
+  const out = Object.assign({}, style);
+  if (out.strokeColor === undefined) out.strokeColor = "#cccccc";
+  if (out.fillColor === undefined) out.fillColor = "#cccccc";
+  if (out.strokeThickness === undefined) out.strokeThickness = 1;
+  return out;
+}
 
 export function drawShape(
   ctx: CanvasRenderingContext2D,
   shape: IShape,
   shapeDepth = 0
 ) {
-  if (shape.style.fillAlpha === 0 && shape.style.strokeThickness === 0) {
+  const style = applyDefaults(shape.style);
+  if (style.fillAlpha === 0 && style.strokeThickness === 0) {
     return;
   }
   const rays = shape.generate();
@@ -28,24 +37,24 @@ export function drawShape(
   shape.children().forEach((child) => drawShape(ctx, child, shapeDepth + 1));
   
   if (shapeDepth === 0) {
-    if (shape.style.fillAlpha === 0) {
+    if (style.fillAlpha === 0) {
       ctx.fillStyle = "rgba(0, 0, 0, 0)";
     } else {
       const fs =
-        shape.style.fillColor !== undefined &&
-        !isNaN(parseInt(`${shape.style.fillColor}`))
-          ? `#${shape.style.fillColor.toString(16).padStart(6, "0")}`
-          : `${shape.style.fillColor}`;
+        style.fillColor !== undefined &&
+        !isNaN(parseInt(`${style.fillColor}`))
+          ? `#${style.fillColor.toString(16).padStart(6, "0")}`
+          : `${style.fillColor}`;
       ctx.fillStyle = fs || "rgba(0, 0, 0, 0)";
     }
 
     const ss =
-      shape.style.strokeColor !== undefined &&
-      !isNaN(parseInt(`${shape.style.strokeColor}`))
-        ? `#${shape.style.strokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
-        : `${shape.style.strokeColor}`;
+      style.strokeColor !== undefined &&
+      !isNaN(parseInt(`${style.strokeColor}`))
+        ? `#${style.strokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
+        : `${style.strokeColor}`;
     ctx.strokeStyle = ss || "rgba(0, 0, 0, 0)";
-    const lw = parseFloat(`${shape.style.strokeThickness}`) || 0;
+    const lw = parseFloat(`${style.strokeThickness}`) || 0;
     ctx.lineWidth = lw;
     if (!lw) ctx.strokeStyle = "rgba(0, 0, 0, 0)";
 

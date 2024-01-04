@@ -13,10 +13,11 @@ export class AbstractShape implements IShape {
   alignment: ShapeAlignment = ShapeAlignment.CENTER;
   hidden = false;
   style: IStyle = {
-    strokeColor: "#ccc",
+    strokeColor: "#cccccc",
     strokeThickness: 1,
-    fillColor: "#333",
-    hatchStrokeColor: "#ccc",
+    fillColor: "#222222",
+    fillAlpha: 1,
+    hatchStrokeColor: "#cccccc",
     hatchStrokeThickness: 0.5,
     hatchScale: 1,
   }
