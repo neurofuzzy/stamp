@@ -1,5 +1,16 @@
 import * as arbit from "arbit";
 
+class SequenceReference {
+  seq: Sequence
+  useCurrent: boolean
+  expressions: string[]
+  constructor(seq: Sequence, useCurrent: boolean, expressions: string[] = []) {
+    this.seq = seq;
+    this.useCurrent = useCurrent;
+    this.expressions = expressions;
+  }
+}
+
 export class Sequence {
 
   static readonly ONCE = "once";
@@ -80,12 +91,15 @@ export class Sequence {
       return this.next();
     }
     let out = 0;
-    if (this._currentValue instanceof Sequence) {
-      out = this._currentValue.next();
-    } else {
+    if (this._currentValue instanceof SequenceReference) {
+      out = this._currentValue.useCurrent ? this._currentValue.seq.current() : this._currentValue.seq.next();
+      if (this._currentValue.expressions.length) {
+        out = eval(`${out} ${this._currentValue.expressions.join(" ")}`);
+      }
+    } else if (typeof this._currentValue === "number") {
       out = this._currentValue;
     }
-    if (!(this._prevValue instanceof Sequence)) {
+    if (typeof this._prevValue === "number") {
       switch (this._accumulationType) {
         case Sequence.ADD:
           return this._prevValue + out;
@@ -114,7 +128,7 @@ export class Sequence {
 
     stmt = stmt.toLowerCase();
 
-    if (stmt.indexOf("(") !== -1 && stmt.indexOf(" (") === -1) {
+    if (stmt.indexOf(",") === -1 && stmt.indexOf("(") !== -1 && stmt.indexOf(" (") === -1) {
       stmt = stmt.split("(").join(" (");
     }
 
@@ -147,8 +161,19 @@ export class Sequence {
       const parsedValues = valuesExp.split(",");
 
       parsedValues.forEach((val) => {
-        if (Sequence.sequences[val]) {
-          values.push(Sequence.sequences[val]);
+        // if val contains a lowercase letter
+        if (val.match(/[a-z]/)) {
+          const isOperatorExpr = /([+-/*%//])/g;
+          const exprs = val.split(isOperatorExpr);
+          val = exprs.shift() as string;
+          if (Sequence.sequences[val.split("(")[0]]) {
+            console.log(val)
+            values.push(new SequenceReference(
+              Sequence.sequences[val.split("(")[0]], 
+              val.indexOf("(") === -1,
+              exprs),
+            );
+          }
         } else if (val.indexOf("[") !== -1 && val.indexOf("]") !== -1) {
           const repeatNum = parseInt(val.split("[")[1].split("]")[0]);
           const repeatVal = parseFloat(val.split("[")[0]);

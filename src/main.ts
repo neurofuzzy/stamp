@@ -1,6 +1,6 @@
 import * as C2S from 'canvas2svg';
 import { drawHatchPattern, drawShape } from './lib/draw';
-import { Ray, ShapeAlignment } from "./geom/core";
+import { IStyle, Ray, ShapeAlignment } from "./geom/core";
 import { ClipperHelpers } from './lib/clipper-helpers';
 import { Hatch } from './lib/hatch';
 import { Sequence } from './lib/sequence';
@@ -30,18 +30,21 @@ Sequence.seed = 1710;
 
 Sequence.fromStatement("random 30,60,60,90,120 AS RW")
 Sequence.fromStatement("random 0[2],1[7] AS SKIP")
-
+Sequence.fromStatement("random 5,RW-25 AS OFFSET")
 const draw = (ctx: CanvasRenderingContext2D) => {
  
   ctx.clearRect(0, 0, w, h);
 
-  const gridSize = 10;
+  const style: IStyle = {
+    strokeThickness: 0,
+    fillColor: "0x371355",
+  }
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .add()
-    .roundedRectangle({ width: "RW()", height: 30, cornerRadius: 15, divisions: 3, align: ShapeAlignment.RIGHT })
+    .roundedRectangle({ width: "RW()", height: 30, cornerRadius: 15, divisions: 3, align: ShapeAlignment.RIGHT, style })
     .subtract()
-    .circle({ radius: 10, divisions: 32, align: ShapeAlignment.RIGHT, offsetX: 5, skip: "SKIP()" })
+    .circle({ radius: 10, divisions: 32, align: ShapeAlignment.RIGHT, offsetX: "OFFSET()", skip: "SKIP()", style })
     .move("RW + 10", 0)
     .repeatLast(5, 4)
     .move(-410,40)
