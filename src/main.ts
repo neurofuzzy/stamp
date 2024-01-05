@@ -6,6 +6,7 @@ import { Hatch } from './lib/hatch';
 import { Sequence } from './lib/sequence';
 import { Stamp } from './lib/stamp';
 import './style.css';
+import colors from 'nice-color-palettes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -26,18 +27,26 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
-Sequence.seed = 1710;
+Sequence.seed = 2112;
+console.log(colors)
 
-Sequence.fromStatement("random 30,60,60,90,120 AS RW")
+Sequence.fromStatement("random 30,60,60,90,90,120 AS RW")
 Sequence.fromStatement("random 0[2],1[7] AS SKIP")
 Sequence.fromStatement("random 5,RW-25 AS OFFSET")
+
+// 2,7,24,29,32,39,69,78,83,94,96
+const palette = colors[83];
+const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
+Sequence.fromStatement(colorSeq, 3);
+
+
 const draw = (ctx: CanvasRenderingContext2D) => {
- 
+
   ctx.clearRect(0, 0, w, h);
 
   const style: IStyle = {
     strokeThickness: 0,
-    fillColor: "0x371355",
+    fillColor: "COLOR()",
   }
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
@@ -46,9 +55,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .subtract()
     .circle({ radius: 10, divisions: 32, align: ShapeAlignment.RIGHT, offsetX: "OFFSET()", skip: "SKIP()", style })
     .move("RW + 10", 0)
-    .repeatLast(5, 4)
-    .move(-410,40)
-    .repeatLast(7, 9)
+    .repeatLast(5, 5)
+    .move(-510, 40)
+    .repeatLast(7, 11)
 
   // draw children
   grid.children().forEach(child => drawShape(ctx, child));
@@ -72,7 +81,7 @@ document.onkeydown = function (e) {
     draw(ctx2);
     // download the SVG
     const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
-    const blob = new Blob([svg], {type: "image/svg+xml"});
+    const blob = new Blob([svg], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -81,7 +90,7 @@ document.onkeydown = function (e) {
 };
 
 async function main() {
-  
+
   await ClipperHelpers.init();
 
   const now = new Date().getTime();

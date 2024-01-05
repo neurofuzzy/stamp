@@ -162,7 +162,7 @@ export class Sequence {
 
       parsedValues.forEach((val) => {
         // if val contains a lowercase letter
-        if (val.match(/[a-z]/)) {
+        if (val.match(/[a-z]/) && val.indexOf("0x") === -1) {
           const isOperatorExpr = /([+-/*%//])/g;
           const exprs = val.split(isOperatorExpr);
           val = exprs.shift() as string;
