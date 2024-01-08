@@ -63,8 +63,10 @@ export class GeomHelpers {
   static rotatePoint(v: Point, angle: number) {
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
-    v.x = v.x * cos - v.y * sin;
-    v.y = v.x * sin + v.y * cos;
+    const x1 = v.x * cos - v.y * sin;
+    const y1 = v.x * sin + v.y * cos;
+    v.x = x1;
+    v.y = y1;
   }
 
   static rotatePointAboutOrigin(origin: Ray, point: Point) {

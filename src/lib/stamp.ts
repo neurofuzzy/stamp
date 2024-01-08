@@ -197,18 +197,26 @@ export class Stamp extends AbstractShape {
     this.cursor.y += v.y;
   }
 
+  private _forward(distance: number) {
+    distance = $(distance);
+    var sinAng = Math.sin(this.cursor.direction);
+    var cosAng = Math.cos(this.cursor.direction);
+    this.cursor.x += sinAng * distance;
+    this.cursor.y -= cosAng * distance;
+  }
+
   private _offset(x: number | string, y: number | string) {
     this.offsetX += $(x);
     this.offsetY += $(y);
   }
 
   private _rotateTo(r: number | string) {
-    this.cursor.direction = ($(r) * Math.PI) / 180;
+    this.cursor.direction = ($(r) * Math.PI / 180);
   }
 
   private _rotate(r: number | string) {
     this.cursor.direction = GeomHelpers.normalizeAngle(
-      this.cursor.direction + ($(r) * Math.PI) / 180
+      this.cursor.direction + ($(r) * Math.PI / 180)
     );
   }
 
@@ -224,8 +232,8 @@ export class Stamp extends AbstractShape {
 
       g.center.x += this.cursor.x + this.center.x;
       g.center.y += this.cursor.y + this.center.y;
-      GeomHelpers.rotatePointAboutOrigin(this.center, g.center);
-      GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
+      //GeomHelpers.rotatePointAboutOrigin(this.center, g.center);
+      //GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
       g.center.direction += this.center.direction + this.cursor.direction;
 
       if (shape.style) {
@@ -383,10 +391,12 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
+        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        GeomHelpers.rotatePoint(offset, this.cursor.direction);
         const s = new Circle(
           new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            nspy * j - o.y + $(params.offsetY),
+            nspx * i - o.x + offset.x,
+            nspy * j - o.y + offset.y,
             0
           ),
           $(params.radius),
@@ -414,10 +424,12 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
+        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        GeomHelpers.rotatePoint(offset, this.cursor.direction);
         const s = new Rectangle(
           new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            +nspy * j - o.y + $(params.offsetY),
+            nspx * i - o.x + offset.x,
+            +nspy * j - o.y + offset.y,
             params.angle ? ($(params.angle) * Math.PI) / 180 : 0
           ),
           $(params.width),
@@ -444,12 +456,15 @@ export class Stamp extends AbstractShape {
       nspx = $(params.spacingX),
       nspy = $(params.spacingY);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
+        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        GeomHelpers.rotatePoint(offset, this.cursor.direction);
         const s = new RoundedRectangle(
           new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            +nspy * j - o.y + $(params.offsetY),
+            nspx * i - o.x + offset.x,
+            +nspy * j - o.y + offset.y,
             params.angle ? ($(params.angle) * Math.PI) / 180 : 0
           ),
           $(params.width),
@@ -483,10 +498,12 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
+        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        GeomHelpers.rotatePoint(offset, this.cursor.direction);
         const s = new Polygon(
           new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            +nspy * j - o.y + $(params.offsetY),
+            nspx * i - o.x + offset.x,
+            +nspy * j - o.y + offset.y,
             params.angle ? ($(params.angle) * Math.PI) / 180 : 0
           ),
           params.rayStrings.map((s) => new Ray(0, 0).fromString(s)),
@@ -611,6 +628,11 @@ export class Stamp extends AbstractShape {
 
   move(x: number | string = 0, y: number | string = 0) {
     this._nodes.push({ fName: "_move", args: [x, y] });
+    return this;
+  }
+
+  forward(distance: number | string = 0) {
+    this._nodes.push({ fName: "_forward", args: [distance] });
     return this;
   }
 
@@ -797,6 +819,7 @@ export class Stamp extends AbstractShape {
       _next: this._next,
       _moveTo: this._moveTo,
       _move: this._move,
+      _forward: this._forward,
       _offset: this._offset,
       _rotateTo: this._rotateTo,
       _rotate: this._rotate,

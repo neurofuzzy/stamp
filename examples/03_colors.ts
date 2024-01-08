@@ -1,11 +1,11 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from "./geom/core";
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -38,7 +38,7 @@ Sequence.fromStatement("random 5,RW-25 AS OFFSET")
 const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
-Sequence.fromStatement("repeat 0x111111, 0x222222, 0x333333, 0x444444, 0x555555 AS SHADE");
+
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -51,12 +51,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .add()
-    .roundedRectangle({ width: 20, height: 60, offsetY: 10, align: ShapeAlignment.TOP, cornerRadius: 0, divisions: 3, style: { fillColor: "SHADE()" } })
+    .roundedRectangle({ width: "RW()", height: 30, cornerRadius: 15, divisions: 3, align: ShapeAlignment.RIGHT, style })
     .subtract()
-    .circle({ radius: 5, divisions: 32 })
-    .forward(50)
-    .rotate(90)
-    .repeatLast(6, 3)
+    .circle({ radius: 10, divisions: 32, align: ShapeAlignment.RIGHT, offsetX: "OFFSET()", skip: "SKIP()", style })
+    .move("RW + 10", 0)
+    .repeatLast(5, 5)
+    .move(-510, 40)
+    .repeatLast(7, 11)
 
   // draw children
   grid.children().forEach(child => drawShape(ctx, child));
