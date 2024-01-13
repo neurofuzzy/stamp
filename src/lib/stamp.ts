@@ -15,7 +15,7 @@ import {
   Rectangle,
   RoundedRectangle,
 } from "../geom/shapes";
-import { Tangram } from "../geom/tangram";
+import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
 
@@ -572,6 +572,40 @@ export class Stamp extends AbstractShape {
           $(params.width),
           $(params.height),
           $(params.type),
+          $(params.divisions),
+          $(params.align)
+        );
+        if ($(params.skip) > 0) {
+          s.hidden = true;
+        }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
+      }
+    }
+    this._make(shapes, $(params.outlineThickness));
+  }
+
+  private _roundedTangram(params: ITangramParams) {
+    let shapes: IShape[] = [];
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        const s = new RoundedTangram(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            +nspy * j - o.y + $(params.offsetY),
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+          ),
+          $(params.width),
+          $(params.height),
+          $(params.type),
+          $(params.divisions),
           $(params.align)
         );
         if ($(params.skip) > 0) {
@@ -707,6 +741,15 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  roundedTangram(params: ITangramParams) {
+    params = paramsWithDefaults<ITangramParams>(params);
+    this._nodes.push({
+      fName: "_roundedTangram",
+      args: [params],
+    });
+    return this;
+  }
+
   repeatLast(steps: number, times: number = 1) {
     this._nodes.push({ fName: "_repeatLast", args: [steps, times] });
     return this;
@@ -831,6 +874,7 @@ export class Stamp extends AbstractShape {
       _polygon: this._polygon,
       _stamp: this._stamp,
       _tangram: this._tangram,
+      _roundedTangram: this._roundedTangram,
     };
 
     for (let i = 0; i < nodes.length; i++) {

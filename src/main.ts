@@ -7,6 +7,7 @@ import { Sequence } from './lib/sequence';
 import { Stamp } from './lib/stamp';
 import './style.css';
 import colors from 'nice-color-palettes';
+import { TangramType } from './geom/tangram';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -38,7 +39,7 @@ Sequence.fromStatement("random 5,RW-25 AS OFFSET")
 const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
-Sequence.fromStatement("repeat 0x111111, 0x222222, 0x333333, 0x444444, 0x555555 AS SHADE");
+Sequence.fromStatement("repeat 1-9 as TT");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -49,14 +50,31 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillColor: "COLOR()",
   }
 
+  const gridSize = 6;
+  const divisions = 64;
+
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .add()
-    .roundedRectangle({ width: 20, height: 60, offsetY: 10, align: ShapeAlignment.TOP, cornerRadius: 0, divisions: 3, style: { fillColor: "SHADE()" } })
+    .roundedTangram({
+      type: "TT()",
+      numX: gridSize,
+      numY: gridSize,
+      spacingX: 120,
+      spacingY: 120,
+      width: 100,
+      height: 100,
+      divisions,
+      style
+    })
     .subtract()
-    .circle({ radius: 5, divisions: 32 })
-    .forward(50)
-    .rotate(90)
-    .repeatLast(6, 3)
+    .circle({
+      numX: gridSize,
+      numY: gridSize,
+      spacingX: 120,
+      spacingY: 120,
+      radius: 20,
+      divisions
+    })
 
   // draw children
   grid.children().forEach(child => drawShape(ctx, child));

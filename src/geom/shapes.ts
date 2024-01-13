@@ -36,7 +36,7 @@ export class AbstractShape implements IShape {
   }
   generate(): Ray[] {
     console.log("generate", this.divisions);
-    throw new Error("Method not implemented.");
+    throw new Error("Generate method not implemented.");
   }
   protected alignmentOffset(): Point {
     let d = this.center.direction;
@@ -129,11 +129,7 @@ export class AbstractShape implements IShape {
     this.childShapes.push(shape);
   }
   clone(): IShape {
-    const s = new AbstractShape(this.center.clone(), this.divisions, this.alignment, this.reverse);
-    s.isHole = this.isHole;
-    s.hidden = this.hidden;
-    s.style = Object.assign({}, this.style);
-    return s;
+    throw new Error("Clone method not implemented.");
   }
 }
 
