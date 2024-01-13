@@ -4,15 +4,7 @@ import { GeomHelpers } from "./helpers";
 
 export class AbstractShape implements IShape {
   static id = 0;
-  id: number = ++AbstractShape.id;
-  center: Ray;
-  divisions: number;
-  reverse: boolean;
-  childShapes: IShape[];
-  isHole: boolean;
-  alignment: ShapeAlignment = ShapeAlignment.CENTER;
-  hidden = false;
-  style: IStyle = {
+  static defaultStyle: IStyle = {
     strokeColor: "#cccccc",
     strokeThickness: 1,
     fillColor: "#222222",
@@ -21,6 +13,15 @@ export class AbstractShape implements IShape {
     hatchStrokeThickness: 0.5,
     hatchScale: 1,
   }
+  id: number = ++AbstractShape.id;
+  center: Ray;
+  divisions: number;
+  reverse: boolean;
+  childShapes: IShape[];
+  isHole: boolean;
+  alignment: ShapeAlignment = ShapeAlignment.CENTER;
+  hidden = false;
+  style: IStyle = AbstractShape.defaultStyle;
   constructor(
     center?: Ray,
     divisions: number = 1,

@@ -154,6 +154,10 @@ export class Stamp extends AbstractShape {
     this.cursor.x = this.cursor.y = this.cursor.direction = 0;
   }
 
+  private _defaultStyle(style: IStyle) {
+    this.style = style;
+  }
+
   private _add() {
     this.mode = Stamp.UNION;
   }
@@ -236,7 +240,7 @@ export class Stamp extends AbstractShape {
       //GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
       g.center.direction += this.center.direction + this.cursor.direction;
 
-      if (shape.style) {
+      if (shape.style && shape.style !== AbstractShape.defaultStyle) {
         const style = resolveStyle(shape.style);
 
         if (this.mode !== Stamp.SUBTRACT && !shape.hidden) {
@@ -625,8 +629,8 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  materialIndex(idx = 1) {
-    this._nodes.push({ fName: "_materialIndex", args: [idx] });
+  defaultStyle(style: IStyle) {
+    this._nodes.push({ fName: "_defaultStyle", args: [style] });
     return this;
   }
 
@@ -791,6 +795,7 @@ export class Stamp extends AbstractShape {
 
   private mapStyles() {
     // sort style map by bounds area
+    const mappedPolys: Polygon[] = [];
     this._styleMap.sort((a, b) => {
       const areaA = a.bounds.area();
       const areaB = b.bounds.area();
@@ -803,9 +808,16 @@ export class Stamp extends AbstractShape {
         let poly = this._polys[j];
         if (GeomHelpers.shapeWithinBoundingBox(poly, styleArea.bounds, 1.1)) {
           poly.style = styleArea.style;
+          mappedPolys.push(poly);
         }
       }
     }
+    const unmappedPolys = this._polys.filter(
+      (poly) => !mappedPolys.includes(poly)
+    );
+    unmappedPolys.forEach((poly) => {
+      poly.style = resolveStyle(this.style);
+    })
   }
 
   /**
@@ -855,6 +867,7 @@ export class Stamp extends AbstractShape {
     }
 
     const privateFunctionMap: { [key: string]: Function } = {
+      _defaultStyle: this._defaultStyle,
       _add: this._add,
       _subtract: this._subtract,
       _intersect: this._intersect,

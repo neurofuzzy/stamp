@@ -29,7 +29,6 @@ const h = canvas.height / ratio;
 ctx.fillStyle = 'white';
 
 Sequence.seed = 2112;
-console.log(colors)
 
 Sequence.fromStatement("random 30,60,60,90,90,120 AS RW")
 Sequence.fromStatement("random 0[2],1[7] AS SKIP")
@@ -39,7 +38,7 @@ Sequence.fromStatement("random 5,RW-25 AS OFFSET")
 const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
-Sequence.fromStatement("repeat 1-9 as TT");
+Sequence.fromStatement("random 1-9 as TT");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -52,27 +51,30 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const gridSize = 6;
   const divisions = 64;
+  const size = 100;
+  const spacing = 100;
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
+    .defaultStyle(style)
     .add()
     .roundedTangram({
       type: "TT()",
       numX: gridSize,
       numY: gridSize,
-      spacingX: 120,
-      spacingY: 120,
-      width: 100,
-      height: 100,
+      spacingX: spacing,
+      spacingY: spacing,
+      width: size,
+      height: size,
       divisions,
-      style
+      style,
     })
     .subtract()
     .circle({
       numX: gridSize,
       numY: gridSize,
-      spacingX: 120,
-      spacingY: 120,
-      radius: 20,
+      spacingX: spacing,
+      spacingY: spacing,
+      radius: size * 0.2,
       divisions
     })
 

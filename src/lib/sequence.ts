@@ -167,7 +167,6 @@ export class Sequence {
           const exprs = val.split(isOperatorExpr);
           val = exprs.shift() as string;
           if (Sequence.sequences[val.split("(")[0]]) {
-            console.log(val)
             values.push(new SequenceReference(
               Sequence.sequences[val.split("(")[0]], 
               val.indexOf("(") === -1,

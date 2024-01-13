@@ -11,15 +11,16 @@ export interface IHatchPattern {
 }
 
 export class HatchPattern implements IHatchPattern {
-  protected center: Ray;
-  protected width: number;
-  protected height: number;
-  protected scale: number;
-  style: IStyle = {
+  static defaultStyle: IStyle = {
     strokeColor: "#ccc",
     strokeThickness: 0.5,
     fillColor: "#333"
   }
+  protected center: Ray;
+  protected width: number;
+  protected height: number;
+  protected scale: number;
+  style: IStyle = HatchPattern.defaultStyle;
   constructor(center: Ray, width: number, height: number, scale: number = 1) {
     this.center = center;
     this.width = width;
