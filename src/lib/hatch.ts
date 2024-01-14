@@ -106,10 +106,10 @@ export class Hatch {
     return fillShape;
   }
 
-  static subtractHatchFromShape(shape: IShape): Polygon[] {
+  static subtractHatchFromShape(shape: IShape): Polygon | null {
     const hatchFillShape = Hatch.applyHatchToShape(shape);
     if (!hatchFillShape) {
-      return [shape as Polygon];
+      return shape as Polygon;
     }
     const hatchPaths = ClipperHelpers.hatchAreaToPaths(hatchFillShape);
     const strokeWidth = Math.max($(shape.style.hatchStrokeThickness) || 0, 2);
@@ -138,12 +138,17 @@ export class Hatch {
           p.style = Object.assign({}, shape.style);
           p.style.hatchPattern = 0;
         });
-        return polys;
+        const poly = new Polygon();
+        polys.forEach(p => {
+          poly.addChild(p);
+        })
+        poly.style = Object.assign({}, shape.style);
+        return poly;
       } else {
         console.log("error offseting for hatch to polygons", strokeWidth);
       }
     }
-    return [];
+    return null;
   }
 
 }

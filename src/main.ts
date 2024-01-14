@@ -89,8 +89,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // draw children
   grid.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
-      const shapes = Hatch.subtractHatchFromShape(child);
-      shapes.forEach(shape => drawShape(ctx, shape))
+      const shape = Hatch.subtractHatchFromShape(child);
+      if (shape) drawShape(ctx, shape)
     } else {
       drawShape(ctx, child)
     }
