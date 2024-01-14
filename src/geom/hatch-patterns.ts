@@ -282,3 +282,9 @@ export enum HatchPatternType {
   SLATE = 7,
   ROCK = 8,
 }
+
+export enum HatchBooleanType {
+  DECAL = 0,
+  DIFFERENCE = 1,
+  INTERSECT = 2,
+}

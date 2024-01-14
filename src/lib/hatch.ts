@@ -3,6 +3,7 @@ import {
   BuntingHatchPattern,
   CrossHatchPattern,
   DashedHatchPattern,
+  HatchBooleanType,
   HatchFillShape,
   HatchPatternType,
   IHatchPattern,
@@ -27,11 +28,11 @@ const $ = (arg: unknown) =>
     : 0;
 
 export class Hatch {
-  static applyHatchToShape(shape: IShape, forcedOffset: number = 0): HatchFillShape {
+  static applyHatchToShape(shape: IShape): HatchFillShape | null {
     const npattern = $(shape.style.hatchPattern) || 0;
     const nangle = $(shape.style.hatchAngle) || 0;
     const nscale = $(shape.style.hatchScale) || 1;
-    const ninset = forcedOffset !== 0 ? 0 - forcedOffset : $(shape.style.hatchInset) || 0;
+    const ninset = $(shape.style.hatchInset) || 0;
     const bc = shape.boundingCircle();
     const args: [Ray, number, number, number] = [
       new Ray(bc.x, bc.y, (nangle * Math.PI) / 180),
@@ -66,7 +67,7 @@ export class Hatch {
         hatchPattern = new RockHatchPattern(...args);
         break;
       default:
-        hatchPattern = new LineHatchPattern(...args);
+        return null;
         break;
     }
     let shapePaths = ClipperHelpers.shapeToPaths(shape);
@@ -106,7 +107,10 @@ export class Hatch {
   }
 
   static subtractHatchFromShape(shape: IShape): Polygon[] {
-    const hatchFillShape = Hatch.applyHatchToShape(shape, 10);
+    const hatchFillShape = Hatch.applyHatchToShape(shape);
+    if (!hatchFillShape) {
+      return [shape as Polygon];
+    }
     const hatchPaths = ClipperHelpers.hatchAreaToPaths(hatchFillShape);
     const strokeWidth = Math.max($(shape.style.hatchStrokeThickness) || 0, 2);
     if (strokeWidth > 0) {
@@ -122,7 +126,7 @@ export class Hatch {
       });
       if (offsetResult) {
         const hatchResult = ClipperHelpers.clipper.clipToPolyTree({
-          clipType: clipperLib.ClipType.Difference,
+          clipType: shape.style.hatchBooleanType === HatchBooleanType.DIFFERENCE ? clipperLib.ClipType.Difference : clipperLib.ClipType.Intersection,
           subjectInputs: [ClipperHelpers.shapeToPaths(shape)],
           clipInputs: [{
             data: ClipperHelpers.clipper.polyTreeToPaths(offsetResult),

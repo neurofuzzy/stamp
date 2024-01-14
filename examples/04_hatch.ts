@@ -1,13 +1,14 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from "./geom/core";
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType } from './geom/hatch-patterns';
+import { TangramType } from '../src/geom/tangram';
+import { HatchPattern, HatchPatternType, LineHatchPattern, SinewaveHatchPattern } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -28,7 +29,7 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
-Sequence.seed = 1;
+Sequence.seed = 2112;
 
 Sequence.fromStatement("random 30,60,60,90,90,120 AS RW")
 Sequence.fromStatement("random 0[2],1[7] AS SKIP")
@@ -39,7 +40,7 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
 Sequence.fromStatement("random 1-9 as TT");
-Sequence.fromStatement("random 0-7 as HATCH");
+Sequence.fromStatement("random 0-6 as HATCH");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -53,8 +54,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     hatchScale: 1,
     hatchStrokeColor: "0xffffff",
     hatchStrokeThickness: 3,
-    hatchInset: -10,
-    hatchBooleanType: HatchBooleanType.INTERSECT,
+    hatchSubtract: true,
   }
 
   const gridSize = 6;
@@ -88,7 +88,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // draw children
   grid.children().forEach(child => {
-    if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
+    if (child.style.hatchSubtract) {
       const shapes = Hatch.subtractHatchFromShape(child);
       shapes.forEach(shape => drawShape(ctx, shape))
     } else {
@@ -96,10 +96,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     }
   });
   grid.children().forEach(child => {
-    if (child.style.hatchPattern && child.style.hatchBooleanType !== HatchBooleanType.DIFFERENCE && child.style.hatchBooleanType !== HatchBooleanType.INTERSECT) {
+    if (child.style.hatchPattern && !child.style.hatchSubtract) {
       const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern)
-        drawHatchPattern(ctx, fillPattern);
+      drawHatchPattern(ctx, fillPattern);
     }
   });
 
