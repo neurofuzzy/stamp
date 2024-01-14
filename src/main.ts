@@ -8,6 +8,7 @@ import { Stamp } from './lib/stamp';
 import './style.css';
 import colors from 'nice-color-palettes';
 import { TangramType } from './geom/tangram';
+import { HatchPattern, HatchPatternType, LineHatchPattern, SinewaveHatchPattern } from './geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -39,6 +40,7 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
 Sequence.fromStatement("random 1-9 as TT");
+Sequence.fromStatement("random 0-6 as HATCH");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -47,6 +49,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const style: IStyle = {
     strokeThickness: 0,
     fillColor: "COLOR()",
+    hatchPattern: "HATCH()",
+    hatchAngle: 45,
+    hatchScale: 1,
+    hatchStrokeColor: "0xffffff",
+    hatchStrokeThickness: 3,
+    hatchSubtract: true,
   }
 
   const gridSize = 6;
@@ -79,9 +87,16 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
 
   // draw children
-  grid.children().forEach(child => drawShape(ctx, child));
   grid.children().forEach(child => {
-    if (child.style.hatchPattern) {
+    if (child.style.hatchSubtract) {
+      const shapes = Hatch.subtractHatchFromShape(child);
+      shapes.forEach(shape => drawShape(ctx, shape))
+    } else {
+      drawShape(ctx, child)
+    }
+  });
+  grid.children().forEach(child => {
+    if (child.style.hatchPattern && !child.style.hatchSubtract) {
       const fillPattern = Hatch.applyHatchToShape(child);
       drawHatchPattern(ctx, fillPattern);
     }

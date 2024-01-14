@@ -39,6 +39,7 @@ export interface IStyle {
   hatchStrokeThickness?: number | string;
   hatchAngle?: number | string;
   hatchInset?: number | string;
+  hatchSubtract?: boolean;
 }
 
 export class Point {
