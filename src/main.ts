@@ -34,8 +34,14 @@ Sequence.seed = 1;
 const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
-Sequence.fromStatement("repeat 25[6],0[6] AS BOFFSET")
-Sequence.fromStatement("repeat 0[5],1,0[6] AS BSKIP")
+
+const gridSizeX = 18;
+const gridSizeY = 6;
+
+Sequence.fromStatement(`random 140-200 AS RHEIGHT`)
+
+Sequence.fromStatement(`repeat 25[${gridSizeX}],0[${gridSizeX}] AS BOFFSET`)
+Sequence.fromStatement(`repeat 0[${gridSizeX - 1}],1,0[${gridSizeX}] AS BSKIP`)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -46,15 +52,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillColor: "COLOR()",
   }
 
-  const gridSize = 6;
   const divisions = 64;
-  const size = 100;
   const spacingX = 50;
-  const spacingY = 100;
+  const spacingY = 80;
 
   const stalk = new Stamp(new Ray(w / 2, h / 2, 0))
     .roundedRectangle({
-      height: 200,
+      height: "RHEIGHT()",
       width: 40,
       cornerRadius: 20,
       style,
@@ -67,9 +71,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.BOTTOM,
       offsetY: 20,
     })
-    .circle({
+    .circle({ 
       radius: 10,
-      offsetY: -80
+      offsetY: "20 - RHEIGHT / 2",
     })
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
@@ -77,8 +81,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .add()
     .stamp({
       subStamp: stalk,
-      numX: gridSize,
-      numY: gridSize,
+      numX: gridSizeX,
+      numY: gridSizeY,
       spacingX,
       spacingY,
       divisions,
