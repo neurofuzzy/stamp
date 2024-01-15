@@ -8,7 +8,7 @@ import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
 import { TangramType } from '../src/geom/tangram';
-import { HatchPattern, HatchPatternType, LineHatchPattern, SinewaveHatchPattern } from '../src/geom/hatch-patterns';
+import { HatchBooleanType, HatchPattern, HatchPatternType, LineHatchPattern, SinewaveHatchPattern } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -54,7 +54,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     hatchScale: 1,
     hatchStrokeColor: "0xffffff",
     hatchStrokeThickness: 3,
-    hatchSubtract: true,
+    hatchBooleanType: HatchBooleanType.DIFFERENCE,
   }
 
   const gridSize = 6;
@@ -88,17 +88,18 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // draw children
   grid.children().forEach(child => {
-    if (child.style.hatchSubtract) {
-      const shapes = Hatch.subtractHatchFromShape(child);
-      shapes.forEach(shape => drawShape(ctx, shape))
+    if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
+      const shape = Hatch.subtractHatchFromShape(child);
+      if (shape) drawShape(ctx, shape)
     } else {
       drawShape(ctx, child)
     }
   });
   grid.children().forEach(child => {
-    if (child.style.hatchPattern && !child.style.hatchSubtract) {
+    if (child.style.hatchPattern && child.style.hatchBooleanType !== HatchBooleanType.DIFFERENCE && child.style.hatchBooleanType !== HatchBooleanType.INTERSECT) {
       const fillPattern = Hatch.applyHatchToShape(child);
-      drawHatchPattern(ctx, fillPattern);
+      if (fillPattern)
+        drawHatchPattern(ctx, fillPattern);
     }
   });
 

@@ -117,14 +117,13 @@ export class Stamp extends AbstractShape {
   static readonly SUBTRACT = 2;
   static readonly INTERSECT = 3;
 
-  _nodes: INode[] = [];
-  _tree: clipperLib.PolyTree | null = null;
-  _trees: clipperLib.PolyTree[] = [];
-  _polys: Polygon[] = [];
-  _polygroups: Polygon[][] = [];
-  _styleMap: IStyleMap[] = [];
+  private _nodes: INode[] = [];
+  private _tree: clipperLib.PolyTree | null = null;
+  private _trees: clipperLib.PolyTree[] = [];
+  private _polys: Polygon[] = [];
+  private _polygroups: Polygon[][] = [];
+  private _styleMap: IStyleMap[] = [];
 
-  colorIdx: number = 0;
   mode: number = Stamp.UNION;
 
   offsetX: number = 0;
@@ -375,10 +374,6 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  private _colorIndex(idx: number) {
-    this.colorIdx = idx;
-  }
-
   private _getGroupOffset(nx = 1, ny = 1, spx = 0, spy = 0): Point {
     const pt = new Point(0, 0);
     pt.x = (nx - 1) * spx * 0.5;
@@ -397,6 +392,7 @@ export class Stamp extends AbstractShape {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
         GeomHelpers.rotatePoint(offset, this.cursor.direction);
+        console.log($(params.divisions))
         const s = new Circle(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -879,7 +875,6 @@ export class Stamp extends AbstractShape {
       _offset: this._offset,
       _rotateTo: this._rotateTo,
       _rotate: this._rotate,
-      _colorIndex: this._colorIndex,
       _circle: this._circle,
       _rectangle: this._rectangle,
       _reset: this._reset,

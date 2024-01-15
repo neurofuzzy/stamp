@@ -104,7 +104,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   city.children().forEach(child => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
-      drawHatchPattern(ctx, fillPattern);
+      if (fillPattern) drawHatchPattern(ctx, fillPattern);
     }
   });
 }

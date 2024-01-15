@@ -254,6 +254,9 @@ export class Circle extends AbstractShape {
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
+    if (divisions <= 2) {
+      divisions = 32;
+    }
     super(center, divisions, alignment, reverse);
     this.radius = radius;
   }

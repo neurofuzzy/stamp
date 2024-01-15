@@ -30,16 +30,12 @@ ctx.fillStyle = 'white';
 
 Sequence.seed = 1;
 
-Sequence.fromStatement("random 30,60,60,90,90,120 AS RW")
-Sequence.fromStatement("random 0[2],1[7] AS SKIP")
-Sequence.fromStatement("random 5,RW-25 AS OFFSET")
-
 // 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[83];
+const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
-Sequence.fromStatement("random 1-9 as TT");
-Sequence.fromStatement("random 0-7 as HATCH");
+Sequence.fromStatement("repeat 25[6],0[6] AS BOFFSET")
+Sequence.fromStatement("repeat 0[5],1,0[6] AS BSKIP")
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -48,43 +44,50 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const style: IStyle = {
     strokeThickness: 0,
     fillColor: "COLOR()",
-    hatchPattern: "HATCH()",
-    hatchAngle: 45,
-    hatchScale: 1,
-    hatchStrokeColor: "0xffffff",
-    hatchStrokeThickness: 3,
-    hatchInset: -10,
-    hatchBooleanType: HatchBooleanType.INTERSECT,
   }
 
   const gridSize = 6;
   const divisions = 64;
   const size = 100;
-  const spacing = 100;
+  const spacingX = 50;
+  const spacingY = 100;
+
+  const stalk = new Stamp(new Ray(w / 2, h / 2, 0))
+    .roundedRectangle({
+      height: 200,
+      width: 40,
+      cornerRadius: 20,
+      style,
+      divisions: 4
+    })
+    .subtract()
+    .rectangle({
+      height: 120,
+      width: 60,
+      align: ShapeAlignment.BOTTOM,
+      offsetY: 20,
+    })
+    .circle({
+      radius: 10,
+      offsetY: -80
+    })
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle(style)
     .add()
-    .roundedTangram({
-      type: "TT()",
+    .stamp({
+      subStamp: stalk,
       numX: gridSize,
       numY: gridSize,
-      spacingX: spacing,
-      spacingY: spacing,
-      width: size,
-      height: size,
+      spacingX,
+      spacingY,
       divisions,
-      style,
-    })
-    .subtract()
-    .circle({
-      numX: gridSize,
-      numY: gridSize,
-      spacingX: spacing,
-      spacingY: spacing,
-      radius: size * 0.2,
-      divisions
-    })
+      offsetX: "BOFFSET()",
+      skip: "BSKIP()",
+      outlineThickness: 5,
+      align: ShapeAlignment.TOP,
+      style: style
+    });
 
   // draw children
   grid.children().forEach(child => {
