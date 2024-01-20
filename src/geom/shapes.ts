@@ -672,8 +672,8 @@ export class Bone extends AbstractShape {
   constructor(
     center: Ray,
     length: number,
-    topRadius: number,
     bottomRadius: number,
+    topRadius: number,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
@@ -681,18 +681,18 @@ export class Bone extends AbstractShape {
     super(center, divisions, alignment, reverse);
     this.center = center;
     this.length = length;
-    this.topRadius = topRadius;
     this.bottomRadius = bottomRadius;
+    this.topRadius = topRadius;
     this.divisions = divisions;
     this.alignment = alignment;
     this.reverse = reverse;
   }
   generate(): Ray[] {
-    const topCenter = new Ray(
+    const bottomCenter = new Ray(
       this.center.x,
       this.center.y - this.length * 0.5,
     );
-    const bottomCenter = new Ray(
+    const topCenter = new Ray(
       this.center.x,
       this.center.y + this.length * 0.5,
     );
@@ -700,15 +700,15 @@ export class Bone extends AbstractShape {
       case ShapeAlignment.CENTER:
         break;
       case ShapeAlignment.TOP:
-        topCenter.y -= this.length * 0.5,
-        bottomCenter.y -= this.length * 0.5
+        bottomCenter.y -= this.length * 0.5,
+        topCenter.y -= this.length * 0.5
         break;
       case ShapeAlignment.BOTTOM:
-        topCenter.y += this.length * 0.5,
-        bottomCenter.y += this.length * 0.5
+        bottomCenter.y += this.length * 0.5,
+        topCenter.y += this.length * 0.5
         break;
     }
-    const tangents = GeomHelpers.circleCircleTangents(topCenter, this.topRadius, bottomCenter, this.bottomRadius);
+    const tangents = GeomHelpers.circleCircleTangents(bottomCenter, this.bottomRadius, topCenter, this.topRadius);
     const rays = [];
     rays.push(tangents[0].toRay());
     rays.push(tangents[1].toRay());
@@ -719,8 +719,8 @@ export class Bone extends AbstractShape {
     ).slice(1, -1);
     rays.push(...side1);
     const arc1 = new Arc(
-      topCenter,
-      this.topRadius,
+      bottomCenter,
+      this.bottomRadius,
       GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5,
       GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
       this.divisions * 8
@@ -733,14 +733,39 @@ export class Bone extends AbstractShape {
     ).slice(1, -1);
     rays.push(...side2);
     const arc2 = new Arc(
-      bottomCenter,
-      this.bottomRadius,
+      topCenter,
+      this.topRadius,
       GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
       GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5 + Math.PI * 2,
       this.divisions * 8
     )
     rays.push(...arc2.generate());
+
+    if (this.reverse) {
+      rays.reverse();
+    }
     GeomHelpers.normalizeRayDirections(rays);
+    if (this.center.direction) {
+      rays.forEach((r) => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r);
+      });
+    }
+
     return rays;
+  }
+  clone() {
+    const s = new Bone(
+      this.center.clone(),
+      this.length,
+      this.topRadius,
+      this.bottomRadius,
+      this.divisions,
+      this.alignment,
+      this.reverse
+    );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
+    return s;
   }
 }

@@ -44,6 +44,7 @@ Sequence.fromStatement(`repeat 60 add AS RANGLE`);
 
 Sequence.fromStatement(`repeat 31[${gridSizeX}],0[${gridSizeX}] AS BOFFSET`);
 Sequence.fromStatement(`repeat 0[${gridSizeX - 1}],1,0[${gridSizeX}] AS BSKIP`);
+Sequence.fromStatement(`once 30,25,20,15,10,5 AS BWEIGHT`);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -58,12 +59,28 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const spacingX = 62;
   const spacingY = 70;
 
-  const bone = new Bone(new Ray(w / 2, h / 2, 0), 200, 50, 120, 3, ShapeAlignment.TOP, false);
+  const grid = new Stamp(new Ray(w / 2, h / 2, 0))
+    .bone({
+      length: 100,
+      bottomRadius: "BWEIGHT",
+      topRadius: "BWEIGHT()",
+      divisions: 2,
+      align: ShapeAlignment.TOP,
+    })
+    .forward(100)
+    .rotate(30)
+    .repeatLast(3, 2);
 
-  drawShape(ctx, bone, 0);
-  drawCenter(ctx, bone.center);
-  bone.generate().forEach(r => drawRay(ctx, r));
-
+  console.log(grid.generate())
+  // draw children
+  grid.children().forEach(child => {
+    if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
+      const shape = Hatch.subtractHatchFromShape(child);
+      if (shape) drawShape(ctx, shape)
+    } else {
+      drawShape(ctx, child)
+    }
+  });
 }
 
 document.onkeydown = function (e) {

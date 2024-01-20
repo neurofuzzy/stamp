@@ -85,8 +85,8 @@ export interface ITangramParams extends IShapeParams {
 
 export interface IBoneParams extends IShapeParams {
   length: number | string;
-  topRadius: number | string;
   bottomRadius: number | string;
+  topRadius: number | string;
 }
 
 function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
@@ -682,8 +682,8 @@ export class Stamp extends AbstractShape {
             params.angle ? ($(params.angle) * Math.PI) / 180 : 0
           ),
           $(params.length),
-          $(params.topRadius),
           $(params.bottomRadius),
+          $(params.topRadius),
           $(params.divisions),
           $(params.align)
         );
