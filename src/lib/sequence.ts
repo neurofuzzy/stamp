@@ -22,6 +22,7 @@ export class Sequence {
   static readonly AS = "as";
   static readonly REPLACE = "replace";
   static readonly ADD = "add";
+  static readonly SUBTRACT = "subtract";
   static readonly MULTIPLY = "multiply";
   static readonly DIVIDE = "divide";
   static readonly ismaxIterations = /\(\d+\)/g;
@@ -41,7 +42,7 @@ export class Sequence {
   }
   static readonly reserved: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.AS];
   static readonly types: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM];
-  static readonly accumulators: string[] = [Sequence.REPLACE, Sequence.ADD, Sequence.MULTIPLY, Sequence.DIVIDE];
+  static readonly accumulators: string[] = [Sequence.REPLACE, Sequence.ADD, Sequence.SUBTRACT, Sequence.MULTIPLY, Sequence.DIVIDE];
 
   _prevValue: number | Sequence;
   _currentValue: number | Sequence;
@@ -100,9 +101,14 @@ export class Sequence {
       out = this._currentValue;
     }
     if (typeof this._prevValue === "number") {
+      if (isNaN(this._prevValue)) {
+        this._prevValue = 0;
+      }
       switch (this._accumulationType) {
         case Sequence.ADD:
           return this._prevValue + out;
+        case Sequence.SUBTRACT:
+          return this._prevValue - out;
         case Sequence.MULTIPLY:
           return this._prevValue * out;
         case Sequence.DIVIDE:

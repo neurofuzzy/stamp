@@ -11,6 +11,7 @@ import { GeomHelpers } from "../geom/helpers";
 import {
   AbstractShape,
   Circle,
+  Ellipse,
   Polygon,
   Rectangle,
   RoundedRectangle,
@@ -45,6 +46,11 @@ interface IShapeParams {
 
 export interface ICircleParams extends IShapeParams {
   radius: number | string;
+}
+
+export interface IEllipseParams extends IShapeParams {
+  radiusX: number | string;
+  radiusY: number | string;
 }
 
 export interface IRectangleParams extends IShapeParams {
@@ -392,14 +398,47 @@ export class Stamp extends AbstractShape {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
         GeomHelpers.rotatePoint(offset, this.cursor.direction);
-        console.log($(params.divisions))
         const s = new Circle(
           new Ray(
             nspx * i - o.x + offset.x,
             nspy * j - o.y + offset.y,
-            0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
           $(params.radius),
+          $(params.divisions),
+          $(params.align)
+        );
+        if ($(params.skip) > 0) {
+          s.hidden = true;
+        }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
+      }
+    }
+    this._make(shapes, $(params.outlineThickness));
+  }
+
+  private _ellipse(params: IEllipseParams) {
+    let shapes: IShape[] = [];
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        GeomHelpers.rotatePoint(offset, this.cursor.direction);
+        const s = new Ellipse(
+          new Ray(
+            nspx * i - o.x + offset.x,
+            nspy * j - o.y + offset.y,
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
+          ),
+          $(params.radiusX),
+          $(params.radiusY),
           $(params.divisions),
           $(params.align)
         );
@@ -694,6 +733,15 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  ellipse(params: IEllipseParams) {
+    params = paramsWithDefaults<IEllipseParams>(params);
+    this._nodes.push({
+      fName: "_ellipse",
+      args: [params],
+    });
+    return this;
+  }
+
   rectangle(params: IRectangleParams) {
     params = paramsWithDefaults<IRectangleParams>(params);
     this._nodes.push({
@@ -876,6 +924,7 @@ export class Stamp extends AbstractShape {
       _rotateTo: this._rotateTo,
       _rotate: this._rotate,
       _circle: this._circle,
+      _ellipse: this._ellipse,
       _rectangle: this._rectangle,
       _reset: this._reset,
       _roundedRectangle: this._roundedRectangle,

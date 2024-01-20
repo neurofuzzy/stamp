@@ -1,13 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { IStyle, Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType } from './geom/hatch-patterns';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -35,14 +35,13 @@ const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
 
-const gridSizeX = 9;
-const gridSizeY = 8;
+const gridSizeX = 12;
+const gridSizeY = 3;
 
-Sequence.fromStatement(`random 140-200 AS RHEIGHT`);
-Sequence.fromStatement(`repeat 60 add AS RANGLE`);
+Sequence.fromStatement(`random 140-200 AS RHEIGHT`)
 
-Sequence.fromStatement(`repeat 31[${gridSizeX}],0[${gridSizeX}] AS BOFFSET`);
-Sequence.fromStatement(`repeat 0[${gridSizeX - 1}],1,0[${gridSizeX}] AS BSKIP`);
+Sequence.fromStatement(`repeat 25[${gridSizeX}],0[${gridSizeX}] AS BOFFSET`)
+Sequence.fromStatement(`repeat 0[${gridSizeX - 1}],1,0[${gridSizeX}] AS BSKIP`)
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -53,63 +52,45 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillColor: "COLOR()",
   }
 
-  const divisions = 32;
-  const spacingX = 62;
-  const spacingY = 70;
+  const divisions = 3;
+  const spacingX = 50;
+  const spacingY = 80;
+
+  const stalk = new Stamp(new Ray(w / 2, h / 2, 0))
+    .roundedRectangle({
+      height: "RHEIGHT()",
+      width: 40,
+      cornerRadius: 20,
+      style,
+      divisions,
+    })
+    .subtract()
+    .rectangle({
+      height: 120,
+      width: 60,
+      align: ShapeAlignment.BOTTOM,
+      offsetY: 20,
+    })
+    .circle({ 
+      radius: 10,
+      offsetY: "20 - RHEIGHT / 2",
+    });
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle(style)
     .add()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 20,
-      radiusY: 24,
+    .stamp({
+      subStamp: stalk,
+      numX: gridSizeX,
+      numY: gridSizeY,
+      spacingX,
+      spacingY,
       divisions,
       offsetX: "BOFFSET()",
       skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
-    })
-    .subtract()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 16,
-      radiusY: 20,
-      divisions,
-      offsetX: "BOFFSET()",
-      skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
-    })
-    .add()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 12,
-      radiusY: 16,
-      divisions,
-      offsetX: "BOFFSET()",
-      skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
-    })
-    .subtract()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 8,
-      radiusY: 12,
-      divisions,
-      offsetX: "BOFFSET()",
-      skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
+      outlineThickness: 5,
+      align: ShapeAlignment.TOP,
+      style: style
     });
 
   // draw children

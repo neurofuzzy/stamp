@@ -19,7 +19,20 @@ export function drawShape(
   if (style.fillAlpha === 0 && style.strokeThickness === 0) {
     return;
   }
+
   const rays = shape.generate();
+
+  /*
+  const rays = GeomHelpers.subdivideRaySetByDistance(shape.generate(), 6);
+  const bb = shape.boundingBox();
+
+  // test bend
+  rays.forEach(ray => {
+    let delta = GeomHelpers.distanceBetweenPoints(bb.center, ray);
+    if (ray.y > bb.center.y) delta *= -1;
+    GeomHelpers.rotatePointAbountPoint(bb.center, ray, delta * -0.005);
+  })
+  */
 
   if (shapeDepth === 0) {
     ctx.beginPath();

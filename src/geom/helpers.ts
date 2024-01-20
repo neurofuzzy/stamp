@@ -69,6 +69,16 @@ export class GeomHelpers {
     v.y = y1;
   }
 
+  static rotatePointAbountPoint(origin: Point, point: Point, angle: number) {
+    if (angle === Math.round(angle)) {
+      angle = angle * Math.PI / 180;
+    }
+    const x = point.x - origin.x;
+    const y = point.y - origin.y;
+    point.x = x * Math.cos(angle) - y * Math.sin(angle) + origin.x;
+    point.y = x * Math.sin(angle) + y * Math.cos(angle) + origin.y;
+  }
+
   static rotatePointAboutOrigin(origin: Ray, point: Point) {
     const x = point.x - origin.x;
     const y = point.y - origin.y;
@@ -144,6 +154,14 @@ export class GeomHelpers {
     const newRays = [];
     for (let i = 0; i < rays.length - 1; i++) {
       newRays.push(...GeomHelpers.subdivideRays(rays[i], rays[i + 1], divisions));
+    }
+    return newRays
+  }
+
+  static subdivideRaySetByDistance(rays: Ray[], distance: number) {
+    const newRays = [];
+    for (let i = 0; i < rays.length - 1; i++) {
+      newRays.push(...GeomHelpers.subdivideRaysByDistance(rays[i], rays[i + 1], distance));
     }
     return newRays
   }

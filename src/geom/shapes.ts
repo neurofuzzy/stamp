@@ -332,6 +332,94 @@ export class Circle extends AbstractShape {
   }
 }
 
+export class Ellipse extends AbstractShape {
+  radiusX: number;
+  radiusY: number;
+  constructor(
+    center?: Ray,
+    radiusX: number = 50,
+    radiusY: number = 50,
+    divisions: number = 1,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
+    reverse: boolean = false
+  ) {
+    super(center, divisions, alignment, reverse);
+    this.radiusX = radiusX;
+    this.radiusY = radiusY;
+  }
+  protected alignmentOffset(): Point {
+    switch (this.alignment) {
+      case ShapeAlignment.TOP_LEFT:
+        return new Point(-this.radiusX, -this.radiusY);
+      case ShapeAlignment.TOP:
+        return new Point(0, -this.radiusY);
+      case ShapeAlignment.TOP_RIGHT:
+        return new Point(this.radiusX, -this.radiusY);
+      case ShapeAlignment.LEFT:
+        return new Point(-this.radiusX, 0);
+      case ShapeAlignment.CENTER:
+        return new Point(0, 0);
+      case ShapeAlignment.RIGHT:
+        return new Point(this.radiusX, 0);
+      case ShapeAlignment.BOTTOM_LEFT:
+        return new Point(-this.radiusX, this.radiusY);
+      case ShapeAlignment.BOTTOM:
+        return new Point(0, this.radiusY);
+      case ShapeAlignment.BOTTOM_RIGHT:
+        return new Point(this.radiusX, this.radiusY);
+      default:
+        return new Point(0, 0);
+    }
+  }
+  generate() {
+    const rays = [];
+    const offset = this.alignmentOffset();
+    for (let i = 0; i <= this.divisions; i++) {
+      rays.push(
+        new Ray(
+          this.center.x +
+            this.radiusX *
+              Math.cos(
+                this.center.direction + (Math.PI * 2 * i) / this.divisions
+              ) +
+            offset.x,
+          this.center.y +
+            this.radiusY *
+              Math.sin(
+                this.center.direction + (Math.PI * 2 * i) / this.divisions
+              ) +
+            offset.y,
+          this.center.direction + (Math.PI * 2 * i) / this.divisions
+        )
+      );
+    }
+    if (this.center.direction) {
+      rays.forEach((r) => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r);
+      });
+    }
+    if (this.reverse) {
+      rays.reverse();
+      rays.forEach((r) => (r.direction += Math.PI));
+    }
+    return rays;
+  }
+  clone() {
+    const s = new Ellipse(
+      this.center.clone(),
+      this.radiusX,
+      this.radiusY,
+      this.divisions,
+      this.alignment,
+      this.reverse
+    );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
+    return s;
+  }
+}
+
 export class Rectangle extends AbstractShape {
   width: number;
   height: number;
