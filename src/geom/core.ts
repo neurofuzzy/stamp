@@ -55,6 +55,9 @@ export class Point {
   toString() {
     return `(${this.x}, ${this.y})`;
   }
+  toRay() {
+    return new Ray(this.x, this.y);
+  }
   fromString(s: string) {
     const [x, y] = s.slice(1, -1).split(',').map(Number);
     this.x = x;

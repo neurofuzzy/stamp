@@ -15,6 +15,7 @@ import {
   Polygon,
   Rectangle,
   RoundedRectangle,
+  Bone,
 } from "../geom/shapes";
 import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
@@ -80,6 +81,12 @@ export interface ITangramParams extends IShapeParams {
   width: number | string;
   height: number | string;
   type: number | string;
+}
+
+export interface IBoneParams extends IShapeParams {
+  length: number | string;
+  topRadius: number | string;
+  bottomRadius: number | string;
 }
 
 function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
@@ -659,6 +666,39 @@ export class Stamp extends AbstractShape {
     this._make(shapes, $(params.outlineThickness));
   }
 
+  private _bone(params: IBoneParams) {
+    let shapes: IShape[] = [];
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        const s = new Bone(
+          new Ray(
+            nspx * i - o.x + $(params.offsetX),
+            +nspy * j - o.y + $(params.offsetY),
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+          ),
+          $(params.length),
+          $(params.topRadius),
+          $(params.bottomRadius),
+          $(params.divisions),
+          $(params.align)
+        );
+        if ($(params.skip) > 0) {
+          s.hidden = true;
+        }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
+      }
+    }
+    this._make(shapes, $(params.outlineThickness));
+  }
+
   reset() {
     this._nodes.push({ fName: "_reset", args: Array.from(arguments) });
     return this;
@@ -755,6 +795,15 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<IRoundedRectangleParams>(params);
     this._nodes.push({
       fName: "_roundedRectangle",
+      args: [params],
+    });
+    return this;
+  }
+
+  bone(params: IBoneParams) {
+    params = paramsWithDefaults<IBoneParams>(params);
+    this._nodes.push({
+      fName: "_bone",
       args: [params],
     });
     return this;
@@ -928,6 +977,7 @@ export class Stamp extends AbstractShape {
       _rectangle: this._rectangle,
       _reset: this._reset,
       _roundedRectangle: this._roundedRectangle,
+      _bone: this._bone,
       _polygon: this._polygon,
       _stamp: this._stamp,
       _tangram: this._tangram,

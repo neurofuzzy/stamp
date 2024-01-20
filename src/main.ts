@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from './lib/draw';
+import { drawCenter, drawHatchPattern, drawRay, drawShape } from './lib/draw';
 import { IStyle, Ray, ShapeAlignment } from './geom/core';
 import { ClipperHelpers } from './lib/clipper-helpers';
 import { Hatch } from './lib/hatch';
@@ -8,6 +8,7 @@ import { Stamp } from './lib/stamp';
 import './style.css';
 import colors from 'nice-color-palettes';
 import { HatchBooleanType } from './geom/hatch-patterns';
+import { Bone } from './geom/shapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -35,8 +36,8 @@ const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
 
-const gridSizeX = 9;
-const gridSizeY = 8;
+const gridSizeX = 5;
+const gridSizeY = 5;
 
 Sequence.fromStatement(`random 140-200 AS RHEIGHT`);
 Sequence.fromStatement(`repeat 60 add AS RANGLE`);
@@ -57,77 +58,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const spacingX = 62;
   const spacingY = 70;
 
-  const grid = new Stamp(new Ray(w / 2, h / 2, 0))
-    .defaultStyle(style)
-    .add()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 20,
-      radiusY: 24,
-      divisions,
-      offsetX: "BOFFSET()",
-      skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
-    })
-    .subtract()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 16,
-      radiusY: 20,
-      divisions,
-      offsetX: "BOFFSET()",
-      skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
-    })
-    .add()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 12,
-      radiusY: 16,
-      divisions,
-      offsetX: "BOFFSET()",
-      skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
-    })
-    .subtract()
-    .ellipse({
-      angle: "RANGLE()",
-      radiusX: 8,
-      radiusY: 12,
-      divisions,
-      offsetX: "BOFFSET()",
-      skip: "BSKIP()",
-      spacingX,
-      spacingY,
-      numX: gridSizeX,
-      numY: gridSizeY
-    });
+  const bone = new Bone(new Ray(w / 2, h / 2, 0), 200, 50, 120, 3, ShapeAlignment.TOP, false);
 
-  // draw children
-  grid.children().forEach(child => {
-    if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
-      const shape = Hatch.subtractHatchFromShape(child);
-      if (shape) drawShape(ctx, shape)
-    } else {
-      drawShape(ctx, child)
-    }
-  });
-  grid.children().forEach(child => {
-    if (child.style.hatchPattern && child.style.hatchBooleanType !== HatchBooleanType.DIFFERENCE && child.style.hatchBooleanType !== HatchBooleanType.INTERSECT) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern)
-        drawHatchPattern(ctx, fillPattern);
-    }
-  });
+  drawShape(ctx, bone, 0);
+  drawCenter(ctx, bone.center);
+  bone.generate().forEach(r => drawRay(ctx, r));
 
 }
 

@@ -1,5 +1,5 @@
 import { IHatchPattern } from "../geom/hatch-patterns";
-import { BoundingBox, BoundingCircle, IShape, IStyle, Point } from "../geom/core";
+import { BoundingBox, BoundingCircle, IShape, IStyle, Point, Ray } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 
 const applyDefaults = (style: IStyle) => {
@@ -21,18 +21,6 @@ export function drawShape(
   }
 
   const rays = shape.generate();
-
-  /*
-  const rays = GeomHelpers.subdivideRaySetByDistance(shape.generate(), 6);
-  const bb = shape.boundingBox();
-
-  // test bend
-  rays.forEach(ray => {
-    let delta = GeomHelpers.distanceBetweenPoints(bb.center, ray);
-    if (ray.y > bb.center.y) delta *= -1;
-    GeomHelpers.rotatePointAbountPoint(bb.center, ray, delta * -0.005);
-  })
-  */
 
   if (shapeDepth === 0) {
     ctx.beginPath();
@@ -130,4 +118,20 @@ export function drawCenter(ctx: CanvasRenderingContext2D, c: Point) {
   ctx.fillStyle = "yellow";
   ctx.arc(c.x, c.y, 2, 0, 2 * Math.PI);
   ctx.fill();
+}
+
+export function drawRay(ctx: CanvasRenderingContext2D, r: Ray) {
+  ctx.beginPath();
+  ctx.moveTo(r.x, r.y);
+  ctx.lineWidth = 0;
+  ctx.fillStyle = '#39f';
+  ctx.arc(r.x, r.y, 4, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.closePath();
+  ctx.beginPath();
+  ctx.moveTo(r.x, r.y);
+  ctx.lineTo(r.x + 10 * Math.cos(r.direction), r.y + 10 * Math.sin(r.direction));
+  ctx.strokeStyle = '#39f';
+  ctx.lineWidth = 2;
+  ctx.stroke();
 }

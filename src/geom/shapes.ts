@@ -663,3 +663,84 @@ export class RoundedRectangle extends Rectangle {
     return s;
   }
 }
+
+// Bone is a shape that is a rounded trapezoid where the top and bottom have different radii
+export class Bone extends AbstractShape {
+  length: number;
+  topRadius: number;
+  bottomRadius: number;
+  constructor(
+    center: Ray,
+    length: number,
+    topRadius: number,
+    bottomRadius: number,
+    divisions: number = 1,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
+    reverse: boolean = false
+  ) {
+    super(center, divisions, alignment, reverse);
+    this.center = center;
+    this.length = length;
+    this.topRadius = topRadius;
+    this.bottomRadius = bottomRadius;
+    this.divisions = divisions;
+    this.alignment = alignment;
+    this.reverse = reverse;
+  }
+  generate(): Ray[] {
+    const topCenter = new Ray(
+      this.center.x,
+      this.center.y - this.length * 0.5,
+    );
+    const bottomCenter = new Ray(
+      this.center.x,
+      this.center.y + this.length * 0.5,
+    );
+    switch (this.alignment) {
+      case ShapeAlignment.CENTER:
+        break;
+      case ShapeAlignment.TOP:
+        topCenter.y -= this.length * 0.5,
+        bottomCenter.y -= this.length * 0.5
+        break;
+      case ShapeAlignment.BOTTOM:
+        topCenter.y += this.length * 0.5,
+        bottomCenter.y += this.length * 0.5
+        break;
+    }
+    const tangents = GeomHelpers.circleCircleTangents(topCenter, this.topRadius, bottomCenter, this.bottomRadius);
+    const rays = [];
+    rays.push(tangents[0].toRay());
+    rays.push(tangents[1].toRay());
+    const side1 = GeomHelpers.subdivideRays(
+      tangents[0].toRay(),
+      tangents[1].toRay(),
+      this.divisions
+    ).slice(1, -1);
+    rays.push(...side1);
+    const arc1 = new Arc(
+      topCenter,
+      this.topRadius,
+      GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5,
+      GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
+      this.divisions * 8
+    )
+    rays.push(...arc1.generate());
+    const side2 = GeomHelpers.subdivideRays(
+      tangents[2].toRay(),
+      tangents[3].toRay(),
+      this.divisions
+    ).slice(1, -1);
+    rays.push(...side2);
+    const arc2 = new Arc(
+      bottomCenter,
+      this.bottomRadius,
+      GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
+      GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5 + Math.PI * 2,
+      this.divisions * 8
+    )
+    rays.push(...arc2.generate());
+    GeomHelpers.normalizeRayDirections(rays);
+    return rays;
+  }
+}

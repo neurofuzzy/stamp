@@ -223,4 +223,37 @@ export class GeomHelpers {
     );
   }
 
+  // Based on http://stackoverflow.com/a/12037737
+
+  static circleCircleTangents(ptA: Point, rA: number, ptB: Point, rB: number): Point[] {
+    var dx = ptB.x - ptA.x;
+    var dy = ptB.y - ptA.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist <= Math.abs(rB - rA)) return []; // no valid tangents
+
+    // Rotation from x-axis
+    var angle1 = Math.atan2(dy, dx);
+    var angle2 = Math.acos((rA - rB) / dist);
+
+    return [
+      new Point(
+        ptB.x + rB * Math.cos(angle1 + angle2),
+        ptB.y + rB * Math.sin(angle1 + angle2),
+      ),
+      new Point(
+        ptA.x + rA * Math.cos(angle1 + angle2),
+        ptA.y + rA * Math.sin(angle1 + angle2),
+      ),
+      new Point(
+        ptA.x + rA * Math.cos(angle1 - angle2),
+        ptA.y + rA * Math.sin(angle1 - angle2),
+      ),
+      new Point(
+        ptB.x + rB * Math.cos(angle1 - angle2),
+        ptB.y + rB * Math.sin(angle1 - angle2),
+      )
+    ];
+  }
+
 }
