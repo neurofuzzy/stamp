@@ -36,7 +36,9 @@ const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
 
-Sequence.fromStatement(`repeat 60,-60 AS RANGLE`);
+Sequence.fromStatement("repeat 60,-60 AS RANGLE");
+Sequence.fromStatement("repeat 40,60 AS RLENGTH")
+Sequence.fromStatement("9,9,6 AS RSTEP")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -45,21 +47,26 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .bone({
-      length: 80,
-      bottomRadius: 10,
-      topRadius: 10,
+      length: "RLENGTH()",
+      bottomRadius: 5,
+      topRadius: 5,
       divisions: 2,
       align: ShapeAlignment.TOP,
     })
-    .forward(80)
+    .forward("RLENGTH")
     .rotate("RANGLE()")
     .repeatLast(3, 4)
     .circle({
-      radius: 30,
-      outlineThickness: 10
+      radius: 20,
+      outlineThickness: 6
     })
-    .stepBack(9)
-    .repeatLast(6, 10)
+    .subtract()
+    .circle({
+      radius: 10
+    })
+    .add()
+    .stepBack("RSTEP()")
+    .repeatLast(9, 3);
     
 
   console.log(grid.generate())

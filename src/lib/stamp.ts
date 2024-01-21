@@ -220,8 +220,9 @@ export class Stamp extends AbstractShape {
     this._cursor.direction = GeomHelpers.normalizeAngle(this._cursor.direction + rn);
   }
 
-  private _stepBack(steps: number) {
-    for (let i = 0; i < steps; i++) {
+  private _stepBack(steps: number | string) {
+    const sn = $(steps);
+    for (let i = 0; i < sn; i++) {
       let c = this._cursorHistory.pop();
       if (c) {
         this._cursor = c;
@@ -844,7 +845,7 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  stepBack(steps: number) {
+  stepBack(steps: number | string) {
     this._nodes.push({ fName: "_stepBack", args: [steps] });
     return this;
   }
