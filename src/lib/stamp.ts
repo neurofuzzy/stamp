@@ -126,24 +126,19 @@ interface INode {
 }
 
 export class Stamp extends AbstractShape {
+
   static readonly UNION = 1;
   static readonly SUBTRACT = 2;
   static readonly INTERSECT = 3;
 
   private _nodes: INode[] = [];
   private _tree: clipperLib.PolyTree | null = null;
-  private _trees: clipperLib.PolyTree[] = [];
   private _polys: Polygon[] = [];
-  private _polygroups: Polygon[][] = [];
   private _styleMap: IStyleMap[] = [];
-
-  mode: number = Stamp.UNION;
-
-  offsetX: number = 0;
-  offsetY: number = 0;
-  cursor: Ray = new Ray(0, 0, 0);
-
-  baked: boolean = false;
+  private _mode: number = Stamp.UNION;
+  private _cursor: Ray = new Ray(0, 0, 0);
+  private _cursorHistory: Ray[] = [];
+  private _baked: boolean = false;
 
   constructor(
     center?: Ray,
@@ -155,15 +150,12 @@ export class Stamp extends AbstractShape {
 
   private _reset() {
     this._tree = null;
-    this._trees = [];
     this._polys = [];
-    this._polygroups = [];
     this._styleMap = [];
-    this.mode = Stamp.UNION;
-    this.baked = false;
-    this.offsetX = 0;
-    this.offsetY = 0;
-    this.cursor.x = this.cursor.y = this.cursor.direction = 0;
+    this._mode = Stamp.UNION;
+    this._baked = false;
+    this._cursor.x = this._cursor.y = this._cursor.direction = 0;
+    this._cursorHistory = [];
   }
 
   private _defaultStyle(style: IStyle) {
@@ -171,15 +163,15 @@ export class Stamp extends AbstractShape {
   }
 
   private _add() {
-    this.mode = Stamp.UNION;
+    this._mode = Stamp.UNION;
   }
 
   private _subtract() {
-    this.mode = Stamp.SUBTRACT;
+    this._mode = Stamp.SUBTRACT;
   }
 
   private _intersect() {
-    this.mode = Stamp.INTERSECT;
+    this._mode = Stamp.INTERSECT;
   }
 
   private _boolean(type: string | number) {
@@ -187,53 +179,56 @@ export class Stamp extends AbstractShape {
       type = Sequence.resolve(type);
     }
     if (type <= 0) {
-      this.mode = Stamp.SUBTRACT;
+      this._mode = Stamp.SUBTRACT;
     } else {
-      this.mode = Stamp.UNION;
-    }
-  }
-
-  private _next() {
-    if (this._tree) {
-      this._trees.push(this._tree);
-      this._tree = null;
-      this.mode = Stamp.UNION;
+      this._mode = Stamp.UNION;
     }
   }
 
   private _moveTo(x: number | string, y: number | string) {
-    this.cursor.x = $(x);
-    this.cursor.y = $(y);
+    this._cursorHistory.push(this._cursor.clone());
+    this._cursor.x = $(x);
+    this._cursor.y = $(y);
   }
 
   private _move(x: number | string, y: number | string) {
+    this._cursorHistory.push(this._cursor.clone());
     const v = new Point($(x), $(y));
-    GeomHelpers.rotatePoint(v, this.cursor.direction);
-    this.cursor.x += v.x;
-    this.cursor.y += v.y;
+    GeomHelpers.rotatePoint(v, this._cursor.direction);
+    this._cursor.x += v.x;
+    this._cursor.y += v.y;
   }
 
   private _forward(distance: number) {
+    this._cursorHistory.push(this._cursor.clone());
     distance = $(distance);
-    var sinAng = Math.sin(this.cursor.direction);
-    var cosAng = Math.cos(this.cursor.direction);
-    this.cursor.x += sinAng * distance;
-    this.cursor.y -= cosAng * distance;
-  }
-
-  private _offset(x: number | string, y: number | string) {
-    this.offsetX += $(x);
-    this.offsetY += $(y);
+    var sinAng = Math.sin(this._cursor.direction);
+    var cosAng = Math.cos(this._cursor.direction);
+    this._cursor.x += sinAng * distance;
+    this._cursor.y -= cosAng * distance;
   }
 
   private _rotateTo(r: number | string) {
-    this.cursor.direction = ($(r) * Math.PI / 180);
+    this._cursorHistory.push(this._cursor.clone());
+    this._cursor.direction = ($(r) * Math.PI / 180);
   }
 
   private _rotate(r: number | string) {
-    this.cursor.direction = GeomHelpers.normalizeAngle(
-      this.cursor.direction + ($(r) * Math.PI / 180)
-    );
+    this._cursorHistory.push(this._cursor.clone());
+    const rdeg = $(r);
+    const rn = (rdeg * Math.PI / 180);
+    this._cursor.direction = GeomHelpers.normalizeAngle(this._cursor.direction + rn);
+  }
+
+  private _stepBack(steps: number) {
+    for (let i = 0; i < steps; i++) {
+      let c = this._cursorHistory.pop();
+      if (c) {
+        this._cursor = c;
+      } else {
+        break;
+      }
+    }
   }
 
   private _make(shapes: IShape[], outln: number = 0) {
@@ -246,16 +241,13 @@ export class Stamp extends AbstractShape {
 
       let g = shape.clone();
 
-      g.center.x += this.cursor.x + this.center.x;
-      g.center.y += this.cursor.y + this.center.y;
-      //GeomHelpers.rotatePointAboutOrigin(this.center, g.center);
-      //GeomHelpers.rotatePointAboutOrigin(this.cursor, g.center);
-      g.center.direction += this.center.direction + this.cursor.direction;
+      g.center.x += this.center.x + this._cursor.x;
+      g.center.y += this.center.y + this._cursor.y;
+      g.center.direction += this.center.direction + this._cursor.direction;
 
       if (shape.style && shape.style !== AbstractShape.defaultStyle) {
         const style = resolveStyle(shape.style);
-
-        if (this.mode !== Stamp.SUBTRACT && !shape.hidden) {
+        if (this._mode !== Stamp.SUBTRACT && !shape.hidden) {
           this._styleMap.push({
             bounds: g.boundingBox(),
             style,
@@ -266,7 +258,7 @@ export class Stamp extends AbstractShape {
       let b: clipperLib.SubjectInput;
       let b2 = null;
 
-      switch (this.mode) {
+      switch (this._mode) {
         case Stamp.UNION:
           if (this._tree) {
             b2 = ClipperHelpers.shapeToPaths(g);
@@ -404,7 +396,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this.cursor.direction);
+        GeomHelpers.rotatePoint(offset, this._cursor.direction);
         const s = new Circle(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -437,7 +429,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this.cursor.direction);
+        GeomHelpers.rotatePoint(offset, this._cursor.direction);
         const s = new Ellipse(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -471,7 +463,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this.cursor.direction);
+        GeomHelpers.rotatePoint(offset, this._cursor.direction);
         const s = new Rectangle(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -506,7 +498,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this.cursor.direction);
+        GeomHelpers.rotatePoint(offset, this._cursor.direction);
         const s = new RoundedRectangle(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -545,7 +537,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this.cursor.direction);
+        GeomHelpers.rotatePoint(offset, this._cursor.direction);
         const s = new Polygon(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -852,38 +844,27 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  stepBack(steps: number) {
+    this._nodes.push({ fName: "_stepBack", args: [steps] });
+    return this;
+  }
+
   generate(): Ray[] {
-    if (!this.baked) {
+    if (!this._baked) {
       this.bake();
     }
     return [];
   }
 
   children() {
-    if (!this.baked) {
+    if (!this._baked) {
       this.bake();
     }
     return this._polys;
   }
 
   getCursor(): Ray {
-    return this.cursor;
-  }
-
-  getLastMode() {
-    let i = this._nodes.length;
-
-    while (i--) {
-      let node = this._nodes[i];
-      if (node.fName == "_add") {
-        return Stamp.UNION;
-      }
-      if (node.fName == "_subtract") {
-        return Stamp.SUBTRACT;
-      }
-    }
-
-    return Stamp.UNION;
+    return this._cursor.clone();
   }
 
   private mapStyles() {
@@ -918,11 +899,11 @@ export class Stamp extends AbstractShape {
    * @param {boolean} rebake whether to re-bake a baked shape
    */
   bake(rebake = false) {
-    if (this.baked && !rebake) {
+    if (this._baked && !rebake) {
       return;
     }
 
-    this.baked = true;
+    this._baked = true;
 
     let nodes = this._nodes.concat();
     let i = nodes.length;
@@ -965,13 +946,12 @@ export class Stamp extends AbstractShape {
       _subtract: this._subtract,
       _intersect: this._intersect,
       _boolean: this._boolean,
-      _next: this._next,
       _moveTo: this._moveTo,
       _move: this._move,
       _forward: this._forward,
-      _offset: this._offset,
       _rotateTo: this._rotateTo,
       _rotate: this._rotate,
+      _stepBack: this._stepBack,
       _circle: this._circle,
       _ellipse: this._ellipse,
       _rectangle: this._rectangle,

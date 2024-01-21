@@ -36,40 +36,31 @@ const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
 
-const gridSizeX = 5;
-const gridSizeY = 5;
+Sequence.fromStatement(`repeat 60,-60 AS RANGLE`);
 
-Sequence.fromStatement(`random 140-200 AS RHEIGHT`);
-Sequence.fromStatement(`repeat 60 add AS RANGLE`);
-
-Sequence.fromStatement(`repeat 31[${gridSizeX}],0[${gridSizeX}] AS BOFFSET`);
-Sequence.fromStatement(`repeat 0[${gridSizeX - 1}],1,0[${gridSizeX}] AS BSKIP`);
-Sequence.fromStatement(`once 30,25,20,15,10,5 AS BWEIGHT`);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   ctx.clearRect(0, 0, w, h);
 
-  const style: IStyle = {
-    strokeThickness: 0,
-    fillColor: "COLOR()",
-  }
-
-  const divisions = 32;
-  const spacingX = 62;
-  const spacingY = 70;
-
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
     .bone({
-      length: 100,
-      bottomRadius: "BWEIGHT",
-      topRadius: "BWEIGHT()",
+      length: 80,
+      bottomRadius: 10,
+      topRadius: 10,
       divisions: 2,
       align: ShapeAlignment.TOP,
     })
-    .forward(100)
-    .rotate(30)
-    .repeatLast(3, 2);
+    .forward(80)
+    .rotate("RANGLE()")
+    .repeatLast(3, 4)
+    .circle({
+      radius: 30,
+      outlineThickness: 10
+    })
+    .stepBack(9)
+    .repeatLast(6, 10)
+    
 
   console.log(grid.generate())
   // draw children
