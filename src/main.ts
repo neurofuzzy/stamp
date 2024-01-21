@@ -36,9 +36,9 @@ const palette = colors[79];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
-Sequence.fromStatement("binary 60,-48 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 180,120,90,60,40 AS RLENGTH")
-Sequence.fromStatement("repeat 30,25,25,20,20,15,15,10,10,5 AS RWEIGHT")
+Sequence.fromStatement("binary 30,-70 AS RANGLE", 0, 5);
+Sequence.fromStatement("repeat 120,90,80,60,40 AS RLENGTH")
+Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
 Sequence.fromStatement("9,9,6 AS RSTEP")
 
 
@@ -46,7 +46,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   ctx.clearRect(0, 0, w, h);
 
-  const grid = new Stamp(new Ray(w / 2, h / 2, 0))
+  const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       fillColor: "COLOR()",
       strokeThickness: 0
@@ -63,14 +63,16 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate("RANGLE()")
     .repeatLast(3, 4)
     .circle({
-      radius: 20,
+      radius: 10,
       outlineThickness: 6
     })
     .stepBack(10)
     .repeatLast(6,30)
+    .rotate(120)
+    .repeatLast(8,3)
 
   // draw children
-  grid.children().forEach(child => {
+  tree.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
       if (shape) drawShape(ctx, shape)
