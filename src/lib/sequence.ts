@@ -19,6 +19,7 @@ export class Sequence {
   static readonly YOYO = "yoyo";
   static readonly SHUFFLE = "shuffle";
   static readonly RANDOM = "random";
+  static readonly BINARY = "binary";
   static readonly AS = "as";
   static readonly REPLACE = "replace";
   static readonly ADD = "add";
@@ -40,8 +41,8 @@ export class Sequence {
     Sequence.__prng = arbit(Sequence.seed);
     Sequence.sequences = {};
   }
-  static readonly reserved: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.AS];
-  static readonly types: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM];
+  static readonly reserved: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY, Sequence.AS];
+  static readonly types: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY];
   static readonly accumulators: string[] = [Sequence.REPLACE, Sequence.ADD, Sequence.SUBTRACT, Sequence.MULTIPLY, Sequence.DIVIDE];
 
   _prevValue: number | Sequence;
@@ -54,11 +55,13 @@ export class Sequence {
   _usedValues: Array<number | Sequence>;
   _pick: Function;
   _seed: number;
+  _firstPick: boolean;
+  _binaryLength: number;
   _prng: any;
   started: boolean;
   done: boolean;
   
-  constructor(values: Array<number | Sequence>, pickerFunction: Function, maxIterations: number, accumulationType: string, seed?: number) {
+  constructor(values: Array<number | Sequence>, pickerFunction: Function, maxIterations: number, accumulationType: string, seed?: number, binaryLength?: number) {
     this._prevValue = NaN;
     /** @type {number | Sequence} */
     this._currentValue = NaN;
@@ -70,7 +73,9 @@ export class Sequence {
     /** @type {Array<number | Sequence>} */
     this._usedValues = [];
     this._pick = pickerFunction;
+    this._firstPick = true;
     this._seed = seed || Sequence.seed;
+    this._binaryLength = binaryLength || 1;
     this._prng = arbit(this._seed);
     this.started = false;
     this.done = false;
@@ -81,6 +86,7 @@ export class Sequence {
     this._currentValue = NaN;
     this._values = this._originalValues.concat();
     this._iterations = 0;
+    this._firstPick = true;
     this._usedValues = [];
     this._prng = arbit(this._seed);
     this.done = false;
@@ -127,7 +133,7 @@ export class Sequence {
     return this.current();
   }
 
-  static fromStatement(stmt: string, seed?: number): Sequence | null {
+  static fromStatement(stmt: string, seed?: number, binaryLength: number = 1): Sequence | null {
     if (!stmt) {
       return null;
     }
@@ -234,6 +240,9 @@ export class Sequence {
       case Sequence.RANDOM:
         picker = Sequence._pickerRand;
         break;
+      case Sequence.BINARY:
+        picker = Sequence._pickerBinary;
+        break;
       default:
         picker = Sequence._pickerDefault;
     }
@@ -244,7 +253,7 @@ export class Sequence {
       accumulationType = tokens[accumIndex];
     }
 
-    const seq = new Sequence(values, picker, iterations, accumulationType, seed);
+    const seq = new Sequence(values, picker, iterations, accumulationType, seed, binaryLength);
 
     if (tokens.length > 2 && tokens[tokens.length - 2] == Sequence.AS && tokens[tokens.length - 1].length > 0) {
       alias = tokens[tokens.length - 1];
@@ -369,6 +378,30 @@ export class Sequence {
       if (seq._maxIterations > 0 && seq._iterations === seq._maxIterations) {
         seq.done = true;
         return;
+      }
+    }
+  }
+  
+  static _pickerBinary(seq: Sequence) {
+    if (seq.done) {
+      return;
+    }
+    if (seq._firstPick) {
+      const pickIdx = seq._iterations.toString(2).padStart(seq._binaryLength, "0").split("").map(Number);
+      seq._values = pickIdx.map((idx) => seq._originalValues[idx]);
+      seq._usedValues = [];
+    }
+    const value = seq._values.shift();
+    if (value !== undefined) {
+      seq._currentValue = value;
+      seq._usedValues.push(seq._currentValue);
+    }
+    seq._firstPick = false;
+    if (!seq._values.length) {
+      seq._iterations++;
+      seq._firstPick = true;
+      if (seq._iterations >= Math.pow(2, seq._binaryLength)) {
+        seq._iterations = 0;
       }
     }
   }

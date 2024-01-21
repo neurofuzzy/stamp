@@ -1,14 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawCenter, drawHatchPattern, drawRay, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType } from './geom/hatch-patterns';
-import { Bone } from './geom/shapes';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -32,13 +31,12 @@ ctx.fillStyle = 'white';
 Sequence.seed = 1;
 
 // 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[79];
+const palette = colors[86];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
-Sequence.fromStatement("binary 60,-48 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 180,120,90,60,40 AS RLENGTH")
-Sequence.fromStatement("repeat 30,25,25,20,20,15,15,10,10,5 AS RWEIGHT")
+Sequence.fromStatement("repeat 60,-60 AS RANGLE");
+Sequence.fromStatement("repeat 40,60 AS RLENGTH")
 Sequence.fromStatement("9,9,6 AS RSTEP")
 
 
@@ -53,11 +51,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .bone({
       length: "RLENGTH()",
-      bottomRadius: "RWEIGHT()",
-      topRadius: "RWEIGHT()",
+      bottomRadius: 5,
+      topRadius: 5,
       divisions: 2,
       align: ShapeAlignment.TOP,
-      outlineThickness: 0
     })
     .forward("RLENGTH")
     .rotate("RANGLE()")
@@ -66,9 +63,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       radius: 20,
       outlineThickness: 6
     })
-    .stepBack(10)
-    .repeatLast(6,30)
-
+    .subtract()
+    .circle({
+      radius: 10
+    })
+    .add()
+    .stepBack("RSTEP()")
+    .repeatLast(9, 3);
+    
   // draw children
   grid.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
