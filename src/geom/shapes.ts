@@ -712,34 +712,48 @@ export class Bone extends AbstractShape {
     const rays = [];
     rays.push(tangents[0].toRay());
     rays.push(tangents[1].toRay());
-    const side1 = GeomHelpers.subdivideRays(
+
+    let side1 = GeomHelpers.subdivideRays(
       tangents[0].toRay(),
       tangents[1].toRay(),
       this.divisions
-    ).slice(1, -1);
+    );
+    if (this.divisions > 0) {
+      side1 = side1.slice(1, -1);
+    }
     rays.push(...side1);
-    const arc1 = new Arc(
-      bottomCenter,
-      this.bottomRadius,
-      GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5,
-      GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
-      this.divisions * 8
-    )
-    rays.push(...arc1.generate());
-    const side2 = GeomHelpers.subdivideRays(
+
+    if (this.divisions > 0) {
+      const arc1 = new Arc(
+        bottomCenter,
+        this.bottomRadius,
+        GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5,
+        GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
+        this.divisions * 4
+      )
+      rays.push(...arc1.generate());
+    }
+    
+    let side2 = GeomHelpers.subdivideRays(
       tangents[2].toRay(),
       tangents[3].toRay(),
       this.divisions
-    ).slice(1, -1);
+    );
+    if (this.divisions > 0) {
+      side2 = side2.slice(1, -1);
+    }
     rays.push(...side2);
-    const arc2 = new Arc(
-      topCenter,
-      this.topRadius,
-      GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
-      GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5 + Math.PI * 2,
-      this.divisions * 8
-    )
-    rays.push(...arc2.generate());
+
+    if (this.divisions > 0) {
+      const arc2 = new Arc(
+        topCenter,
+        this.topRadius,
+        GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
+        GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5 + Math.PI * 2,
+        this.divisions * 4
+      )
+      rays.push(...arc2.generate());
+    }
 
     if (this.reverse) {
       rays.reverse();

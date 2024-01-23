@@ -122,6 +122,9 @@ export class GeomHelpers {
   }
 
   static subdivideRays(start: Ray, end: Ray, divisions: number, flipRays = false): Ray[] {
+    if (divisions === 0) {
+      return [start, end];
+    }
     const rays = [];
     for (let i = 0; i <= divisions; i++) {
       const ray = new Ray(

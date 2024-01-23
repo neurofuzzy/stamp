@@ -92,14 +92,15 @@ export class Sequence {
     this.done = false;
   }
 
-  current(): number {
-    if (this.started) {
-      this.started = true;
-      return this.next();
-    }
+  current(forceRefNext: boolean = false): number {
+    this.started = true;
     let out = 0;
     if (this._currentValue instanceof SequenceReference) {
-      out = this._currentValue.useCurrent ? this._currentValue.seq.current() : this._currentValue.seq.next();
+      if (!forceRefNext && this._currentValue.seq.started) {
+        out = this._currentValue.seq.current();
+      } else {
+        out = this._currentValue.useCurrent ? this._currentValue.seq.current() : this._currentValue.seq.next();
+      }
       if (this._currentValue.expressions.length) {
         out = eval(`${out} ${this._currentValue.expressions.join(" ")}`);
       }
@@ -130,7 +131,7 @@ export class Sequence {
   next(): number {
     this._prevValue = this.current();
     this._pick(this);
-    return this.current();
+    return this.current(true);
   }
 
   static fromStatement(stmt: string, seed?: number, binaryLength: number = 1): Sequence | null {
@@ -390,13 +391,19 @@ export class Sequence {
       const pickIdx = seq._iterations.toString(2).padStart(seq._binaryLength, "0").split("").map(Number);
       seq._values = pickIdx.map((idx) => seq._originalValues[idx]);
       seq._usedValues = [];
+      seq._firstPick = false;
+      if (seq._iterations === 0 && seq._seed > 0) {
+        for (let i = 0; i < seq._seed; i++) {
+          seq._values.shift();
+        }
+      }
     }
     const value = seq._values.shift();
     if (value !== undefined) {
       seq._currentValue = value;
       seq._usedValues.push(seq._currentValue);
     }
-    seq._firstPick = false;
+    
     if (!seq._values.length) {
       seq._iterations++;
       seq._firstPick = true;

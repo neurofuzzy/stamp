@@ -17,6 +17,7 @@ import {
   RoundedRectangle,
   Bone,
 } from "../geom/shapes";
+import { Donut } from "../geom/compoundshapes";
 import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
@@ -47,6 +48,7 @@ interface IShapeParams {
 
 export interface ICircleParams extends IShapeParams {
   radius: number | string;
+  innerRadius?: number | string;
 }
 
 export interface IEllipseParams extends IShapeParams {
@@ -398,16 +400,29 @@ export class Stamp extends AbstractShape {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
         GeomHelpers.rotatePoint(offset, this._cursor.direction);
-        const s = new Circle(
-          new Ray(
-            nspx * i - o.x + offset.x,
-            nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.radius),
-          $(params.divisions),
-          $(params.align)
+        let s;
+        let innerRadius = $(params.innerRadius);
+        let cen = new Ray(
+          nspx * i - o.x + offset.x,
+          nspy * j - o.y + offset.y,
+          params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
         );
+        if (!innerRadius) {
+          s = new Circle(
+            cen,
+            $(params.radius),
+            $(params.divisions),
+            $(params.align)
+          );
+        } else {
+          s = new Donut(
+            cen,
+            $(params.radius),
+            innerRadius,
+            $(params.divisions),
+            $(params.align)
+          );
+        }
         if ($(params.skip) > 0) {
           s.hidden = true;
         }

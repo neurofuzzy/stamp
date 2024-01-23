@@ -1,14 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawCenter, drawHatchPattern, drawRay, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType } from './geom/hatch-patterns';
-import { Bone } from './geom/shapes';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -36,11 +35,11 @@ const palette = colors[79];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
-Sequence.fromStatement("binary 45,-30 AS RANGLE", 1, 5);
-Sequence.fromStatement("repeat 40,80 AS MLENGTH");
-Sequence.fromStatement("repeat 120,100,70,40,MLENGTH() AS RLENGTH")
+Sequence.fromStatement("binary 30,-70 AS RANGLE", 0, 5);
+Sequence.fromStatement("repeat 120,90,80,60,40 AS RLENGTH")
 Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
-Sequence.fromStatement("repeat 10,10 AS BERRY")
+Sequence.fromStatement("9,9,6 AS RSTEP")
+Sequence.fromStatement("repeat 10,10,20,20 AS BERRY")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -66,10 +65,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .repeatLast(3, 4)
     .circle({
       radius: "BERRY()",
+      innerRadius: "BERRY - 5",
+      outlineThickness: 6,
       divisions: 36
     })
     .stepBack(10)
-    .repeatLast(6,15);
+    .repeatLast(6,30)
+    .rotate(120)
+    .repeatLast(8,3)
 
   // draw children
   tree.children().forEach(child => {
