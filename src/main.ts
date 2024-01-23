@@ -37,7 +37,7 @@ const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("binary 45,-30 AS RANGLE", 1, 5);
-Sequence.fromStatement("repeat 40,80 AS MLENGTH");
+Sequence.fromStatement("repeat 50,30 AS MLENGTH");
 Sequence.fromStatement("repeat 120,100,70,40,MLENGTH() AS RLENGTH")
 Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
