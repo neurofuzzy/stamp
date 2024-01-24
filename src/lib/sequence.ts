@@ -407,7 +407,7 @@ export class Sequence {
     if (!seq._values.length) {
       seq._iterations++;
       seq._firstPick = true;
-      if (seq._iterations >= Math.pow(2, seq._binaryLength)) {
+      if (seq._iterations > Math.pow(2, seq._binaryLength)) {
         seq._iterations = 0;
       }
     }

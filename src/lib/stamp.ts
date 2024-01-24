@@ -301,7 +301,6 @@ export class Stamp extends AbstractShape {
               clipInputs: [b2],
               subjectFillType: clipperLib.PolyFillType.EvenOdd,
             });
-            //const paths = ClipperHelpers.clipper.polyTreeToPaths(polyResult);
             this._tree = polyResult;
           } else {
             b = ClipperHelpers.shapeToPaths(g);

@@ -65,14 +65,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .repeatLast(3, 4)
     .circle({
       radius: "BERRY()",
-      innerRadius: "BERRY - 5",
-      outlineThickness: 6,
+      innerRadius: 5,
+      outlineThickness: 5,
       divisions: 36
     })
     .stepBack(10)
-    .repeatLast(6,30)
+    .repeatLast(6,15)
     .rotate(120)
-    .repeatLast(8,3)
+    .repeatLast(8,2)
 
   // draw children
   tree.children().forEach(child => {

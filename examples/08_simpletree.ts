@@ -1,14 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawCenter, drawHatchPattern, drawRay, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType } from './geom/hatch-patterns';
-import { Bone } from './geom/shapes';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -32,12 +31,12 @@ ctx.fillStyle = 'white';
 Sequence.seed = 1;
 
 // 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[83];
+const palette = colors[79];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
-Sequence.fromStatement("binary 90,-90 AS RANGLE", 2, 5);
-Sequence.fromStatement("repeat 30,50 AS MLENGTH");
+Sequence.fromStatement("binary 45,-30 AS RANGLE", 1, 5);
+Sequence.fromStatement("repeat 50,30 AS MLENGTH");
 Sequence.fromStatement("repeat 120,100,70,40,MLENGTH() AS RLENGTH")
 Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
@@ -49,26 +48,27 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
-      fillColor: "COLOR()",
-      strokeThickness: 0,
+      // fillColor: "COLOR()",
+      strokeThickness: 1,
+      fillColor: 0,
     })
     .bone({
-      length: 30,
-      bottomRadius: 2,
-      topRadius: 2,
+      length: "RLENGTH()",
+      bottomRadius: "RWEIGHT()",
+      topRadius: "RWEIGHT()",
       divisions: 1,
       align: ShapeAlignment.TOP,
       outlineThickness: 0
     })
-    .circle({
-      radius: 30,
-      innerRadius: 5,
-      outlineThickness: 5,
-      divisions: 4
-    })
-    .forward(30)
+    .forward("RLENGTH")
     .rotate("RANGLE()")
-    .repeatLast(4, 320)
+    .repeatLast(3, 4)
+    .circle({
+      radius: "BERRY()",
+      divisions: 36
+    })
+    .stepBack(10)
+    .repeatLast(6,15);
 
   // draw children
   tree.children().forEach(child => {

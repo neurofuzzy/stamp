@@ -729,7 +729,7 @@ export class Bone extends AbstractShape {
         this.bottomRadius,
         GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5,
         GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
-        this.divisions * 4
+        this.divisions * 2
       )
       rays.push(...arc1.generate());
     }
@@ -750,7 +750,7 @@ export class Bone extends AbstractShape {
         this.topRadius,
         GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
         GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5 + Math.PI * 2,
-        this.divisions * 4
+        this.divisions * 2
       )
       rays.push(...arc2.generate());
     }
