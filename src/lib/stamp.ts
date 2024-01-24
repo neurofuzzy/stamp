@@ -947,7 +947,7 @@ export class Stamp extends AbstractShape {
             i += steps;
           }
           nodes = tmp.concat(tmp2);
-          if (i > 4096 || nodes.length > 4096) {
+          if (i > 8192 || nodes.length > 8192) {
             console.error("too many nodes");
             break;
           }

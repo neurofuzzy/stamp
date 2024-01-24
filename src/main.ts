@@ -36,8 +36,8 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
-Sequence.fromStatement("binary 90,-90 AS RANGLE", 2, 5);
-Sequence.fromStatement("repeat 30,50 AS MLENGTH");
+Sequence.fromStatement("binary 60,-60 AS RANGLE", 2, 4);
+Sequence.fromStatement("repeat 8,12 AS MLENGTH");
 Sequence.fromStatement("repeat 120,100,70,40,MLENGTH() AS RLENGTH")
 Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
@@ -53,22 +53,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 0,
     })
     .bone({
-      length: 30,
+      length: 12,
       bottomRadius: 2,
       topRadius: 2,
-      divisions: 1,
+      divisions: 6,
       align: ShapeAlignment.TOP,
       outlineThickness: 0
     })
     .circle({
-      radius: 30,
-      innerRadius: 5,
-      outlineThickness: 5,
-      divisions: 4
+      radius: 4,
+      divisions: 6,
+      offsetY: 12,
+      angle: 15,
     })
-    .forward(30)
+    .forward(12)
     .rotate("RANGLE()")
-    .repeatLast(4, 320)
+    .repeatLast(5, 400)
 
   // draw children
   tree.children().forEach(child => {
