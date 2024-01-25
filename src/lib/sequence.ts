@@ -37,9 +37,11 @@ export class Sequence {
       return Sequence.__prng?.();
     }
   }
-  static reset = () => {
+  static resetAll = () => {
     Sequence.__prng = arbit(Sequence.seed);
-    Sequence.sequences = {};
+    for (let alias in Sequence.sequences) {
+      Sequence.sequences[alias].reset();
+    }
   }
   static readonly reserved: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY, Sequence.AS];
   static readonly types: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY];

@@ -84,6 +84,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
+    // reset Sequences
+    Sequence.resetAll();
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
