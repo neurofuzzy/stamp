@@ -33,8 +33,8 @@ export class ClipperHelpers {
     let path = rays.map(
       (r) =>
         ({
-          x: Math.round(r.x * 10000),
-          y: Math.round(r.y * 10000),
+          x: Math.round(r.x * 100000),
+          y: Math.round(r.y * 100000),
         } as clipperLib.IntPoint)
     );
     paths.push(path);
@@ -57,8 +57,8 @@ export class ClipperHelpers {
           let p = node.contour[j];
           rays.push(
             new Ray(
-              Math.round(p.x - 10000) / 10000,
-              Math.round(p.y - 10000) / 10000
+              Math.round(p.x - 100000) / 100000,
+              Math.round(p.y - 100000) / 100000
             )
           );
         }
@@ -98,8 +98,8 @@ export class ClipperHelpers {
         seg.points.map(
           (p) =>
             ({
-              x: Math.round(p.x * 10000),
-              y: Math.round(p.y * 10000),
+              x: Math.round(p.x * 100000),
+              y: Math.round(p.y * 100000),
             } as clipperLib.IntPoint)
         )
     );
@@ -109,12 +109,12 @@ export class ClipperHelpers {
     };
   }
 
-  static polyTreeToHatchFillShape(polyTree: clipperLib.PolyTre): HatchFillShape {
+  static polyTreeToHatchFillShape(polyTree: clipperLib.PolyTree): HatchFillShape {
     let segments: Segment[] = [];
     const polyNodeToSegments = (node: clipperLib.PolyNode): void => {
       if (node.contour.length > 1) {
         let segPts = node.contour.map(
-          (p) => new Point(p.x / 10000, p.y / 10000)
+          (p) => new Point(p.x / 100000, p.y / 100000)
         )
         if (!node.isOpen) {
           segPts.push(segPts[0]);

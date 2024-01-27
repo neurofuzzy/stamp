@@ -270,7 +270,7 @@ export class Stamp extends AbstractShape {
             }
             if (outln) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: outln * 10000,
+                delta: outln * 100000,
                 offsetInputs: [
                   {
                     data: b2.data,

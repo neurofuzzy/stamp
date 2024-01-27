@@ -14,10 +14,11 @@ import {
   SinewaveHatchPattern,
   SlateHatchPattern,
 } from "../geom/hatch-patterns";
-import { IShape, Ray } from "../geom/core";
+import { IShape, Ray, Segment } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
 import { Polygon } from "../geom/shapes";
+import { GeomHelpers } from "../geom/helpers";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -78,7 +79,7 @@ export class Hatch {
 
     if (ninset > 0) {
       const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-        delta: 0 - ninset * 10000,
+        delta: 0 - ninset * 100000,
         offsetInputs: [
           {
             data: shapePaths.data,
@@ -118,7 +119,7 @@ export class Hatch {
     const strokeWidth = Math.max($(shape.style.hatchStrokeThickness) || 0, 2);
     if (strokeWidth > 0) {
       const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-        delta: strokeWidth * 5000, // 0.5 * 10000
+        delta: strokeWidth * 5000, // 0.5 * 100000
         offsetInputs: [
           {
             data: hatchPaths.data,
@@ -165,7 +166,7 @@ export class Hatch {
         break;
       }
       const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-        delta: 0 - ninset * 10000,
+        delta: 0 - ninset * 100000,
         offsetInputs: [
           {
             data: shapePaths.data,
@@ -178,15 +179,29 @@ export class Hatch {
         break;
       }
       if (offsetResult) {
-        fills.push(ClipperHelpers.polyTreeToHatchFillShape(offsetResult, true));
+        fills.push(ClipperHelpers.polyTreeToHatchFillShape(offsetResult));
       }
       ninset += hatchPattern.offsetStep;
     } while (true);
 
+    if (fills.length === 0) {
+      return null;
+    }
+
+    for (let i = 0; i < fills.length; i++) {
+      const fill = fills[i];
+      const fillSegs = fill.generate();
+      const newSegs: Segment[] = [];
+      fillSegs.map((seg) => {
+        const res = GeomHelpers.optimizeSegment(seg, 1);
+        newSegs.push(...res);
+      });
+      fills[i] = new HatchFillShape(newSegs);
+    }
+
     const allSegments = fills
       .map((fill) => fill.generate())
       .reduce((a, b) => a.concat(b), []);
-    
     const fillShape = new HatchFillShape(allSegments);
     fillShape.style = shape.style;
     return fillShape;

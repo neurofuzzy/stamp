@@ -1,9 +1,9 @@
-import { Point, Ray, BoundingBox, IShape } from "./core";
+import { Point, Ray, Segment, BoundingBox, IShape } from "./core";
 
 export class GeomHelpers {
 
-  static pointsAreEqual(p1: Point, p2: Point) {
-    return GeomHelpers.distanceBetweenPoints(p1, p2) < 0.0001;
+  static pointsAreEqual(p1: Point, p2: Point, threshold: number = 0.0001) {
+    return GeomHelpers.distanceBetweenPoints(p1, p2) < threshold;
   }
 
   static distanceBetweenPoints(p1: Point, p2: Point) {
@@ -259,4 +259,74 @@ export class GeomHelpers {
     ];
   }
 
+  static canOptimizeSegment(segment: Segment, threshold = 0.0001): Segment {
+    let i = segment.points.length;
+    let pts = segment.points.concat();
+    while (i > 1) {
+      i--;
+      let ptA = pts[i];
+      let ptB = pts[i - 1];
+      let j = 1;
+      while (j < i) {
+        j++;
+        let ptC = pts[j];
+        let ptD = pts[j - 1];
+        if (GeomHelpers.pointsAreEqual(ptA, ptD, threshold) && GeomHelpers.pointsAreEqual(ptB, ptC, threshold)) {
+          pts.splice(i, 1);
+          break;
+        }
+      }
+    }
+    return new Segment(pts);
+  }
+
+  static optimizeSegment(segment: Segment, threshold = 0.0001): Segment[] {
+    let i = segment.points.length;
+    let pts = segment.points.concat();
+    let isClosed = GeomHelpers.pointsAreEqual(pts[0], pts[pts.length - 1], threshold);
+    let newPts: Point[] = [];
+    let segs = [];
+    if (isClosed) {
+      i--;
+    }
+    for (let i = 1; i < pts.length; i++) {
+      let ptA = pts[i];
+      let ptB = pts[i - 1];
+      if (GeomHelpers.distanceBetweenPoints(ptA, ptB) < threshold * 0.5) {
+        continue;
+      }
+      let j = i;
+      let duplicate = false;
+      for (let j = 1; j < newPts.length; j++) {
+        let ptC = pts[j];
+        let ptD = pts[j - 1];
+        if (
+          (GeomHelpers.pointsAreEqual(ptA, ptD, threshold) && GeomHelpers.pointsAreEqual(ptB, ptC, threshold)) ||
+          (GeomHelpers.pointsAreEqual(ptA, ptC, threshold) && GeomHelpers.pointsAreEqual(ptB, ptD, threshold))
+        ) {
+          duplicate = true;
+          if (newPts.length > 1) {
+            segs.push(new Segment(newPts));
+            newPts = [];
+          }
+          break;
+        }
+      }
+      if (!duplicate) {
+        newPts.push(ptA);
+        continue;
+      }
+    }
+    if (newPts.length > 1) {
+      if (
+        newPts.length > 2 && 
+        isClosed && 
+        segs.length === 0
+      ) {
+        newPts.push(newPts[0].clone());
+      }
+      segs.push(new Segment(newPts));
+    }
+    return segs;
+  }
 }
