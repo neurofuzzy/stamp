@@ -109,13 +109,16 @@ export class ClipperHelpers {
     };
   }
 
-  static polyTreeToHatchFillShape(polyTree: clipperLib.PolyTree): HatchFillShape {
+  static polyTreeToHatchFillShape(polyTree: clipperLib.PolyTre): HatchFillShape {
     let segments: Segment[] = [];
     const polyNodeToSegments = (node: clipperLib.PolyNode): void => {
       if (node.contour.length > 1) {
         let segPts = node.contour.map(
           (p) => new Point(p.x / 10000, p.y / 10000)
         )
+        if (!node.isOpen) {
+          segPts.push(segPts[0]);
+        }
         segments.push(new Segment(segPts));
       }
       if (node.childs.length) {
@@ -127,7 +130,7 @@ export class ClipperHelpers {
     };
 
     polyTree.childs.forEach((node) => {
-      polyNodeToSegments(node);
+      polyNodeToSegments(node,);
     });
 
     return new HatchFillShape(segments);

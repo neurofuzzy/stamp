@@ -49,11 +49,12 @@ export function drawShape(
       ctx.fillStyle = fs || "rgba(0, 0, 0, 0)";
     }
 
-    const ss =
+    let ss =
       style.strokeColor !== undefined &&
       !isNaN(parseInt(`${style.strokeColor}`))
         ? `#${style.strokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
         : `${style.strokeColor}`;
+    if (ss === "undefined") ss = "#999999";
     ctx.strokeStyle = ss || "rgba(0, 0, 0, 0)";
     const lw = parseFloat(`${style.strokeThickness}`) || 0;
     ctx.lineWidth = lw;
@@ -83,12 +84,13 @@ export function drawHatchPattern(
     !isNaN(parseInt(`${hatch.style.hatchStrokeColor}`))
       ? `#${hatch.style.hatchStrokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
       : `${hatch.style.strokeColor}`;
+      if (ss === "undefined") ss = "#999999";
   if (ss === "#FFFFFF") ss = "#EEEEEE";
   ctx.fillStyle = "rgba(0, 0, 0, 0)";
-  ctx.strokeStyle = ss || "#999999";
-  const lw = parseFloat(`${hatch.style.hatchStrokeThickness}`) || 0.5;
+  ctx.strokeStyle = ss ?? "#999999";
+  const lw = parseFloat(`${hatch.style.hatchStrokeThickness || hatch.style.strokeThickness || 1}`) || 1;
   ctx.lineWidth = lw;
-  //if (!lw) ctx.strokeStyle = "rgba(0, 0, 0, 0)";
+
   ctx.stroke();
 }
 

@@ -1,14 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawCenter, drawHatchPattern, drawRay, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType, HatchPatternType } from './geom/hatch-patterns';
-import { Bone } from './geom/shapes';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -18,10 +17,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
 const ratio = 2;
-canvas.width = 900 * ratio
-canvas.height = 900 * ratio
-canvas.style.width = '900px'
-canvas.style.height = '900px'
+canvas.width = 768 * ratio
+canvas.height = 768 * ratio
+canvas.style.width = '768px'
+canvas.style.height = '768px'
 const ctx = canvas.getContext('2d')!
 ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
@@ -49,29 +48,26 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
-      hatchPattern: HatchPatternType.OFFSET,
-      hatchScale: 0.199,
-      strokeThickness: 1,
-      hatchStrokeThickness: 1,
-      fillColor: "#333333",
+      fillColor: "COLOR()",
+      strokeThickness: 0,
     })
     .bone({
-      length: 24,
-      bottomRadius: 4,
-      topRadius: 4,
+      length: 12,
+      bottomRadius: 2,
+      topRadius: 2,
       divisions: 6,
       align: ShapeAlignment.TOP,
       outlineThickness: 0
     })
     .circle({
-      radius: 8,
+      radius: 4,
       divisions: 6,
-      offsetY: 24,
+      offsetY: 12,
       angle: 15,
     })
-    .forward(24)
+    .forward(12)
     .rotate("RANGLE()")
-    .repeatLast(4, 400)
+    .repeatLast(5, 400)
 
   // draw children
   tree.children().forEach(child => {
@@ -80,13 +76,6 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       if (shape) drawShape(ctx, shape)
     } else {
       drawShape(ctx, child)
-    }
-  });
-  tree.children().forEach(child => {
-    if (child.style.hatchPattern && child.style.hatchBooleanType !== HatchBooleanType.DIFFERENCE && child.style.hatchBooleanType !== HatchBooleanType.INTERSECT) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern)
-        drawHatchPattern(ctx, fillPattern);
     }
   });
 }

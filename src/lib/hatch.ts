@@ -8,6 +8,7 @@ import {
   HatchPatternType,
   IHatchPattern,
   LineHatchPattern,
+  OffsetHatchPattern,
   RockHatchPattern,
   SawtoothHatchPattern,
   SinewaveHatchPattern,
@@ -41,6 +42,7 @@ export class Hatch {
       nscale,
     ];
     let hatchPattern: IHatchPattern;
+    const isOffsetHatch = npattern === HatchPatternType.OFFSET;
     switch (npattern) {
       case HatchPatternType.LINE:
         hatchPattern = new LineHatchPattern(...args);
@@ -66,9 +68,10 @@ export class Hatch {
       case HatchPatternType.ROCK:
         hatchPattern = new RockHatchPattern(...args);
         break;
+      case HatchPatternType.OFFSET:
+        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args));
       default:
         return null;
-        break;
     }
     let shapePaths = ClipperHelpers.shapeToPaths(shape);
     const hatchPaths = ClipperHelpers.hatchAreaToPaths(hatchPattern);
@@ -151,4 +154,41 @@ export class Hatch {
     return null;
   }
 
+  static offsetHatchFromShape(shape: IShape, hatchPattern: OffsetHatchPattern): HatchFillShape | null  {
+    let ninset = hatchPattern.offsetStep;
+    const shapePaths = ClipperHelpers.shapeToPaths(shape);
+    const fills: HatchFillShape[] = [];
+    let iter = 0;
+    do {
+      iter++;
+      if (iter > 100) {
+        break;
+      }
+      const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
+        delta: 0 - ninset * 10000,
+        offsetInputs: [
+          {
+            data: shapePaths.data,
+            joinType: clipperLib.JoinType.Miter,
+            endType: clipperLib.EndType.ClosedPolygon,
+          },
+        ],
+      });
+      if (!offsetResult || (offsetResult.childs.length === 0 && offsetResult.contour.length === 0)) {
+        break;
+      }
+      if (offsetResult) {
+        fills.push(ClipperHelpers.polyTreeToHatchFillShape(offsetResult, true));
+      }
+      ninset += hatchPattern.offsetStep;
+    } while (true);
+
+    const allSegments = fills
+      .map((fill) => fill.generate())
+      .reduce((a, b) => a.concat(b), []);
+    
+    const fillShape = new HatchFillShape(allSegments);
+    fillShape.style = shape.style;
+    return fillShape;
+  }
 }

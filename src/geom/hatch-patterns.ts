@@ -1,7 +1,7 @@
 import * as arbit from "arbit";
 import { GeomHelpers } from "./helpers";
 import { IStyle, Point, Ray, Segment } from "./core";
-import { Polygon } from "./shapes";
+
 
 const prng = arbit(29374);
 
@@ -272,6 +272,15 @@ export class RockHatchPattern extends HatchPattern {
   }
 }
 
+export class OffsetHatchPattern extends HatchPattern {
+  get offsetStep(): number {
+    return this.scale * 10;
+  }
+  generate(): Segment[] {
+    return []; // note: not implemented, placeholder
+  }
+}
+
 export enum HatchPatternType {
   LINE = 1,
   CROSS = 2,
@@ -281,6 +290,7 @@ export enum HatchPatternType {
   BUNTING = 6,
   SLATE = 7,
   ROCK = 8,
+  OFFSET = 9,
 }
 
 export enum HatchBooleanType {
