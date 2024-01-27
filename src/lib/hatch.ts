@@ -30,7 +30,7 @@ const $ = (arg: unknown) =>
     : 0;
 
 export class Hatch {
-  static applyHatchToShape(shape: IShape): HatchFillShape | null {
+  static applyHatchToShape(shape: IShape, optimize: boolean = true): HatchFillShape | null {
     const npattern = $(shape.style.hatchPattern) || 0;
     const nangle = $(shape.style.hatchAngle) || 0;
     const nscale = $(shape.style.hatchScale) || 1;
@@ -43,7 +43,7 @@ export class Hatch {
       nscale,
     ];
     let hatchPattern: IHatchPattern;
-    const isOffsetHatch = npattern === HatchPatternType.OFFSET;
+
     switch (npattern) {
       case HatchPatternType.LINE:
         hatchPattern = new LineHatchPattern(...args);
@@ -70,7 +70,7 @@ export class Hatch {
         hatchPattern = new RockHatchPattern(...args);
         break;
       case HatchPatternType.OFFSET:
-        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args));
+        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);
       default:
         return null;
     }
@@ -155,7 +155,7 @@ export class Hatch {
     return null;
   }
 
-  static offsetHatchFromShape(shape: IShape, hatchPattern: OffsetHatchPattern): HatchFillShape | null  {
+  static offsetHatchFromShape(shape: IShape, hatchPattern: OffsetHatchPattern, optimize: boolean = true): HatchFillShape | null  {
     let ninset = hatchPattern.offsetStep;
     const shapePaths = ClipperHelpers.shapeToPaths(shape);
     const fills: HatchFillShape[] = [];
@@ -188,15 +188,17 @@ export class Hatch {
       return null;
     }
 
-    for (let i = 0; i < fills.length; i++) {
-      const fill = fills[i];
-      const fillSegs = fill.generate();
-      const newSegs: Segment[] = [];
-      fillSegs.map((seg) => {
-        const res = GeomHelpers.optimizeSegment(seg, 1);
-        newSegs.push(...res);
-      });
-      fills[i] = new HatchFillShape(newSegs);
+    if (optimize) {
+      for (let i = 0; i < fills.length; i++) {
+        const fill = fills[i];
+        const fillSegs = fill.generate();
+        const newSegs: Segment[] = [];
+        fillSegs.map((seg) => {
+          const res = GeomHelpers.optimizeSegment(seg, 1);
+          newSegs.push(...res);
+        });
+        fills[i] = new HatchFillShape(newSegs);
+      }
     }
 
     const allSegments = fills

@@ -77,6 +77,9 @@ export function drawHatchPattern(
     for (let i = 1; i < seg.points.length; i++) {
       ctx.lineTo(seg.points[i].x, seg.points[i].y);
     }
+    if (GeomHelpers.pointsAreEqual(seg.points[0], seg.points[seg.points.length - 1])) {
+      ctx.closePath();
+    }
   });
 
   let ss =

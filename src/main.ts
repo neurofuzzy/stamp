@@ -84,7 +84,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
   tree.children().forEach(child => {
     if (child.style.hatchPattern && child.style.hatchBooleanType !== HatchBooleanType.DIFFERENCE && child.style.hatchBooleanType !== HatchBooleanType.INTERSECT) {
-      const fillPattern = Hatch.applyHatchToShape(child);
+      const fillPattern = Hatch.applyHatchToShape(child, false);
       if (fillPattern)
         drawHatchPattern(ctx, fillPattern);
     }
