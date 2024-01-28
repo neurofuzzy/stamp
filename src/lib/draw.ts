@@ -1,6 +1,16 @@
 import { IHatchPattern } from "../geom/hatch-patterns";
 import { BoundingBox, BoundingCircle, IShape, IStyle, Point, Ray } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
+import { Sequence } from "./sequence";
+
+const $ = (arg: unknown) =>
+  typeof arg === "string"
+    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
+      ? parseInt(arg.replace("#", "0x"), 16)
+      : Sequence.resolve(arg)
+    : typeof arg === "number"
+    ? arg
+    : 0;
 
 const applyDefaults = (style: IStyle) => {
   const out = Object.assign({}, style);
@@ -49,12 +59,13 @@ export function drawShape(
       ctx.fillStyle = fs || "rgba(0, 0, 0, 0)";
     }
 
+    let sc = $(shape.style.strokeColor);
     let ss =
       style.strokeColor !== undefined &&
-      !isNaN(parseInt(`${style.strokeColor}`))
-        ? `#${style.strokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
+      !isNaN(sc)
+        ? `#${sc.toString(16).split("0x").join("").padStart(6, "0")}`
         : `${style.strokeColor}`;
-    if (ss === "undefined") ss = "#999999";
+    if (!shape.style.strokeColor) ss = "#999999";
     ctx.strokeStyle = ss || "rgba(0, 0, 0, 0)";
     const lw = parseFloat(`${style.strokeThickness}`) || 0;
     ctx.lineWidth = lw;
@@ -82,12 +93,13 @@ export function drawHatchPattern(
     }
   });
 
+  let hsc = $(hatch.style.hatchStrokeColor);
   let ss =
     hatch.style.hatchStrokeColor !== undefined &&
-    !isNaN(parseInt(`${hatch.style.hatchStrokeColor}`))
-      ? `#${hatch.style.hatchStrokeColor.toString(16).split("0x").join("").padStart(6, "0")}`
+    !isNaN(hsc)
+      ? `#${hsc.toString(16).split("0x").join("").padStart(6, "0")}`
       : `${hatch.style.strokeColor}`;
-      if (ss === "undefined") ss = "#999999";
+  if (!hatch.style.hatchStrokeColor) ss = "#999999";
   if (ss === "#FFFFFF") ss = "#EEEEEE";
   ctx.fillStyle = "rgba(0, 0, 0, 0)";
   ctx.strokeStyle = ss ?? "#999999";

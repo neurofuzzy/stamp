@@ -33,7 +33,7 @@ Sequence.seed = 1;
 // 2,7,24,29,32,39,69,78,83,94,96
 const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
-Sequence.fromStatement(colorSeq, 122);
+Sequence.fromStatement(colorSeq, 124);
 
 Sequence.fromStatement("binary 60,-60 AS RANGLE", 2, 4);
 Sequence.fromStatement("repeat 8,12 AS MLENGTH");

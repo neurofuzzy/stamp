@@ -48,7 +48,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   const style: IStyle = {
-    strokeThickness: 0,
+    strokeThickness: 1,
     fillColor: "COLOR()",
   }
 

@@ -53,7 +53,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     hatchAngle: 45,
     hatchScale: 1,
     hatchStrokeColor: "0xffffff",
-    hatchStrokeThickness: 3,
+    hatchStrokeThickness: 10,
     hatchBooleanType: HatchBooleanType.DIFFERENCE,
   }
 

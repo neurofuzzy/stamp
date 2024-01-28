@@ -36,10 +36,12 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
-Sequence.fromStatement("binary 60,-60 AS RANGLE", 2, 4);
-Sequence.fromStatement("repeat 8,12 AS MLENGTH");
-Sequence.fromStatement("repeat 120,100,70,40,MLENGTH() AS RLENGTH")
-Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
+Sequence.seed = 256;
+Sequence.seed = 512;
+Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60  AS RANGLE");
+//Sequence.fromStatement("shuffle 60,60,-60,60,-60,60,-60,60,-60,60,-60,60,-60,60,-60,60,-60,60  AS RANGLE");
+//Sequence.fromStatement("shuffle -60,-60,-60,-60,60,60,60,60,60,60,-60,60,-60,60,-60,60,-60,60  AS RANGLE");
+Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
 
 
@@ -49,16 +51,16 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
-      hatchPattern: HatchPatternType.OFFSET,
-      hatchScale: 0.199,
-      strokeThickness: 1,
+      //hatchPattern: HatchPatternType.OFFSET,
+      hatchScale: 0.24,
+      strokeThickness: 0,
       hatchStrokeThickness: 1,
-      fillColor: "#333333",
+      fillColor: "#999999",
     })
     .bone({
       length: 24,
-      bottomRadius: 4,
-      topRadius: 4,
+      bottomRadius: 2,
+      topRadius: 2,
       divisions: 6,
       align: ShapeAlignment.TOP,
       outlineThickness: 0
@@ -66,8 +68,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .circle({
       radius: 8,
       divisions: 6,
-      offsetY: 24,
+      offsetX: 20.75,
+      offsetY: -12,
       angle: 15,
+      skip: "repeat 0,1,0"
     })
     .forward(24)
     .rotate("RANGLE()")
