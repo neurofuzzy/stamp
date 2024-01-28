@@ -187,6 +187,26 @@ export class Stamp extends AbstractShape {
     }
   }
 
+  private _breakApart() {
+
+    let newPolys: Polygon[] = [];
+
+    const ungroupAll = (poly: Polygon) => {
+      if (poly.children().length > 0) {
+        poly.children().forEach(p => ungroupAll(p as Polygon));
+      } else {
+        newPolys.push(poly);
+      }
+    }
+
+    if (this._polys.length >= 1) {
+      this._polys.forEach(p => {
+        ungroupAll(p);
+      })
+      this._polys = newPolys;
+    }
+  }
+
   private _moveTo(x: number | string, y: number | string) {
     this._cursorHistory.push(this._cursor.clone());
     this._cursor.x = $(x);
@@ -736,6 +756,11 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  breakApart() {
+    this._nodes.push({ fName: "_breakApart", args: [] });
+    return this;
+  }
+
   next() {
     this._nodes.push({ fName: "_next", args: Array.from(arguments) });
     return this;
@@ -961,6 +986,7 @@ export class Stamp extends AbstractShape {
       _subtract: this._subtract,
       _intersect: this._intersect,
       _boolean: this._boolean,
+      _breakApart: this._breakApart,
       _moveTo: this._moveTo,
       _move: this._move,
       _forward: this._forward,
@@ -979,10 +1005,16 @@ export class Stamp extends AbstractShape {
       _roundedTangram: this._roundedTangram,
     };
 
+    let breakApartTimes = 0;
+
     for (let i = 0; i < nodes.length; i++) {
       let fName = nodes[i].fName;
       let fn: Function = privateFunctionMap[fName];
       let args = nodes[i].args;
+      if (fName === "_breakApart") {
+        breakApartTimes++;
+        continue;
+      }
       if (fn) {
         fn.apply(this, args);
       }
@@ -992,6 +1024,10 @@ export class Stamp extends AbstractShape {
       ? ClipperHelpers.polyTreeToPolygons(this._tree)
       : [];
 
+    for (let i = 0; i < breakApartTimes; i++) {
+      this._breakApart();
+    }
+    
     this.mapStyles();
 
     const offset = this.alignmentOffset();

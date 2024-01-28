@@ -1,6 +1,6 @@
 import * as C2S from 'canvas2svg';
-import { drawCenter, drawHatchPattern, drawRay, drawShape } from './lib/draw';
-import { IStyle, Ray, ShapeAlignment } from './geom/core';
+import { drawHatchPattern, drawShape } from './lib/draw';
+import { Ray, ShapeAlignment } from './geom/core';
 import { ClipperHelpers } from './lib/clipper-helpers';
 import { Hatch } from './lib/hatch';
 import { Sequence } from './lib/sequence';
@@ -8,7 +8,6 @@ import { Stamp } from './lib/stamp';
 import './style.css';
 import colors from 'nice-color-palettes';
 import { HatchBooleanType, HatchPatternType } from './geom/hatch-patterns';
-import { Bone } from './geom/shapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -38,44 +37,67 @@ Sequence.fromStatement(colorSeq, 122);
 
 Sequence.seed = 256;
 Sequence.seed = 512;
-Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60  AS RANGLE");
-//Sequence.fromStatement("shuffle 60,60,-60,60,-60,60,-60,60,-60,60,-60,60,-60,60,-60,60,-60,60  AS RANGLE");
-//Sequence.fromStatement("shuffle -60,-60,-60,-60,60,60,60,60,60,60,-60,60,-60,60,-60,60,-60,60  AS RANGLE");
+Sequence.seed = 123;
+Sequence.seed = 316;
+//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
+Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE");
+//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
 Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
 
+const len = 133;
+const weight = 4;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   ctx.clearRect(0, 0, w, h);
 
-  const tree = new Stamp(new Ray(w / 2, h / 2, 0))
+  const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
-      //hatchPattern: HatchPatternType.OFFSET,
-      hatchScale: 0.24,
-      strokeThickness: 0,
+      hatchPattern: HatchPatternType.OFFSET,
+      hatchScale: 0.27,
+      strokeThickness: 1,
       hatchStrokeThickness: 1,
-      fillColor: "#999999",
+      fillColor: "#333333",
     })
     .bone({
-      length: 24,
-      bottomRadius: 2,
-      topRadius: 2,
-      divisions: 6,
+      length: len,
+      bottomRadius: weight,
+      topRadius: weight,
+      divisions: 12,
       align: ShapeAlignment.TOP,
       outlineThickness: 0
     })
+    /*
     .circle({
       radius: 8,
       divisions: 6,
-      offsetX: 20.75,
+      offsetX: Math.cos(30 * Math.PI / 180) * len,
       offsetY: -12,
       angle: 15,
       skip: "repeat 0,1,0"
     })
-    .forward(24)
+    */
+    .forward(len)
     .rotate("RANGLE()")
-    .repeatLast(4, 400)
+    .repeatLast(4, 180)
+
+  const tree = lattice;
+  const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
+    .defaultStyle({
+      fillColor: "COLOR()",
+      strokeThickness: 0,
+    })
+    .circle({
+      radius: 420,
+      divisions: 6,
+      angle: 15,
+    })
+    .subtract()
+    .stamp({
+      subStamp: lattice,
+    })
+    .breakApart();
 
   // draw children
   tree.children().forEach(child => {

@@ -119,7 +119,7 @@ export class Hatch {
     const strokeWidth = Math.max($(shape.style.hatchStrokeThickness) || 0, 2);
     if (strokeWidth > 0) {
       const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-        delta: strokeWidth * 5000, // 0.5 * 100000
+        delta: strokeWidth * 50000, // 0.5 * 100000
         offsetInputs: [
           {
             data: hatchPaths.data,
