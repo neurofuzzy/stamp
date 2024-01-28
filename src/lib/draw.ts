@@ -1,5 +1,5 @@
 import { IHatchPattern } from "../geom/hatch-patterns";
-import { BoundingBox, BoundingCircle, IShape, IStyle, Point, Ray } from "../geom/core";
+import { BoundingBox, BoundingCircle, IShape, IStyle, Point, Ray, Segment } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 import { Sequence } from "./sequence";
 
@@ -151,4 +151,27 @@ export function drawRay(ctx: CanvasRenderingContext2D, r: Ray) {
   ctx.strokeStyle = '#39f';
   ctx.lineWidth = 2;
   ctx.stroke();
+}
+
+export function drawPath(ctx: CanvasRenderingContext2D, path: Segment, pointRadius = 0) {
+  ctx.strokeStyle = 'cyan';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(path.points[0].x, path.points[0].y);
+  for (let i = 1; i < path.points.length; i++) {
+    const r = path.points[i];
+    ctx.lineTo(r.x, r.y);
+  }
+  ctx.stroke();
+  if (pointRadius > 0) {
+    for (let i = 1; i < path.points.length; i++) {
+      const r = path.points[i];
+      ctx.lineWidth = 0;
+      ctx.fillStyle = 'cyan';
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, pointRadius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+    }
+  }
 }

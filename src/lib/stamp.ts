@@ -5,6 +5,7 @@ import {
   IStyle,
   Point,
   Ray,
+  Segment,
   ShapeAlignment,
 } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
@@ -141,6 +142,7 @@ export class Stamp extends AbstractShape {
   private _cursor: Ray = new Ray(0, 0, 0);
   private _cursorHistory: Ray[] = [];
   private _baked: boolean = false;
+  private _bakedAlignmentOffset: Point = new Point(0,0);
 
   constructor(
     center?: Ray,
@@ -907,6 +909,32 @@ export class Stamp extends AbstractShape {
     return this._cursor.clone();
   }
 
+  path(): Segment {
+    if (!this._baked) {
+      this.bake();
+    }
+    let points = this._cursorHistory.map((p) => new Point(p.x, p.y));
+    points.push(this._cursor);
+
+    const offset = this._bakedAlignmentOffset;
+
+    if (offset) {
+      points.forEach((p) => {
+        p.x += offset.x;
+        p.y += offset.y;
+      });
+    }
+
+    if (this.center) {
+      points.forEach((p) => {
+        p.x += this.center.x;
+        p.y += this.center.y;
+      });
+    }
+
+    return new Segment(points);
+  }
+
   private mapStyles() {
     // sort style map by bounds area
     const mappedPolys: Polygon[] = [];
@@ -1031,6 +1059,7 @@ export class Stamp extends AbstractShape {
     this.mapStyles();
 
     const offset = this.alignmentOffset();
+    this._bakedAlignmentOffset = offset;
 
     const applyOffsetToPoly = (p: Polygon) => {
       p.rays.forEach((r) => {
