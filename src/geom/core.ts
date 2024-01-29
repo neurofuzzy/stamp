@@ -92,6 +92,12 @@ export class Segment {
   constructor(points: Point[]) {
     this.points = points;
   }
+  get a () {
+    return this.points[0];
+  }
+  get b () {
+    return this.points[1];
+  }
   clone() {
     return new Segment(this.points.map((p) => p.clone()));
   }

@@ -7,9 +7,15 @@ export class GeomHelpers {
   }
 
   static distanceBetweenPoints(p1: Point, p2: Point) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  static distanceBetweenPointsSquared(p1: Point, p2: Point) {
     const dx = p2.x - p1.x
     const dy = p2.y - p1.y
-    return Math.sqrt(dx * dx + dy * dy)
+    return dx * dx + dy * dy;
   }
 
   static angleBetweenPoints(p1: Point, p2: Point) {
@@ -278,6 +284,79 @@ export class GeomHelpers {
       }
     }
     return new Segment(pts);
+  }
+
+  static sub(ptA: Point, ptB: Point) {
+    return new Point(ptA.x - ptB.x, ptA.y - ptB.y);
+  }
+
+  static dot(ptA: Point, ptB: Point): number {
+    return ptA.x * ptB.x + ptA.y * ptB.y;
+  }
+
+  static cross(ptA: Point, ptB: Point): number {
+    return ptA.x * ptB.y - ptA.y * ptB.x;
+  }
+
+  static closestPtPointSegment(pt: Point, seg: Segment): Point {
+    var ab = GeomHelpers.sub(seg.b, seg.a);
+    var ca = GeomHelpers.sub(pt, seg.a);
+    var t = GeomHelpers.dot(ca, ab);
+    if (t < 0) {
+      pt = seg.a;
+    } else {
+      var denom = GeomHelpers.dot(ab, ab);
+      if (t >= denom) {
+        pt = seg.b;
+      } else {
+        t /= denom;
+        // reuse ca
+        ca.x = seg.a.x + t * ab.x;
+        ca.y = seg.a.y + t * ab.y;
+        pt = ca;
+      }
+    }
+    return pt.clone();
+  }
+
+  static distancePointSegment(pt: Point, seg: Segment): number {
+    return GeomHelpers.distanceBetweenPoints(pt, GeomHelpers.closestPtPointSegment(pt, seg));
+  }
+
+  static segmentSegmentIntersect(segA: Segment, segB: Segment, ignoreTouching = false): Point | null {
+    const x1 = segA.a.x;
+    const y1 = segA.a.y;
+    const x2 = segA.b.x;
+    const y2 = segA.b.y;
+    const x3 = segB.a.x;
+    const y3 = segB.a.y;
+    const x4 = segB.b.x;
+    const y4 = segB.b.y;
+
+    const s1_x = x2 - x1;
+    const s1_y = y2 - y1;
+    const s2_x = x4 - x3;
+    const s2_y = y4 - y3;
+
+    const s = (-s1_y * (x1 - x3) + s1_x * (y1 - y3)) / (-s2_x * s1_y + s1_x * s2_y);
+    const t = (s2_x * (y1 - y3) - s2_y * (x1 - x3)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+      const atX = x1 + t * s1_x;
+      const atY = y1 + t * s1_y;
+      let intPt = new Point(atX, atY);
+      if (ignoreTouching) {
+        if (GeomHelpers.pointsAreEqual(intPt, segB.a) || GeomHelpers.pointsAreEqual(intPt, segB.b)) {
+          return null;
+        }
+        if (GeomHelpers.pointsAreEqual(intPt, segA.a) || GeomHelpers.pointsAreEqual(intPt, segA.b)) {
+          return null;
+        }
+      }
+      return intPt;
+    }
+
+    return null;
   }
 
   static optimizeSegment(segment: Segment, threshold = 0.0001): Segment[] {
