@@ -1,13 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape, drawPath } from './lib/draw';
+import { drawPath } from './lib/draw';
 import { Ray, ShapeAlignment } from './geom/core';
 import { ClipperHelpers } from './lib/clipper-helpers';
-import { Hatch } from './lib/hatch';
 import { Sequence } from './lib/sequence';
 import { Stamp } from './lib/stamp';
 import './style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType, HatchPatternType } from './geom/hatch-patterns';
+import { HatchPatternType } from './geom/hatch-patterns';
+import { Optimize } from './lib/optimize';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -123,7 +123,15 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
   */
   let path = tree.path();
-  drawPath(ctx, path, 0);
+  //drawPathGhosted(ctx, path, 0);
+  //drawPath(ctx, path, 0);
+  
+  let segs = Optimize.segments([path]);
+  segs.forEach(seg => {
+    drawPath(ctx, seg, 0);
+    //drawPathGhosted(ctx, seg, 0);
+  });
+  
 }
 
 document.onkeydown = function (e) {

@@ -95,8 +95,14 @@ export class Segment {
   get a () {
     return this.points[0];
   }
+  set a (val: Point) {
+    this.points[0] = val;
+  }
   get b () {
     return this.points[1];
+  }
+  set b (val: Point) {
+    this.points[1] = val;
   }
   clone() {
     return new Segment(this.points.map((p) => p.clone()));

@@ -175,3 +175,30 @@ export function drawPath(ctx: CanvasRenderingContext2D, path: Segment, pointRadi
     }
   }
 }
+
+export function drawPathGhosted(ctx: CanvasRenderingContext2D, path: Segment, pointRadius = 0) {
+  ctx.strokeStyle = 'cyan';
+  ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(path.points[0].x, path.points[0].y);
+  for (let i = 1; i < path.points.length; i++) {
+    const r = path.points[i];
+    ctx.beginPath();
+    ctx.moveTo(path.points[i - 1].x, path.points[i - 1].y);
+    ctx.lineTo(r.x, r.y);
+    ctx.stroke();
+  }
+  ctx.stroke();
+  if (pointRadius > 0) {
+    for (let i = 1; i < path.points.length; i++) {
+      const r = path.points[i];
+      ctx.lineWidth = 0;
+      ctx.fillStyle = 'cyan';
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, pointRadius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+    }
+  }
+}

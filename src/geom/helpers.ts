@@ -66,13 +66,19 @@ export class GeomHelpers {
     return radians * 180 / Math.PI;
   }
 
-  static rotatePoint(v: Point, angle: number) {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    const x1 = v.x * cos - v.y * sin;
-    const y1 = v.x * sin + v.y * cos;
-    v.x = x1;
-    v.y = y1;
+  static rotatePoint(pt: Point, rad: number) {
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const oldY = pt.y;
+    const oldX = pt.x;
+    pt.y = cos * oldY - sin * oldX;
+    pt.x = sin * oldY + cos * oldX;
+  }
+
+  static rotatePoints(rad: number, ...points: Point[]) {
+    points.forEach((pt) => {
+      GeomHelpers.rotatePoint(pt, rad);
+    });
   }
 
   static rotatePointAbountPoint(origin: Point, point: Point, angle: number) {
@@ -357,6 +363,29 @@ export class GeomHelpers {
     }
 
     return null;
+  }
+
+  static segmentsAreEqual(segA: Segment, segB: Segment, threshold = 0.0001, noReverseSegCheck = false): boolean {
+    if (noReverseSegCheck) {
+      return GeomHelpers.pointsAreEqual(segA.a, segB.a, threshold) && GeomHelpers.pointsAreEqual(segA.b, segB.b, threshold);
+    } else {
+      return (
+        GeomHelpers.pointsAreEqual(segA.a, segB.b, threshold) && GeomHelpers.pointsAreEqual(segA.b, segB.a, threshold) ||
+        GeomHelpers.pointsAreEqual(segA.a, segB.a, threshold) && GeomHelpers.pointsAreEqual(segA.b, segB.b, threshold)
+      );
+    }
+  }
+
+  static segmentsAreSameAngle(segA: Segment, segB: Segment) {
+    let aA = GeomHelpers.angleBetweenPoints(segA.a, segA.b);
+    let aB = GeomHelpers.angleBetweenPoints(segB.a, segB.b);
+    return Math.abs(aA - aB) < 0.001;
+  }
+
+  static segmentsAreSameAngleRev(segA: Segment, segB: Segment) {
+    let aA = GeomHelpers.angleBetweenPoints(segA.a, segA.b);
+    let aB = GeomHelpers.angleBetweenPoints(segB.b, segB.a);
+    return Math.abs(aA - aB) < 0.001;
   }
 
   static optimizeSegment(segment: Segment, threshold = 0.0001): Segment[] {
