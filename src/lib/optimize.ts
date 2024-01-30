@@ -5,6 +5,8 @@ export class Optimize {
 
   static segments(segs: Segment[], noSplitColinear = false, trimSmall = true, smallDist = 0.1): Segment[] {
 
+    const start = Date.now();
+
     let simpleSegs: Segment[] = [];
     segs.forEach((seg) => {
       for (let i = 0; i < seg.points.length - 1; i++) {
@@ -100,7 +102,7 @@ export class Optimize {
       }
     }
 
-    let separateSegs = segs.concat();
+    let outSegs = segs.concat();
 
     if (segs.length > 1) {
       
@@ -148,10 +150,11 @@ export class Optimize {
         let fs = new Segment([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
         joinedSegs.push(fs);
       }
-      return joinedSegs;
+      outSegs = joinedSegs;
     }
     
-    return separateSegs;
+    console.log("Optimized segments in " + (Date.now() - start) + " ms");
+    return outSegs;
 
   }
 

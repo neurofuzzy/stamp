@@ -127,6 +127,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //drawPath(ctx, path, 0);
   
   let segs = Optimize.segments([path]);
+  console.log(path.points.length, segs.length)
   segs.forEach(seg => {
     drawPath(ctx, seg, 0);
     //drawPathGhosted(ctx, seg, 0);
