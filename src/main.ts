@@ -9,6 +9,7 @@ import colors from 'nice-color-palettes';
 import { HatchPatternType } from './geom/hatch-patterns';
 import { Optimize } from './lib/optimize';
 import { Circle } from './geom/shapes';
+import { GridStampLayout } from './lib/stamp-layout';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -43,6 +44,10 @@ Sequence.seed = 506;
 Sequence.seed = 518;
 Sequence.seed = 18;
 Sequence.seed = 17;
+Sequence.seed = 199;
+Sequence.seed = 198;
+Sequence.seed = 197;
+Sequence.seed = 193;
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
 Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE");
 //Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,36 AS RANGLE");
@@ -50,7 +55,7 @@ Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,7
 Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
 
-const len = 40;
+const len = 15;
 const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -76,16 +81,29 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate("RANGLE()")
     .repeatLast(4, 240)
 
-  const tree = lattice;
+  const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    stamp: lattice,
+    seeds: [180,189],
+    seedsIsRange: true,
+    rows: 3,
+    columns: 3,
+    rowSpacing: 240,
+    columnSpacing: 240
+  });
 
-  let path = tree.path();
+  //drawShape(ctx, grid);
 
-  let segs = Optimize.segments([path]);
+  //let path = tree.path();
 
-  segs.forEach(seg => {
-    drawPath(ctx, seg, 0);
+  let pathSets = grid.children().map(x => x.path(0.75));
+
+  pathSets.forEach(paths => {
+    paths.forEach(seg => {
+      drawPath(ctx, seg, 0);
+    });
     //drawPathGhosted(ctx, seg, 0);
   });
+  
 
   //drawShape(ctx, new Circle(path.points[0].toRay(), 6, 3))
   //drawShape(ctx, new Circle(path.points[path.points.length - 1].toRay(Math.PI / 8), 6, 4))

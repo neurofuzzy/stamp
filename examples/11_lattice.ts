@@ -76,11 +76,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const tree = lattice;
 
-  let path = tree.path();
+  let paths = tree.path();
 
-  let segs = Optimize.segments([path]);
-
-  segs.forEach(seg => {
+  paths.forEach(seg => {
     drawPath(ctx, seg, 0);
     //drawPathGhosted(ctx, seg, 0);
   });

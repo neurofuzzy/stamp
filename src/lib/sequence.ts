@@ -37,12 +37,27 @@ export class Sequence {
       return Sequence.__prng?.();
     }
   }
-  static resetAll = () => {
-    Sequence.__prng = arbit(Sequence.seed);
+  static resetAll = (seed: number = NaN) => {
+    Sequence.__prng = arbit(!isNaN(seed) ? seed : Sequence.seed);
     for (let alias in Sequence.sequences) {
+      if (!isNaN(seed)) {
+        Sequence.sequences[alias].updateSeed(seed);
+      } else {
+        Sequence.sequences[alias].reset();
+      }
+    }
+  }
+  static reset = (alias: string) => {
+    if (Sequence.sequences[alias]) {
       Sequence.sequences[alias].reset();
     }
   }
+  static updateSeed = (alias: string, seed: number) => {
+    if (Sequence.sequences[alias]) {
+      Sequence.sequences[alias].updateSeed(seed);
+    }
+  }
+
   static readonly reserved: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY, Sequence.AS];
   static readonly types: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY];
   static readonly accumulators: string[] = [Sequence.REPLACE, Sequence.ADD, Sequence.SUBTRACT, Sequence.MULTIPLY, Sequence.DIVIDE];
@@ -81,6 +96,11 @@ export class Sequence {
     this._prng = arbit(this._seed);
     this.started = false;
     this.done = false;
+  }
+
+  updateSeed(seed: number) {
+    this._seed = seed;
+    this.reset();
   }
 
   reset() {

@@ -22,6 +22,7 @@ import { Donut } from "../geom/compoundshapes";
 import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
+import { Optimize } from "./optimize";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -909,7 +910,7 @@ export class Stamp extends AbstractShape {
     return this._cursor.clone();
   }
 
-  path(): Segment {
+  path(scale: number = 1): Segment[] {
     if (!this._baked) {
       this.bake();
     }
@@ -932,7 +933,21 @@ export class Stamp extends AbstractShape {
       });
     }
 
-    return new Segment(points);
+    if (scale !== 1) {
+      points.forEach((p) => {
+        p.x -= this.center.x;
+        p.y -= this.center.y;
+        p.x *= scale;
+        p.y *= scale;
+        p.x += this.center.x;
+        p.y += this.center.y;
+      });
+    }
+
+    let seg = new Segment(points);
+    let optimizedSegs = Optimize.segments([seg]);
+
+    return optimizedSegs;
   }
 
   private mapStyles() {

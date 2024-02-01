@@ -203,6 +203,7 @@ export class Arc extends AbstractShape {
 
 export class Polygon extends AbstractShape {
   rays: Ray[];
+  _scale: number = 1;
   constructor(
     center?: Ray,
     rays: Ray[] = [],
@@ -213,8 +214,19 @@ export class Polygon extends AbstractShape {
     super(center, divisions, alignment, reverse);
     this.rays = rays;
   }
+  setScale(s: number) {
+    if (!isNaN(s)) {
+      this._scale = s;
+    }
+  }
   generate() {
     let rays = this.rays.slice().map((r) => r.clone());
+    if (this._scale !== 1) {
+      rays.forEach((r) => {
+        r.x *= this._scale;
+        r.y *= this._scale;
+      });
+    }
     if (this.divisions > 1) {
       rays = GeomHelpers.subdivideRaySet(rays, this.divisions);
     }
