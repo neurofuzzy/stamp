@@ -146,14 +146,17 @@ export class Optimize {
         }
         iter++;
       }
-      if (segs.length) {
+      if (orderedSegs.length) {
         let fs = new Segment([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
         joinedSegs.push(fs);
+      }
+      if (segs.length) {
+        joinedSegs = joinedSegs.concat(segs);
       }
       outSegs = joinedSegs;
     }
     
-    console.log("Optimized segments in " + (Date.now() - start) + " ms");
+    console.log("Optimized segments in " + (Date.now() - start) + " ms", outSegs.length);
     return outSegs;
 
   }

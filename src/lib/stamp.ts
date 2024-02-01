@@ -914,7 +914,7 @@ export class Stamp extends AbstractShape {
       this.bake();
     }
     let points = this._cursorHistory.map((p) => new Point(p.x, p.y));
-    points.push(this._cursor);
+    points.push(this._cursor.clone());
 
     const offset = this._bakedAlignmentOffset;
 

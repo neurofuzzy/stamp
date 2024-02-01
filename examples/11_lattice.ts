@@ -1,14 +1,12 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from './lib/draw';
-import { Ray, Segment, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawPath, drawShape } from '../src/lib/draw';
+import { Ray } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchPatternType } from './geom/hatch-patterns';
-import { Optimize } from './lib/optimize';
-import { Circle } from './geom/shapes';
+import { Optimize } from '../src/lib/optimize';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -36,21 +34,21 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 125);
 
-Sequence.seed = 2;
-Sequence.seed = 500;
-Sequence.seed = 503;
-Sequence.seed = 506;
-Sequence.seed = 518;
-Sequence.seed = 18;
-Sequence.seed = 17;
+Sequence.seed = 256;
+Sequence.seed = 512;
+Sequence.seed = 123;
+Sequence.seed = 316;
+Sequence.seed = 322;
+Sequence.seed = 327;
+Sequence.seed = 334;
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
-Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE");
-//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,36 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE");
+Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72 AS RANGLE");
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
 Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
 
-const len = 40;
+const len = 200;
 const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -74,7 +72,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       skip: "repeat 0,1,0"
     })
     .rotate("RANGLE()")
-    .repeatLast(4, 240)
+    .repeatLast(4, 200)
 
   const tree = lattice;
 
@@ -87,9 +85,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     //drawPathGhosted(ctx, seg, 0);
   });
 
-  //drawShape(ctx, new Circle(path.points[0].toRay(), 6, 3))
-  //drawShape(ctx, new Circle(path.points[path.points.length - 1].toRay(Math.PI / 8), 6, 4))
-  //drawPath(ctx, path, 0);
+  drawShape(ctx, lattice)
   
 }
 
