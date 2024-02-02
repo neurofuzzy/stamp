@@ -37,9 +37,12 @@ export class Sequence {
       return Sequence.__prng?.();
     }
   }
-  static resetAll = (seed: number = NaN) => {
+  static resetAll = (seed: number = NaN, skipSequeces: (Sequence | null)[] = []) => {
     Sequence.__prng = arbit(!isNaN(seed) ? seed : Sequence.seed);
     for (let alias in Sequence.sequences) {
+      if (skipSequeces.indexOf(Sequence.sequences[alias]) !== -1) {
+        continue;
+      }
       if (!isNaN(seed)) {
         Sequence.sequences[alias].updateSeed(seed);
       } else {

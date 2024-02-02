@@ -3,10 +3,18 @@ import { AbstractShape, Polygon } from "../geom/shapes";
 import { Sequence } from "./sequence";
 import { Stamp } from "./stamp";
 
+const $ = (arg: unknown) =>
+  typeof arg === "string"
+    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
+      ? parseInt(arg.replace("#", "0x"), 16)
+      : Sequence.resolve(arg)
+    : typeof arg === "number"
+    ? arg
+    : 0;
+
 interface IStampLayoutParams {
   stamp: Stamp;
-  seeds: number[];
-  seedsIsRange: boolean;
+  seedSequence: Sequence | null;
 }
 
 interface IGridStampLayoutParams extends IStampLayoutParams {
@@ -19,18 +27,10 @@ interface IGridStampLayoutParams extends IStampLayoutParams {
 class AbstractStampLayout extends AbstractShape {
   
   params: IStampLayoutParams;
-  computedSeeds: number[];
+
   constructor(center: Ray, params: IStampLayoutParams) {
     super(center);
     this.params = params;
-    if (params.seedsIsRange) {
-      this.computedSeeds = [];
-      for (let i = params.seeds[0]; i <= params.seeds[1]; i++) {
-        this.computedSeeds.push(i);
-      }
-    } else {
-      this.computedSeeds = params.seeds.concat();
-    }
   }
   generate(): Ray[] {
     return [];
@@ -47,14 +47,13 @@ export class GridStampLayout extends AbstractStampLayout {
   children(): Stamp[] {
     const c: Stamp[] = [];
     const params = this.params as IGridStampLayoutParams;
-    const seeds = this.computedSeeds.concat();
     const w = params.columnSpacing * (params.columns - 1);
     const h = params.rowSpacing * (params.rows - 1);
     for (let j = 0; j < params.rows; j++) {
       for (let i = 0; i < params.columns; i++) {
-        const seed = seeds.shift() ?? 0;
-        console.log(seed);
-        Sequence.resetAll(seed);
+        const seed = params.seedSequence?.next() || i;
+        console.log(seed)
+        Sequence.resetAll(seed, [params.seedSequence]);
         Sequence.seed = seed;
         const x = params.columnSpacing * i;
         const y = params.rowSpacing * j;

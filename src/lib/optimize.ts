@@ -5,8 +5,6 @@ export class Optimize {
 
   static segments(segs: Segment[], noSplitColinear = false, trimSmall = true, smallDist = 0.1): Segment[] {
 
-    const start = Date.now();
-
     let simpleSegs: Segment[] = [];
     segs.forEach((seg) => {
       for (let i = 0; i < seg.points.length - 1; i++) {
@@ -156,7 +154,6 @@ export class Optimize {
       outSegs = joinedSegs;
     }
     
-    console.log("Optimized segments in " + (Date.now() - start) + " ms", outSegs.length);
     return outSegs;
 
   }

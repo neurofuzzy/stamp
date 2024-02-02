@@ -131,6 +131,7 @@ interface INode {
 
 export class Stamp extends AbstractShape {
 
+  static readonly NONE = 0;
   static readonly UNION = 1;
   static readonly SUBTRACT = 2;
   static readonly INTERSECT = 3;
@@ -183,10 +184,22 @@ export class Stamp extends AbstractShape {
     if (typeof type === "string") {
       type = Sequence.resolve(type);
     }
-    if (type <= 0) {
-      this._mode = Stamp.SUBTRACT;
-    } else {
-      this._mode = Stamp.UNION;
+    switch (type) {
+      case 0:
+        this._mode = Stamp.NONE;
+        break;
+      case 1:
+        this._mode = Stamp.UNION;
+        break;
+      case 2:
+        this._mode = Stamp.SUBTRACT;
+        break;
+      case 3:
+        this._mode = Stamp.INTERSECT;
+        break;
+      default:
+        this._mode = Stamp.UNION;
+        break;
     }
   }
 
@@ -285,6 +298,12 @@ export class Stamp extends AbstractShape {
       let b2 = null;
 
       switch (this._mode) {
+        case Stamp.NONE:
+          if (!this._polys) {
+            this._polys = [];
+          }
+          this._polys.push(new Polygon(g.center, g.generate()));
+          break;
         case Stamp.UNION:
           if (this._tree) {
             b2 = ClipperHelpers.shapeToPaths(g);
@@ -739,6 +758,11 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  noBoolean() {
+    this._nodes.push({ fName: "_boolean", args: [Stamp.NONE] });
+    return this;
+  }
+
   add() {
     this._nodes.push({ fName: "_add", args: Array.from(arguments) });
     return this;
@@ -1063,12 +1087,11 @@ export class Stamp extends AbstractShape {
       }
     }
 
-    this._polys = this._tree
-      ? ClipperHelpers.polyTreeToPolygons(this._tree)
-      : [];
-
-    for (let i = 0; i < breakApartTimes; i++) {
-      this._breakApart();
+    if (this._tree) {
+      this._polys = ClipperHelpers.polyTreeToPolygons(this._tree);
+      for (let i = 0; i < breakApartTimes; i++) {
+        this._breakApart();
+      }
     }
     
     this.mapStyles();

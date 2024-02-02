@@ -48,6 +48,7 @@ Sequence.seed = 199;
 Sequence.seed = 198;
 Sequence.seed = 197;
 Sequence.seed = 193;
+Sequence.seed = 316;
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
 Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE");
 //Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,36 AS RANGLE");
@@ -55,7 +56,7 @@ Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,7
 Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
 Sequence.fromStatement("repeat 10,10 AS BERRY")
 
-const len = 15;
+const len = 30;
 const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -63,28 +64,24 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
+    .noBoolean()
     .defaultStyle({
       strokeThickness: 0,
       fillColor: "cyan",
-    })
-    .circle({
-      radius: 2,
-      divisions: 6,
-      skip: "repeat 0,1,0"
     })
     .forward(len)
     .circle({
       radius: 2,
       divisions: 6,
-      skip: "repeat 0,1,0"
+      skip: 1
     })
     .rotate("RANGLE()")
-    .repeatLast(4, 240)
+    .repeatLast(3, 240)
 
+    // Sequence.fromStatement("repeat 181,270,254,17,316,778,759,266,62,29,7,2493251,238", 7),
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    seeds: [180,189],
-    seedsIsRange: true,
+    seedSequence: Sequence.fromStatement("repeat 755,316,1202,1092,251,277,293,3043305,305", 7),
     rows: 3,
     columns: 3,
     rowSpacing: 240,
