@@ -1,13 +1,13 @@
 import * as arbit from "arbit";
 import { GeomHelpers } from "./helpers";
-import { IStyle, Point, Ray, Segment } from "./core";
+import { IStyle, Point, Ray, Path } from "./core";
 
 
 const prng = arbit(29374);
 
 export interface IHatchPattern {
   style: IStyle;
-  generate(): Segment[];
+  generate(): Path[];
   clone(): IHatchPattern;
 }
 
@@ -28,7 +28,7 @@ export class HatchPattern implements IHatchPattern {
     this.height = height;
     this.scale = scale;
   }
-  generate():Segment[] {
+  generate():Path[] {
     return [];
   }
   clone() {
@@ -37,16 +37,16 @@ export class HatchPattern implements IHatchPattern {
 }
 
 export class HatchFillShape implements IHatchPattern {
-  protected segments: Segment[];
+  protected segments: Path[];
   style: IStyle = {
     hatchStrokeColor: "#ccc",
     hatchStrokeThickness: 0.5,
   }
-  constructor(segments: Segment[], style?: IStyle) {
+  constructor(segments: Path[], style?: IStyle) {
     this.segments = segments;
     this.style = style || this.style;
   }
-  generate(): Segment[] {
+  generate(): Path[] {
     return this.segments;
   }
   clone() {
@@ -55,16 +55,16 @@ export class HatchFillShape implements IHatchPattern {
 }
 
 export class LineHatchPattern extends HatchPattern {
-  generate(): Segment[] {
+  generate(): Path[] {
     const hatchStep = this.scale * 10;
-    const segments: Segment[] = [];
+    const segments: Path[] = [];
     let radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
     let numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
-      segments.push(new Segment([a, b]));
+      segments.push(new Path([a, b]));
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -74,9 +74,9 @@ export class LineHatchPattern extends HatchPattern {
 }
 
 export class CrossHatchPattern extends HatchPattern {
-  generate(): Segment[] {
+  generate(): Path[] {
     const hatchStep = this.scale * 10;
-    const segments: Segment[] = [];
+    const segments: Path[] = [];
     let radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
     let numSegments = Math.ceil(radius * 2 / hatchStep);
@@ -86,7 +86,7 @@ export class CrossHatchPattern extends HatchPattern {
       for (let i = 0; i < numSegments; i++) {
         const a = new Point(startX + i * hatchStep, this.center.y - radius);
         const b = new Point(startX + i * hatchStep, this.center.y + radius);
-        segments.push(new Segment([a, b]));
+        segments.push(new Path([a, b]));
       }
       segments.forEach((s) => {
         s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(rotationOrigins[j], p));
@@ -97,8 +97,8 @@ export class CrossHatchPattern extends HatchPattern {
 }
 
 export class SawtoothHatchPattern extends HatchPattern {
-  generate(): Segment[] {
-    const segments: Segment[] = [];
+  generate(): Path[] {
+    const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
@@ -112,7 +112,7 @@ export class SawtoothHatchPattern extends HatchPattern {
           p.x += hatchStep;
         }
       });
-      segments.push(new Segment(pts));
+      segments.push(new Path(pts));
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -122,8 +122,8 @@ export class SawtoothHatchPattern extends HatchPattern {
 }
 
 export class SinewaveHatchPattern extends HatchPattern {
-  generate(): Segment[] {
-    const segments: Segment[] = [];
+  generate(): Path[] {
+    const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
@@ -135,7 +135,7 @@ export class SinewaveHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         p.x += Math.sin(idx * Math.PI / 16) * hatchStep * 0.25;
       });
-      segments.push(new Segment(pts));
+      segments.push(new Path(pts));
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -145,8 +145,8 @@ export class SinewaveHatchPattern extends HatchPattern {
 }
 
 export class BuntingHatchPattern extends HatchPattern {
-  generate(): Segment[] {
-    const segments: Segment[] = [];
+  generate(): Path[] {
+    const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
@@ -159,7 +159,7 @@ export class BuntingHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         p.x += Math.abs(Math.sin(idx * Math.PI / 12) * hatchStep * 0.5) - hatchStep * 0.25;
       });
-      segments.push(new Segment(pts));
+      segments.push(new Path(pts));
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -169,8 +169,8 @@ export class BuntingHatchPattern extends HatchPattern {
 }
 
 export class DashedHatchPattern extends HatchPattern {
-  generate(): Segment[] {
-    const segments: Segment[] = [];
+  generate(): Path[] {
+    const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
@@ -182,11 +182,11 @@ export class DashedHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         if (i % 2 === 0) {
           if (idx > 0 && idx % 2 === 0) {
-            segments.push(new Segment([pts[idx - 1], p]));
+            segments.push(new Path([pts[idx - 1], p]));
           }
         } else {
           if (idx < pts.length - 1 && idx % 2 === 0) {
-            segments.push(new Segment([p, pts[idx + 1]]));
+            segments.push(new Path([p, pts[idx + 1]]));
           }
         }
       });
@@ -199,8 +199,8 @@ export class DashedHatchPattern extends HatchPattern {
 }
 
 export class SlateHatchPattern extends HatchPattern {
-  generate(): Segment[] {
-    const segments: Segment[] = [];
+  generate(): Path[] {
+    const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
@@ -215,7 +215,7 @@ export class SlateHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         if (!penIsUp) {
           if (idx === nextPenUp) {
-            segments.push(new Segment([pts[nextPenDown], p]));
+            segments.push(new Path([pts[nextPenDown], p]));
             penIsUp = true;
             nextPenDown = nextPenUp + prng.nextInt(1, 3);
           }
@@ -235,8 +235,8 @@ export class SlateHatchPattern extends HatchPattern {
 }
 
 export class RockHatchPattern extends HatchPattern {
-  generate(): Segment[] {
-    const segments: Segment[] = [];
+  generate(): Path[] {
+    const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
     let startX = this.center.x - radius;
@@ -255,7 +255,7 @@ export class RockHatchPattern extends HatchPattern {
           const ppt = pts[idx - 1];
           if (prng.nextFloat() > 0.4) {
             const mpt = new Point((p.x + ppt.x) / 2 + hatchStep * 0.35, (p.y + ppt.y) / 2);
-            const seg = new Segment([ppt, p, mpt, ppt.clone()]);
+            const seg = new Path([ppt, p, mpt, ppt.clone()]);
             const cen = GeomHelpers.averagePoints(seg.points);
             const ray = new Ray(cen.x, cen.y, prng.nextFloat() * Math.PI);
             seg.points.forEach((pp) => GeomHelpers.rotatePointAboutOrigin(ray, pp));
@@ -276,7 +276,7 @@ export class OffsetHatchPattern extends HatchPattern {
   get offsetStep(): number {
     return this.scale * 10;
   }
-  generate(): Segment[] {
+  generate(): Path[] {
     return []; // note: not implemented, placeholder
   }
 }

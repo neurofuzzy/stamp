@@ -4,7 +4,7 @@ import {
 import {
   IShape,
   Point, Ray,
-  Segment
+  Path
 } from "../geom/core";
 import { HatchFillShape, IHatchPattern } from "../geom/hatch-patterns";
 
@@ -110,7 +110,7 @@ export class ClipperHelpers {
   }
 
   static polyTreeToHatchFillShape(polyTree: clipperLib.PolyTree): HatchFillShape {
-    let segments: Segment[] = [];
+    let segments: Path[] = [];
     const polyNodeToSegments = (node: clipperLib.PolyNode): void => {
       if (node.contour.length > 1) {
         let segPts = node.contour.map(
@@ -119,7 +119,7 @@ export class ClipperHelpers {
         if (!node.isOpen) {
           segPts.push(segPts[0]);
         }
-        segments.push(new Segment(segPts));
+        segments.push(new Path(segPts));
       }
       if (node.childs.length) {
         for (let j = 0; j < node.childs.length; j++) {

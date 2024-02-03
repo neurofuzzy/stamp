@@ -5,7 +5,7 @@ import {
   IStyle,
   Point,
   Ray,
-  Segment,
+  Path,
   ShapeAlignment,
 } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
@@ -934,7 +934,7 @@ export class Stamp extends AbstractShape {
     return this._cursor.clone();
   }
 
-  path(scale: number = 1): Segment[] {
+  path(scale: number = 1): Path[] {
     if (!this._baked) {
       this.bake();
     }
@@ -968,7 +968,7 @@ export class Stamp extends AbstractShape {
       });
     }
 
-    let seg = new Segment(points);
+    let seg = new Path(points);
     let optimizedSegs = Optimize.segments([seg]);
 
     return optimizedSegs;

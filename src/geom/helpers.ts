@@ -1,5 +1,5 @@
 import { makeCircle } from "../lib/smallest-enclosing-circle";
-import { Point, Ray, Segment, BoundingBox, IShape, BoundingCircle } from "./core";
+import { Point, Ray, Path, BoundingBox, IShape, BoundingCircle, Segment } from "./core";
 
 export class GeomHelpers {
 
@@ -272,9 +272,9 @@ export class GeomHelpers {
     ];
   }
 
-  static canOptimizeSegment(segment: Segment, threshold = 0.0001): Segment {
-    let i = segment.points.length;
-    let pts = segment.points.concat();
+  static canOptimizePath(path: Path, threshold = 0.0001): Path {
+    let i = path.points.length;
+    let pts = path.points.concat();
     while (i > 1) {
       i--;
       let ptA = pts[i];
@@ -290,7 +290,7 @@ export class GeomHelpers {
         }
       }
     }
-    return new Segment(pts);
+    return new Path(pts);
   }
 
   static sub(ptA: Point, ptB: Point) {
@@ -377,21 +377,21 @@ export class GeomHelpers {
     }
   }
 
-  static segmentsAreSameAngle(segA: Segment, segB: Segment) {
+  static segmentsAreSameAngle(segA: Segment, segB: Segment): boolean {
     let aA = GeomHelpers.angleBetweenPoints(segA.a, segA.b);
     let aB = GeomHelpers.angleBetweenPoints(segB.a, segB.b);
     return Math.abs(aA - aB) < 0.001;
   }
 
-  static segmentsAreSameAngleRev(segA: Segment, segB: Segment) {
+  static segmentsAreSameAngleRev(segA: Segment, segB: Segment): boolean {
     let aA = GeomHelpers.angleBetweenPoints(segA.a, segA.b);
     let aB = GeomHelpers.angleBetweenPoints(segB.b, segB.a);
     return Math.abs(aA - aB) < 0.001;
   }
 
-  static optimizeSegment(segment: Segment, threshold = 0.0001): Segment[] {
-    let i = segment.points.length;
-    let pts = segment.points.concat();
+  static optimizePath(path: Path, threshold = 0.0001): Path[] {
+    let i = path.points.length;
+    let pts = path.points.concat();
     let isClosed = GeomHelpers.pointsAreEqual(pts[0], pts[pts.length - 1], threshold);
     let newPts: Point[] = [];
     let segs = [];
@@ -415,7 +415,7 @@ export class GeomHelpers {
         ) {
           duplicate = true;
           if (newPts.length > 1) {
-            segs.push(new Segment(newPts));
+            segs.push(new Path(newPts));
             newPts = [];
           }
           break;
@@ -434,15 +434,15 @@ export class GeomHelpers {
       ) {
         newPts.push(newPts[0].clone());
       }
-      segs.push(new Segment(newPts));
+      segs.push(new Path(newPts));
     }
     return segs;
   }
 
-  static boundingCircleFromSegments (segs: Segment[]):BoundingCircle | null {
+  static boundingCircleFromPaths (paths: Path[]):BoundingCircle | null {
     let pts: Point[] = [];
-    for (let i = 0; i < segs.length; i++) {
-      pts = pts.concat(segs[i].points);
+    for (let i = 0; i < paths.length; i++) {
+      pts = pts.concat(paths[i].points);
     }
     const c = makeCircle(pts);
     if (c) {

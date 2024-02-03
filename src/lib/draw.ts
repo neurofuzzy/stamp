@@ -1,5 +1,5 @@
 import { IHatchPattern } from "../geom/hatch-patterns";
-import { BoundingBox, BoundingCircle, IShape, IStyle, Point, Ray, Segment } from "../geom/core";
+import { BoundingBox, BoundingCircle, IShape, IStyle, Point, Ray, Path } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 import { Sequence } from "./sequence";
 
@@ -153,7 +153,7 @@ export function drawRay(ctx: CanvasRenderingContext2D, r: Ray) {
   ctx.stroke();
 }
 
-export function drawPath(ctx: CanvasRenderingContext2D, path: Segment, pointRadius = 0) {
+export function drawPath(ctx: CanvasRenderingContext2D, path: Path, pointRadius = 0) {
   ctx.strokeStyle = 'cyan';
   ctx.lineWidth = 0.5;
   ctx.beginPath();
@@ -176,7 +176,7 @@ export function drawPath(ctx: CanvasRenderingContext2D, path: Segment, pointRadi
   }
 }
 
-export function drawPathGhosted(ctx: CanvasRenderingContext2D, path: Segment, pointRadius = 0) {
+export function drawPathGhosted(ctx: CanvasRenderingContext2D, path: Path, pointRadius = 0) {
   ctx.strokeStyle = 'cyan';
   ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
   ctx.lineWidth = 0.5;

@@ -89,6 +89,30 @@ export class Ray extends Point {
 }
 
 export class Segment {
+  a: Point;
+  b: Point;
+  constructor(a: Point, b: Point) {
+    this.a = a;
+    this.b = b;
+  }
+  toPath() {
+    return new Path([this.a, this.b]);
+  }
+  clone() {
+    return new Segment(this.a.clone(), this.b.clone());
+  }
+  toString() {
+    return `[${this.a.toString()},${this.b.toString()}]`;
+  }
+  fromString(s: string) {
+    const [a, b] = s.slice(1, -1).split(',');
+    this.a.fromString(a);
+    this.b.fromString(b);
+    return this;
+  }
+}
+
+export class Path {
   points: Point[];
   constructor(points: Point[]) {
     this.points = points;
@@ -137,8 +161,15 @@ export class Segment {
     const center = new Point(totalX / this.points.length, totalY / this.points.length);
     return new BoundingCircle(center.x, center.y, 0);
   }
+  toSegments() {
+    const segments: Segment[] = [];
+    for (let i = 0; i < this.points.length - 1; i++) {
+      segments.push(new Segment(this.points[i], this.points[i + 1]));
+    }
+    return segments;
+  }
   clone() {
-    return new Segment(this.points.map((p) => p.clone()));
+    return new Path(this.points.map((p) => p.clone()));
   }
   toString() {
     return `[${this.points.map((p) => p.toString()).join(', ')}]`;

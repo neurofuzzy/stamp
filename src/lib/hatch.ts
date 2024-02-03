@@ -14,7 +14,7 @@ import {
   SinewaveHatchPattern,
   SlateHatchPattern,
 } from "../geom/hatch-patterns";
-import { IShape, Ray, Segment } from "../geom/core";
+import { IShape, Ray, Path } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
 import { Polygon } from "../geom/shapes";
@@ -192,9 +192,9 @@ export class Hatch {
       for (let i = 0; i < fills.length; i++) {
         const fill = fills[i];
         const fillSegs = fill.generate();
-        const newSegs: Segment[] = [];
+        const newSegs: Path[] = [];
         fillSegs.map((seg) => {
-          const res = GeomHelpers.optimizeSegment(seg, 1);
+          const res = GeomHelpers.optimizePath(seg, 1);
           newSegs.push(...res);
         });
         fills[i] = new HatchFillShape(newSegs);

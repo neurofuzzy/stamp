@@ -1,14 +1,14 @@
-import { Segment } from "../geom/core";
+import { Path } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 
 export class Optimize {
 
-  static segments(segs: Segment[], noSplitColinear = false, trimSmall = true, smallDist = 0.1): Segment[] {
+  static segments(segs: Path[], noSplitColinear = false, trimSmall = true, smallDist = 0.1): Path[] {
 
-    let simpleSegs: Segment[] = [];
+    let simpleSegs: Path[] = [];
     segs.forEach((seg) => {
       for (let i = 0; i < seg.points.length - 1; i++) {
-        simpleSegs.push(new Segment([seg.points[i], seg.points[i + 1]]));
+        simpleSegs.push(new Path([seg.points[i], seg.points[i + 1]]));
       }
     });
 
@@ -104,8 +104,8 @@ export class Optimize {
 
     if (segs.length > 1) {
       
-      let joinedSegs: Segment[] = [];
-      let orderedSegs: Segment[] = [];
+      let joinedSegs: Path[] = [];
+      let orderedSegs: Path[] = [];
       orderedSegs.push(segs[0]);
       segs.shift();
       let iter = 0;
@@ -136,7 +136,7 @@ export class Optimize {
         }
         if (!found && segs.length) {
           if (orderedSegs.length) {
-            let fs = new Segment([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
+            let fs = new Path([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
             joinedSegs.push(fs);
           }
           orderedSegs = [segs[0]];
@@ -145,7 +145,7 @@ export class Optimize {
         iter++;
       }
       if (orderedSegs.length) {
-        let fs = new Segment([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
+        let fs = new Path([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
         joinedSegs.push(fs);
       }
       if (segs.length) {

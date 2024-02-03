@@ -88,7 +88,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   let pathSets = grid.children().map(x => {
     let path = x.path();
-    let c = GeomHelpers.boundingCircleFromSegments(path);
+    let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 90 / c.radius;
       return x.path(scale);
