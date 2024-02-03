@@ -1,19 +1,19 @@
-import { Path } from "../geom/core";
+import { Path, Segment } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 
 export class Optimize {
 
-  static segments(segs: Path[], noSplitColinear = false, trimSmall = true, smallDist = 0.1): Path[] {
+  static segments(paths: Path[], noSplitColinear = false, trimSmall = true, smallDist = 0.1): Path[] {
 
-    let simpleSegs: Path[] = [];
-    segs.forEach((seg) => {
-      for (let i = 0; i < seg.points.length - 1; i++) {
-        simpleSegs.push(new Path([seg.points[i], seg.points[i + 1]]));
+    let simpleSegs: Segment[] = [];
+    paths.forEach((path) => {
+      for (let i = 0; i < path.points.length - 1; i++) {
+        simpleSegs.push(new Segment(path.points[i], path.points[i + 1]));
       }
     });
 
     const sb = simpleSegs.concat();
-    segs = [];
+    const segs: Segment[] = [];
 
     while (sb.length) {
       let s = sb.shift();
@@ -100,12 +100,12 @@ export class Optimize {
       }
     }
 
-    let outSegs = segs.concat();
+    let outSegs: Path[] = segs.map((s) => s.toPath());
 
     if (segs.length > 1) {
       
-      let joinedSegs: Path[] = [];
-      let orderedSegs: Path[] = [];
+      let joinedPaths: Path[] = [];
+      let orderedSegs: Segment[] = [];
       orderedSegs.push(segs[0]);
       segs.shift();
       let iter = 0;
@@ -137,7 +137,7 @@ export class Optimize {
         if (!found && segs.length) {
           if (orderedSegs.length) {
             let fs = new Path([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
-            joinedSegs.push(fs);
+            joinedPaths.push(fs);
           }
           orderedSegs = [segs[0]];
           segs.shift();
@@ -146,12 +146,12 @@ export class Optimize {
       }
       if (orderedSegs.length) {
         let fs = new Path([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
-        joinedSegs.push(fs);
+        joinedPaths.push(fs);
       }
       if (segs.length) {
-        joinedSegs = joinedSegs.concat(segs);
+        joinedPaths = joinedPaths.concat(segs.map((s) => s.toPath()));
       }
-      outSegs = joinedSegs;
+      outSegs = joinedPaths;
     }
     
     return outSegs;
