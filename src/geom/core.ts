@@ -117,18 +117,6 @@ export class Path {
   constructor(points: Point[]) {
     this.points = points;
   }
-  get a () {
-    return this.points[0];
-  }
-  set a (val: Point) {
-    this.points[0] = val;
-  }
-  get b () {
-    return this.points[1];
-  }
-  set b (val: Point) {
-    this.points[1] = val;
-  }
   boundingBox(): BoundingBox {
     let minX = Infinity;
     let minY = Infinity;
