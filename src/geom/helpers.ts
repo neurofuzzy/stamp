@@ -1,4 +1,5 @@
-import { Point, Ray, Segment, BoundingBox, IShape } from "./core";
+import { makeCircle } from "../lib/smallest-enclosing-circle";
+import { Point, Ray, Segment, BoundingBox, IShape, BoundingCircle } from "./core";
 
 export class GeomHelpers {
 
@@ -436,5 +437,17 @@ export class GeomHelpers {
       segs.push(new Segment(newPts));
     }
     return segs;
+  }
+
+  static boundingCircleFromSegments (segs: Segment[]):BoundingCircle | null {
+    let pts: Point[] = [];
+    for (let i = 0; i < segs.length; i++) {
+      pts = pts.concat(segs[i].points);
+    }
+    const c = makeCircle(pts);
+    if (c) {
+      return new BoundingCircle(c.x, c.y, c.r);
+    }
+    return null;
   }
 }

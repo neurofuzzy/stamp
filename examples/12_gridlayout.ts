@@ -1,13 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawPath } from './lib/draw';
-import { Ray } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawPath } from '../src/lib/draw';
+import { Ray } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridStampLayout } from './lib/stamp-layout';
-import { GeomHelpers } from './geom/helpers';
+import { GridStampLayout } from '../src/lib/stamp-layout';
+import { GeomHelpers } from '../src/geom/helpers';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -76,14 +76,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate("RANGLE()")
     .repeatLast(3, 240)
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-
+    // Sequence.fromStatement("repeat 181,270,254,17,316,778,759,266,62,29,7,2493251,238", 7),
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    seedSequence: seeds,
+    seedSequence: Sequence.fromStatement("repeat 755,316,251,1092,3043305,277,293,1202,305", 12),
     rows: 3,
-    columns: 2,
+    columns: 3,
     rowSpacing: 240,
     columnSpacing: 240
   });

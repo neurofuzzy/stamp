@@ -1,3 +1,4 @@
+import { makeCircle } from "../lib/smallest-enclosing-circle";
 
 export enum ShapeAlignment {
   TOP_LEFT = 0,
@@ -103,6 +104,38 @@ export class Segment {
   }
   set b (val: Point) {
     this.points[1] = val;
+  }
+  boundingBox(): BoundingBox {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    this.points.forEach((pt) => {
+      if (pt.x < minX) minX = pt.x;
+      if (pt.y < minY) minY = pt.y;
+      if (pt.x > maxX) maxX = pt.x;
+      if (pt.y > maxY) maxY = pt.y;
+    });
+    return new BoundingBox(
+      minX,
+      minY,
+      maxX - minX,
+      maxY - minY
+    );
+  }
+  boundingCircle(): BoundingCircle {
+    let c = makeCircle(this.points);
+    if (c) {
+      return new BoundingCircle(c.x, c.y, c.r);
+    }
+    let totalX = 0;
+    let totalY = 0;
+    this.points.forEach((pt) => {
+      totalX += pt.x;
+      totalY += pt.y;
+    });
+    const center = new Point(totalX / this.points.length, totalY / this.points.length);
+    return new BoundingCircle(center.x, center.y, 0);
   }
   clone() {
     return new Segment(this.points.map((p) => p.clone()));
