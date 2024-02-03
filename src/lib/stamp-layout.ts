@@ -1,16 +1,7 @@
-import { IShape, Ray } from "../geom/core";
-import { AbstractShape, Polygon } from "../geom/shapes";
+import { Ray } from "../geom/core";
+import { AbstractShape } from "../geom/shapes";
 import { Sequence } from "./sequence";
 import { Stamp } from "./stamp";
-
-const $ = (arg: unknown) =>
-  typeof arg === "string"
-    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
-      ? parseInt(arg.replace("#", "0x"), 16)
-      : Sequence.resolve(arg)
-    : typeof arg === "number"
-    ? arg
-    : 0;
 
 interface IStampLayoutParams {
   stamp: Stamp;
@@ -52,7 +43,6 @@ export class GridStampLayout extends AbstractStampLayout {
     for (let j = 0; j < params.rows; j++) {
       for (let i = 0; i < params.columns; i++) {
         const seed = params.seedSequence?.next() || i;
-        console.log(seed)
         Sequence.resetAll(seed, [params.seedSequence]);
         Sequence.seed = seed;
         const x = params.columnSpacing * i;
