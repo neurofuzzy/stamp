@@ -1,13 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from './lib/draw';
-import { Ray } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawShape } from '../src/lib/draw';
+import { Ray } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridStampLayout } from './lib/stamp-layout';
-import { GeomHelpers } from './geom/helpers';
+import { GridStampLayout } from '../src/lib/stamp-layout';
+import { GeomHelpers } from '../src/geom/helpers';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -48,8 +48,7 @@ Sequence.seed = 197;
 Sequence.seed = 193;
 Sequence.seed = 316;
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE");
-Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-72 AS RANGLE");
+Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE");
 //Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
 Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
@@ -80,7 +79,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
   //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
   //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  const seeds = Sequence.fromStatement("repeat 398085,149779,198279,557892,980", 12);
+  const seeds = Sequence.fromStatement("repeat 35,98721,286897,98234210,239712873", 12);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
@@ -102,9 +101,6 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   pathSets.forEach(paths => {
-    paths.forEach(seg => {
-      //drawPath(ctx, seg, 0);
-    });
     let shapes = ClipperHelpers.offsetPathsToShape(paths, 4);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);

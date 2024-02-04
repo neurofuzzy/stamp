@@ -80,7 +80,7 @@ export class ClipperHelpers {
         {
           data: clipperPathPaths.data,
           joinType: clipperLib.JoinType.Round,
-          endType: clipperLib.EndType.OpenButt,
+          endType: clipperLib.EndType.OpenRound,
         },
       ],
     });
