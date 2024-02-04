@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { drawPath } from './lib/draw';
+import { drawPath, drawShape } from './lib/draw';
 import { Ray } from './geom/core';
 import { ClipperHelpers } from './lib/clipper-helpers';
 import { Sequence } from './lib/sequence';
@@ -101,7 +101,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   pathSets.forEach(paths => {
     paths.forEach(seg => {
-      drawPath(ctx, seg, 0);
+      //drawPath(ctx, seg, 0);
+    });
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 2);
+    shapes.forEach(shape => {
+      drawShape(ctx, shape, 0);
     });
   });
   

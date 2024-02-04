@@ -74,8 +74,8 @@ export class Hatch {
       default:
         return null;
     }
-    let shapePaths = ClipperHelpers.shapeToPaths(shape);
-    const hatchPaths = ClipperHelpers.hatchAreaToPaths(hatchPattern);
+    let shapePaths = ClipperHelpers.shapeToClipperPaths(shape);
+    const hatchPaths = ClipperHelpers.hatchAreaToClipperPaths(hatchPattern);
 
     if (ninset > 0) {
       const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
@@ -115,7 +115,7 @@ export class Hatch {
     if (!hatchFillShape) {
       return shape as Polygon;
     }
-    const hatchPaths = ClipperHelpers.hatchAreaToPaths(hatchFillShape);
+    const hatchPaths = ClipperHelpers.hatchAreaToClipperPaths(hatchFillShape);
     const strokeWidth = Math.max($(shape.style.hatchStrokeThickness) || 0, 2);
     if (strokeWidth > 0) {
       const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
@@ -131,7 +131,7 @@ export class Hatch {
       if (offsetResult) {
         const hatchResult = ClipperHelpers.clipper.clipToPolyTree({
           clipType: shape.style.hatchBooleanType === HatchBooleanType.DIFFERENCE ? clipperLib.ClipType.Difference : clipperLib.ClipType.Intersection,
-          subjectInputs: [ClipperHelpers.shapeToPaths(shape)],
+          subjectInputs: [ClipperHelpers.shapeToClipperPaths(shape)],
           clipInputs: [{
             data: ClipperHelpers.clipper.polyTreeToPaths(offsetResult),
           }],
@@ -157,7 +157,7 @@ export class Hatch {
 
   static offsetHatchFromShape(shape: IShape, hatchPattern: OffsetHatchPattern, optimize: boolean = true): HatchFillShape | null  {
     let ninset = hatchPattern.offsetStep;
-    const shapePaths = ClipperHelpers.shapeToPaths(shape);
+    const shapePaths = ClipperHelpers.shapeToClipperPaths(shape);
     const fills: HatchFillShape[] = [];
     let iter = 0;
     do {

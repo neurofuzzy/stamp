@@ -20,7 +20,7 @@ export class ClipperHelpers {
     return !!ClipperHelpers.clipper;
   }
 
-  static shapeToPaths(shape: IShape): {
+  static shapeToClipperPaths(shape: IShape): {
     data: clipperLib.IntPoint[] | clipperLib.IntPoint[][];
     closed: boolean;
   } {
@@ -39,13 +39,56 @@ export class ClipperHelpers {
     );
     paths.push(path);
     shape.children().forEach((s: IShape) => {
-      let p = ClipperHelpers.shapeToPaths(s);
+      let p = ClipperHelpers.shapeToClipperPaths(s);
       paths.push(...p.data);
     });
     return {
       data: paths,
       closed: true,
     };
+  }
+
+  static pathToClipperPaths(paths: Path[]): {
+    data: clipperLib.IntPoint[] | clipperLib.IntPoint[][];
+    closed: boolean;
+  } {
+    const data = [];
+    for (let i = 0; i < paths.length; i++) {
+      let path = paths[i];
+      let clipperPath = path.points.map(
+        (r) =>
+          ({
+            x: Math.round(r.x * 100000),
+            y: Math.round(r.y * 100000),
+          } as clipperLib.IntPoint)
+      );
+      data.push(clipperPath);
+    }
+    return {
+      data,
+      closed: false,
+    };
+  }
+
+  static offsetPathsToShape(paths: Path[], offset: number): Polygon[] {
+    const polygons: Polygon[] = [];
+    const clipperPathPaths = ClipperHelpers.pathToClipperPaths(paths)
+    const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
+      delta: offset * 100000,
+      offsetInputs: [
+        {
+          data: clipperPathPaths.data,
+          joinType: clipperLib.JoinType.Round,
+          endType: clipperLib.EndType.OpenButt,
+        },
+      ],
+    });
+    if (!offsetResult || (offsetResult.childs.length === 0 && offsetResult.contour.length === 0)) {
+      return polygons
+    }
+    const clippedPolys = ClipperHelpers.polyTreeToPolygons(offsetResult);
+    polygons.push(...clippedPolys);
+    return polygons;
   }
 
   static polyTreeToPolygons(polyTree: clipperLib.PolyTree): Polygon[] {
@@ -88,7 +131,7 @@ export class ClipperHelpers {
     return polygons;
   }
 
-  static hatchAreaToPaths(shape: IHatchPattern): {
+  static hatchAreaToClipperPaths(shape: IHatchPattern): {
     data: clipperLib.IntPoint[] | clipperLib.IntPoint[][];
     closed: boolean;
   } {

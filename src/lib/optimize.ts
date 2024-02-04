@@ -3,7 +3,7 @@ import { GeomHelpers } from "../geom/helpers";
 
 export class Optimize {
 
-  static segments(paths: Path[], noSplitColinear = false, trimSmall = true, smallDist = 0.1): Path[] {
+  static segments(paths: Path[], mergeConnectedPaths:boolean = true): Path[] {
 
     let simpleSegs: Segment[] = [];
     paths.forEach((path) => {
@@ -22,7 +22,7 @@ export class Optimize {
       let found = false;
       while (n--) {
         const sn = segs[n];
-        if (sn && GeomHelpers.segmentsAreEqual(s, sn, smallDist * 0.5, false)) {
+        if (sn && GeomHelpers.segmentsAreEqual(s, sn, 0.1, false)) {
           found = true;
           break;
         }
@@ -32,59 +32,55 @@ export class Optimize {
       }
     }
 
-    if (!noSplitColinear) {
-      
-      for (let n = 0; n < 3; n++) {
-        let i = segs.length;
-        let overlaps = 0;
+    for (let n = 0; n < 3; n++) {
+      let i = segs.length;
+      let overlaps = 0;
 
-        while (i--) {
-          let segA = segs[i];
-          let aa, ab, ba, bb, heading;
-          for (let j = i - 1; j >= 0; j--) {
-            let segB = segs[j];
-            let same = false;
-            let isRev = false;
-            if (GeomHelpers.segmentsAreSameAngle(segA, segB)) {
-              same = true;
-              aa = segA.a.clone();
-              ab = segA.b.clone();
-              ba = segB.a.clone();
-              bb = segB.b.clone();
-            } else if (GeomHelpers.segmentsAreSameAngleRev(segA, segB)) {
-              same = isRev = true;
-              aa = segA.b.clone();
-              ab = segA.a.clone();
-              ba = segB.a.clone();
-              bb = segB.b.clone();
-            }
-            if (aa && ab && ba && bb && same) {
-              heading = GeomHelpers.angleBetweenPoints(aa, ab);
-              GeomHelpers.rotatePoints(heading, aa, ab, ba, bb);
-              if (Math.abs(aa.y - ba.y) < 0.1 && ab.x >= ba.x - 0.0001 && aa.x <= bb.x + 0.0001) {
-                overlaps++;
-                if (aa.x < ba.x) {
-                  if (!isRev) {
-                    segB.a = segA.a;
-                  } else {
-                    segB.a = segA.b;
-                  }
+      while (i--) {
+        let segA = segs[i];
+        let aa, ab, ba, bb, heading;
+        for (let j = i - 1; j >= 0; j--) {
+          let segB = segs[j];
+          let same = false;
+          let isRev = false;
+          if (GeomHelpers.segmentsAreSameAngle(segA, segB)) {
+            same = true;
+            aa = segA.a.clone();
+            ab = segA.b.clone();
+            ba = segB.a.clone();
+            bb = segB.b.clone();
+          } else if (GeomHelpers.segmentsAreSameAngleRev(segA, segB)) {
+            same = isRev = true;
+            aa = segA.b.clone();
+            ab = segA.a.clone();
+            ba = segB.a.clone();
+            bb = segB.b.clone();
+          }
+          if (aa && ab && ba && bb && same) {
+            heading = GeomHelpers.angleBetweenPoints(aa, ab);
+            GeomHelpers.rotatePoints(heading, aa, ab, ba, bb);
+            if (Math.abs(aa.y - ba.y) < 0.1 && ab.x >= ba.x - 0.0001 && aa.x <= bb.x + 0.0001) {
+              overlaps++;
+              if (aa.x < ba.x) {
+                if (!isRev) {
+                  segB.a = segA.a;
+                } else {
+                  segB.a = segA.b;
                 }
-                if (ab.x > bb.x) {
-                  if (!isRev) {
-                    segB.b = segA.b;
-                  } else {
-                    segB.b = segA.a;
-                  }
-                }
-                segs.splice(i, 1);
-                break;
               }
+              if (ab.x > bb.x) {
+                if (!isRev) {
+                  segB.b = segA.b;
+                } else {
+                  segB.b = segA.a;
+                }
+              }
+              segs.splice(i, 1);
+              break;
             }
           }
         }
       }
-
     }
     
     let i = segs.length;
@@ -94,15 +90,11 @@ export class Optimize {
         segs.splice(i, 1);
         continue;
       }
-      if (trimSmall && GeomHelpers.distanceBetweenPoints(seg.a, seg.b) < smallDist) {
-        segs.splice(i, 1);
-        continue;
-      }
     }
 
     let outSegs: Path[] = segs.map((s) => s.toPath());
 
-    if (segs.length > 1) {
+    if (mergeConnectedPaths && segs.length > 1) {
       
       let joinedPaths: Path[] = [];
       let orderedSegs: Segment[] = [];

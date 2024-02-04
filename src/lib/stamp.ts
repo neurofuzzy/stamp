@@ -306,7 +306,7 @@ export class Stamp extends AbstractShape {
           break;
         case Stamp.UNION:
           if (this._tree) {
-            b2 = ClipperHelpers.shapeToPaths(g);
+            b2 = ClipperHelpers.shapeToClipperPaths(g);
             if (g.hidden) {
               continue;
             }
@@ -345,7 +345,7 @@ export class Stamp extends AbstractShape {
             });
             this._tree = polyResult;
           } else {
-            b = ClipperHelpers.shapeToPaths(g);
+            b = ClipperHelpers.shapeToClipperPaths(g);
             if (g.hidden) {
               continue;
             }
@@ -368,7 +368,7 @@ export class Stamp extends AbstractShape {
 
         case Stamp.SUBTRACT:
           if (this._tree) {
-            b2 = ClipperHelpers.shapeToPaths(g);
+            b2 = ClipperHelpers.shapeToClipperPaths(g);
             if (g.hidden) {
               continue;
             }
@@ -394,7 +394,7 @@ export class Stamp extends AbstractShape {
 
         case Stamp.INTERSECT:
           if (this._tree) {
-            b2 = ClipperHelpers.shapeToPaths(g);
+            b2 = ClipperHelpers.shapeToClipperPaths(g);
             if (g.hidden) {
               continue;
             }
@@ -934,7 +934,7 @@ export class Stamp extends AbstractShape {
     return this._cursor.clone();
   }
 
-  path(scale: number = 1): Path[] {
+  path(scale: number = 1, optimize: boolean = true, mergeConnectedPaths:boolean = true): Path[] {
     if (!this._baked) {
       this.bake();
     }
@@ -969,9 +969,13 @@ export class Stamp extends AbstractShape {
     }
 
     let seg = new Path(points);
-    let optimizedSegs = Optimize.segments([seg]);
 
-    return optimizedSegs;
+    if (optimize) {
+      let optimizedSegs = Optimize.segments([seg], mergeConnectedPaths);
+      return optimizedSegs;
+    }
+
+    return [seg];
   }
 
   private mapStyles() {
