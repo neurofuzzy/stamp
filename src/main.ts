@@ -78,13 +78,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
   //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91", 12);
+  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91", 12);
+  const seeds = Sequence.fromStatement("repeat 35,66,113,108,93,91", 12);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
     seedSequence: seeds,
-    rows: 3,
-    columns: 3,
+    rows: 1,
+    columns: 1,
     rowSpacing: 240,
     columnSpacing: 240
   });
@@ -93,7 +94,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     let path = x.path();
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
-      let scale = 90 / c.radius;
+      let scale = 400 / c.radius;
       return x.path(scale);
     }
     return path;
@@ -103,7 +104,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     paths.forEach(seg => {
       //drawPath(ctx, seg, 0);
     });
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 2);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 8);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);
     });
@@ -123,7 +124,7 @@ document.onkeydown = function (e) {
     // draw the shapes
     draw(ctx2);
     // download the SVG
-    const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
+    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
     const blob = new Blob([svg], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);

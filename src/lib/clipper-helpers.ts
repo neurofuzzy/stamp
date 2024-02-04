@@ -75,6 +75,7 @@ export class ClipperHelpers {
     const clipperPathPaths = ClipperHelpers.pathToClipperPaths(paths)
     const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
       delta: offset * 100000,
+      arcTolerance: 25000,
       offsetInputs: [
         {
           data: clipperPathPaths.data,
