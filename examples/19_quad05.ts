@@ -1,13 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from './lib/draw';
-import { Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawPath, drawShape } from '../src/lib/draw';
+import { Ray } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridStampLayout } from './lib/stamp-layout';
-import { GeomHelpers } from './geom/helpers';
+import { GridStampLayout } from '../src/lib/stamp-layout';
+import { GeomHelpers } from '../src/geom/helpers';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -35,11 +35,22 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 125);
 
-Sequence.seed = 455;
+Sequence.seed = 2;
+Sequence.seed = 500;
+Sequence.seed = 503;
+Sequence.seed = 506;
+Sequence.seed = 518;
+Sequence.seed = 18;
+Sequence.seed = 17;
+Sequence.seed = 199;
+Sequence.seed = 198;
+Sequence.seed = 197;
+Sequence.seed = 193;
+Sequence.seed = 316;
 
 
-const len = 50;
-const weight = 20;
+const len = 30;
+const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -51,31 +62,54 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const seeds = Sequence.fromStatement("repeat 9,455,4,15", 12);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
+    .noBoolean()
     .defaultStyle({
-      strokeThickness: 1,
-      fillColor: "#222222",
+      strokeThickness: 0,
+      fillColor: "cyan",
     })
     .forward(len)
-    .bone({
-      topRadius: weight / 2,
-      bottomRadius: weight / 2,
-      length: len,
+    .circle({
+      radius: 2,
       divisions: 3,
-      align: ShapeAlignment.BOTTOM
+      skip: 1
     })
     .rotate("RANGLE()")
     .repeatLast(3, 240)
 
-  let paths = lattice.path();
-  let shapes = ClipperHelpers.offsetPathsToShape(paths, 4);
-  lattice.children().forEach(shape => {
-    drawShape(ctx, shape, 0);
+
+  const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    stamp: lattice,
+    seedSequence: seeds,
+    rows: 2,
+    columns: 2,
+    rowSpacing: 420,
+    columnSpacing: 420
   });
-  shapes.forEach(shape => {
-    drawShape(ctx, shape, 0);
+
+  let pathSets = grid.children().map(x => {
+    let path = x.path();
+    let c = GeomHelpers.boundingCircleFromPaths(path);
+    if (c) {
+      let scale = 200 / c.radius;
+      return x.path(scale);
+    }
+    return path;
   });
-  paths.forEach(path => {
-    drawPath(ctx, path, 3);
+
+  pathSets.forEach(paths => {
+    paths.forEach(seg => {
+      //drawPath(ctx, seg, 0);
+    });
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 3);
+    shapes.forEach(shape => {
+      drawShape(ctx, shape, 0);
+    });
+    /*
+    shapes = ClipperHelpers.offsetPathsToShape(paths, 1);
+    shapes.forEach(shape => {
+      drawShape(ctx, shape, 0);
+    });
+    */
   });
   
 }

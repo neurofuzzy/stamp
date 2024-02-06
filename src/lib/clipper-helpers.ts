@@ -101,8 +101,8 @@ export class ClipperHelpers {
           let p = node.contour[j];
           rays.push(
             new Ray(
-              Math.round(p.x - 100000) / 100000,
-              Math.round(p.y - 100000) / 100000
+              Math.round(p.x) / 100000,
+              Math.round(p.y) / 100000
             )
           );
         }

@@ -154,8 +154,8 @@ export function drawRay(ctx: CanvasRenderingContext2D, r: Ray) {
 }
 
 export function drawPath(ctx: CanvasRenderingContext2D, path: Path, pointRadius = 0) {
-  ctx.strokeStyle = 'cyan';
-  ctx.lineWidth = 0.5;
+  ctx.strokeStyle = '#0099ff';
+  ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(path.points[0].x, path.points[0].y);
   for (let i = 1; i < path.points.length; i++) {
@@ -167,7 +167,7 @@ export function drawPath(ctx: CanvasRenderingContext2D, path: Path, pointRadius 
     for (let i = 1; i < path.points.length; i++) {
       const r = path.points[i];
       ctx.lineWidth = 0;
-      ctx.fillStyle = 'cyan';
+      ctx.fillStyle = '#0099ff';
       ctx.beginPath();
       ctx.arc(r.x, r.y, pointRadius, 0, 2 * Math.PI);
       ctx.fill();
