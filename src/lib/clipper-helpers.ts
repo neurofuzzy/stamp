@@ -70,12 +70,12 @@ export class ClipperHelpers {
     };
   }
 
-  static offsetPathsToShape(paths: Path[], offset: number): Polygon[] {
+  static offsetPathsToShape(paths: Path[], offset: number, detailLevel = 1): Polygon[] {
     const polygons: Polygon[] = [];
     const clipperPathPaths = ClipperHelpers.pathToClipperPaths(paths)
     const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
       delta: offset * 100000,
-      arcTolerance: 25000,
+      arcTolerance: 25000 / Math.max(1, detailLevel),
       offsetInputs: [
         {
           data: clipperPathPaths.data,

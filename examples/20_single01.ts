@@ -35,17 +35,18 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 125);
 
+Sequence.seed = 27;
+
+
+const len = 50;
+const weight = 16;
+
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   ctx.clearRect(0, 0, w, h);
 
-  const len = 90;
-  const weight = len / 3;
-  Sequence.seed = 61;
-  Sequence.seed = 70;
-  Sequence.seed = 75;
-  Sequence.fromStatement("repeat 300,300,300,300,300,60,60,60,60 AS RANGLE");
-  Sequence.fromStatement("repeat 1,1,1,1,1,0,0,0,0 AS BSKIP");
+  Sequence.fromStatement("shuffle -72,72,72,72 AS RINGLE");
+  Sequence.fromStatement("shuffle -72,-72,72,72,RINGLE() AS RANGLE");
   
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
@@ -53,28 +54,19 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeColor: "#ffffff",
       fillColor: "#222222",
     })
-    
+    .forward(len)
     .bone({
       topRadius: weight / 2,
       bottomRadius: weight / 2,
       length: len,
-      divisions: 6,
-      align: ShapeAlignment.TOP
+      divisions: 3,
+      align: ShapeAlignment.BOTTOM
     })
-    .circle({
-      radius: weight * 1.25,
-      divisions: 6,
-      offsetX: Math.cos(30 * Math.PI / 180) * len,
-      offsetY: 0 - len / 2,
-      angle: 15,
-      skip: "BSKIP()"
-    })
-    .forward(len)
     .rotate("RANGLE()")
-    .repeatLast(4, 240)
+    .repeatLast(3, 240)
 
   let paths = lattice.path();
-  let shapes = ClipperHelpers.offsetPathsToShape(paths, len / 12, 2);
+  let shapes = ClipperHelpers.offsetPathsToShape(paths, 4);
   lattice.children().forEach(shape => {
     drawShape(ctx, shape, 0);
   });
