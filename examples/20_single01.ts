@@ -1,13 +1,11 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from './lib/draw';
-import { Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawPath, drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridStampLayout } from './lib/stamp-layout';
-import { GeomHelpers } from './geom/helpers';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>

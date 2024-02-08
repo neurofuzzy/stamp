@@ -1,13 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from './lib/draw';
-import { Ray, ShapeAlignment } from './geom/core';
-import { ClipperHelpers } from './lib/clipper-helpers';
-import { Sequence } from './lib/sequence';
-import { Stamp } from './lib/stamp';
-import './style.css';
+import { drawPath, drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridStampLayout } from './lib/stamp-layout';
-import { GeomHelpers } from './geom/helpers';
+import { GridStampLayout } from '../src/lib/stamp-layout';
+import { GeomHelpers } from '../src/geom/helpers';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -45,8 +45,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   Sequence.seed = 26;
   Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,30  AS RANGLE");
   Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
-  //const seeds = Sequence.fromStatement("repeat 4,30,7,8,12,16,17,18,19", 12);
-  const seeds = Sequence.fromStatement("repeat 38,39,42,50,56,64,66,68,81", 12);
+  const seeds = Sequence.fromStatement("repeat 4,30,7,8,12,16,17,18,19", 12);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
