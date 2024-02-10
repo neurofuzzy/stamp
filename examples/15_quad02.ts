@@ -105,7 +105,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     paths.forEach(seg => {
       //drawPath(ctx, seg, 0);
     });
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 4);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 4, 4);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);
     });
@@ -126,7 +126,8 @@ document.onkeydown = function (e) {
     draw(ctx2);
     // download the SVG
     const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
+    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;

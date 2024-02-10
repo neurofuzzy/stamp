@@ -59,33 +59,36 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()
-    .forward("repeat 30,60")
+    .defaultStyle({
+      strokeThickness: 0,
+      fillColor: "cyan",
+    })
+    .forward(len)
     .circle({
-      radius: 20,
-      divisions: 8,
-      skip: "RANGLE - 100"
+      radius: 2,
+      divisions: 3,
+      skip: 1
     })
     .rotate("RANGLE()")
-    .repeatLast(3, 360)
+    .repeatLast(3, 240)
 
-  Sequence.fromStatement("shuffle 90,90,-90,-90,-90,-90,-90 AS RINGLE");
-  Sequence.fromStatement("shuffle 0,0,180,-90,-90,RINGLE() AS RANGLE");
-  const seeds = Sequence.fromStatement("repeat 11,13,35,38,41,45,46,47,50", 12);
+  Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,-72,-72,-72 AS RANGLE");
+  const seeds = Sequence.fromStatement("repeat 77763,836736,988787,988769,987636,987650", 12);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
     seedSequence: seeds,
-    rows: 3,
-    columns: 3,
-    rowSpacing: 320,
-    columnSpacing: 320
+    rows: 2,
+    columns: 2,
+    rowSpacing: 420,
+    columnSpacing: 420
   });
 
   let pathSets = grid.children().map(x => {
     let path = x.path();
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
-      let scale = 140 / c.radius;
+      let scale = 200 / c.radius;
       return x.path(scale);
     }
     return path;
@@ -95,15 +98,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     paths.forEach(seg => {
       //drawPath(ctx, seg, 0);
     });
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 4, 4, true, true);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 6, 4);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);
       console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
     });
-  });
-
-  grid.children().forEach(shape => {
-   // drawShape(ctx, shape, 0);
   });
   
 }

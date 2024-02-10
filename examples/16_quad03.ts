@@ -106,7 +106,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     paths.forEach(seg => {
       //drawPath(ctx, seg, 0);
     });
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 6);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 6, 4);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);
     });

@@ -70,7 +70,7 @@ export class ClipperHelpers {
     };
   }
 
-  static offsetPathsToShape(paths: Path[], offset: number, detailLevel = 1): Polygon[] {
+  static offsetPathsToShape(paths: Path[], offset: number, detailLevel = 1, miterJoins = false, miterEnds = false): Polygon[] {
     const polygons: Polygon[] = [];
     const clipperPathPaths = ClipperHelpers.pathToClipperPaths(paths)
     const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
@@ -79,8 +79,8 @@ export class ClipperHelpers {
       offsetInputs: [
         {
           data: clipperPathPaths.data,
-          joinType: clipperLib.JoinType.Round,
-          endType: clipperLib.EndType.OpenRound,
+          joinType: miterJoins ? clipperLib.JoinType.Miter : clipperLib.JoinType.Round,
+          endType: miterEnds ? clipperLib.EndType.OpenSquare : clipperLib.EndType.OpenRound,
         },
       ],
     });

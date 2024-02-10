@@ -90,6 +90,10 @@ export class Optimize {
         segs.splice(i, 1);
         continue;
       }
+      if (GeomHelpers.distanceBetweenPoints(seg.a, seg.b) < 0.1) {
+        segs.splice(i, 1);
+        continue;
+      }
     }
 
     let outSegs: Path[] = segs.map((s) => s.toPath());

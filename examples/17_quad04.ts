@@ -8,6 +8,7 @@ import '../src/style.css';
 import colors from 'nice-color-palettes';
 import { GridStampLayout } from '../src/lib/stamp-layout';
 import { GeomHelpers } from '../src/geom/helpers';
+import { GeomUtils } from '../src/geom/util';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -106,9 +107,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     paths.forEach(seg => {
       //drawPath(ctx, seg, 0);
     });
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 6);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 6, 4);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);
+      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
     });
   });
   
