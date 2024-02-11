@@ -48,7 +48,7 @@ export class GridStampLayout extends AbstractStampLayout {
         const x = params.columnSpacing * i;
         const y = params.rowSpacing * j;
         const stamp = params.stamp.clone();
-        stamp.center = new Ray(this.center.x + x - w / 2, this.center.y + y - h / 2, 0);
+        stamp.center = new Ray(this.center.x + x - w / 2, this.center.y + y - h / 2, stamp.center.direction);
         stamp.generate();
         c.push(stamp);
       }

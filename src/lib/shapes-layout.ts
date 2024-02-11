@@ -1,10 +1,10 @@
-import { Ray } from "../geom/core";
+import { IStyle, Ray } from "../geom/core";
 import { AbstractShape } from "../geom/shapes";
-import { Sequence } from "./sequence";
 import { IShape } from "../geom/core";
 
 interface IShapeLayoutParams {
   shape: IShape;
+  style?: IStyle;
 }
 
 interface IGridShapeLayoutParams extends IShapeLayoutParams {
@@ -44,7 +44,10 @@ export class GridShapeLayout extends AbstractShapeLayout {
         const x = params.columnSpacing * i;
         const y = params.rowSpacing * j;
         const shape = params.shape.clone();
-        shape.center = new Ray(this.center.x + x - w / 2, this.center.y + y - h / 2, 0);
+        shape.center = new Ray(this.center.x + x - w / 2, this.center.y + y - h / 2, shape.center.direction);
+        if (params.style) {
+          shape.style = params.style;
+        }
         shape.generate();
         c.push(shape);
       }

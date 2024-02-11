@@ -1,15 +1,13 @@
 import * as C2S from 'canvas2svg';
 import { drawShape } from '../src/lib/draw';
-import { Ray } from '../src/geom/core';
+import { IStyle, Ray } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
-import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridStampLayout } from '../src/lib/stamp-layout';
-import { GeomHelpers } from '../src/geom/helpers';
-import { GeomUtils } from '../src/geom/util';
 import { GridShapeLayout } from './lib/shapes-layout';
+import { ShapesProvider } from './lib/shapes-provider';
+import { Circle, Rectangle } from './geom/shapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -33,55 +31,40 @@ ctx.fillStyle = 'white';
 Sequence.seed = 1;
 
 // 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[83];
+const palette = colors[86];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
-Sequence.fromStatement(colorSeq, 125);
+Sequence.fromStatement(colorSeq, 122);
 
 Sequence.seed = 2;
-Sequence.seed = 500;
-Sequence.seed = 503;
-Sequence.seed = 506;
-Sequence.seed = 518;
-Sequence.seed = 18;
-Sequence.seed = 17;
-Sequence.seed = 199;
-Sequence.seed = 198;
-Sequence.seed = 197;
-Sequence.seed = 193;
-Sequence.seed = 316;
-
-
-const len = 30;
-const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   ctx.clearRect(0, 0, w, h);
 
-  const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
-    .noBoolean()
-    .forward("RLEN()")
-    .circle({
-      radius: 20,
-      divisions: 8,
-      skip: 1
-    })
-    .rotate("RANGLE()")
-    .repeatLast(3, 120)
+  const style: IStyle = {
+    fillColor: "COLOR()",
+    strokeColor: "COLOR()",
+    strokeThickness: 8
+  }
+
+  const shapeProvider = new ShapesProvider([
+    new Circle(),
+    new Rectangle(),
+    new Circle(new Ray(w / 2, h / 2, 0), 50, 4),
+    new Circle(new Ray(w / 2, h / 2, 0 - Math.PI / 4), 50, 3),
+  ])
 
   Sequence.fromStatement("repeat 30,30 AS RLEN");
   Sequence.fromStatement("shuffle 120,-60,60,180,60,-60 AS RANGLE");
-  const seeds = Sequence.fromStatement("repeat 240-360", 12);
 
   const grid = new GridShapeLayout(new Ray(w / 2, h / 2, 0), {
-    shape: lattice,
-    seedSequence: seeds,
+    shape: shapeProvider,
+    style: style,
     rows: 6,
     columns: 6,
     rowSpacing: 140,
     columnSpacing: 140
   });
-
 
   grid.children().forEach(shape => {
    drawShape(ctx, shape, 0);

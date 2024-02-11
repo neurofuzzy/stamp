@@ -11,20 +11,24 @@ export class ShapesProvider implements IShape {
   constructor(shapes: IShape[] = [], indexSequence: Sequence | null = null) {
     this.shapes = shapes;
     this.indexSequence = indexSequence;
-    this.next();
   }
   protected next() {
+    console.log("next");
     if (!this.shapes.length) {
       return;
     }
     this.currentShapeIndex = this.indexSequence ? this.indexSequence.next() : this.currentShapeIndex + 1;
-    this.currentShape = this.shapes[this.currentShapeIndex % this.shapes.length];
+    const i = this.currentShapeIndex % this.shapes.length;
+    this.currentShape = this.shapes[i]?.clone() || new AbstractShape();
   }
   get id(): number {
     return this.currentShape.id;
   }
   get center(): Ray {
     return this.currentShape.center;
+  }
+  set center(center: Ray) {
+    this.currentShape.center = center;
   }
   get divisions(): number {
     return this.currentShape.divisions;
@@ -64,6 +68,7 @@ export class ShapesProvider implements IShape {
     this.indexSequence?.reset();
   }
   clone() {
-    return new ShapesProvider(this.shapes, this.indexSequence);
+    this.next();
+    return this.currentShape.clone();
   }
 }

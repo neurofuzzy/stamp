@@ -55,17 +55,15 @@ export function drawShape(
         style.fillColor !== undefined &&
         !isNaN(parseInt(`${style.fillColor}`))
           ? `#${style.fillColor.toString(16).padStart(6, "0")}`
-          : `${style.fillColor}`;
+          : "#" + $(style.fillColor).toString(16).padStart(6, "0");
       ctx.fillStyle = fs || "rgba(0, 0, 0, 0)";
     }
 
-    let sc = $(shape.style.strokeColor);
-    let ss =
-      style.strokeColor !== undefined &&
-      !isNaN(sc)
-        ? `#${sc.toString(16).split("0x").join("").padStart(6, "0")}`
-        : `${style.strokeColor}`;
-    if (!shape.style.strokeColor) ss = "#999999";
+    const ss =
+        style.strokeColor !== undefined &&
+        !isNaN(parseInt(`${style.strokeColor}`))
+          ? `#${style.strokeColor.toString(16).padStart(6, "0")}`
+          : "#" + $(style.strokeColor).toString(16).padStart(6, "0");
     ctx.strokeStyle = ss || "rgba(0, 0, 0, 0)";
     const lw = parseFloat(`${style.strokeThickness}`) || 0;
     ctx.lineWidth = lw;
