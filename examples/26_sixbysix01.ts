@@ -9,7 +9,6 @@ import colors from 'nice-color-palettes';
 import { GridStampLayout } from '../src/lib/stamp-layout';
 import { GeomHelpers } from '../src/geom/helpers';
 import { GeomUtils } from '../src/geom/util';
-import { GridShapeLayout } from './lib/shapes-layout';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -73,8 +72,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   Sequence.fromStatement("shuffle 120,-60,60,180,60,-60 AS RANGLE");
   const seeds = Sequence.fromStatement("repeat 240-360", 12);
 
-  const grid = new GridShapeLayout(new Ray(w / 2, h / 2, 0), {
-    shape: lattice,
+  const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    stamp: lattice,
     seedSequence: seeds,
     rows: 6,
     columns: 6,
@@ -82,9 +81,29 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     columnSpacing: 140
   });
 
+  let pathSets = grid.children().map(x => {
+    let path = x.path();
+    let c = GeomHelpers.boundingCircleFromPaths(path);
+    if (c) {
+      let scale = 50 / c.radius;
+      return x.path(scale);
+    }
+    return path;
+  });
+
+  pathSets.forEach(paths => {
+    paths.forEach(seg => {
+      //drawPath(ctx, seg, 0);
+    });
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 2, 4);
+    shapes.forEach(shape => {
+      drawShape(ctx, shape, 0);
+      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
+    });
+  });
 
   grid.children().forEach(shape => {
-   drawShape(ctx, shape, 0);
+   // drawShape(ctx, shape, 0);
   });
   
 }
