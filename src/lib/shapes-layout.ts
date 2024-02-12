@@ -48,7 +48,6 @@ export class GridShapeLayout extends AbstractShapeLayout {
         if (params.style) {
           shape.style = params.style;
         }
-        shape.generate();
         c.push(shape);
       }
     }

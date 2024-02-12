@@ -4,7 +4,7 @@ import {
   Rectangle,
   RoundedRectangle,
 } from "./shapes";
-import { BoundingBox, Ray, ShapeAlignment } from "./core";
+import { BoundingBox, IShape, Ray, ShapeAlignment } from "./core";
 
 export class Donut extends Circle {
   innerRadius: number;
@@ -19,6 +19,9 @@ export class Donut extends Circle {
     this.innerRadius = innerRadius;
   }
   generate() {
+    return [];
+  }
+  children(): IShape[] {
     const offset = this.alignmentOffset();
     offset.x *= 0.5;
     offset.y *= 0.5;
@@ -33,13 +36,13 @@ export class Donut extends Circle {
       this.divisions,
       ShapeAlignment.CENTER,
       true
-    ).generate();
+    );
     const outer = new Circle(
       offsetCenter,
       this.radius,
       this.divisions
-    ).generate();
-    return [...outer, ...inner, outer[0]];
+    );
+    return [outer, inner];
   }
   boundingBox(): BoundingBox {
     return new BoundingBox(
@@ -80,7 +83,10 @@ export class RectangularDonut extends Rectangle {
     this.innerWidth = innerWidth;
     this.innerHeight = innerHeight;
   }
-  generate() {
+  generate(): Ray[] {
+    return [];
+  }
+  children() {
     const offset = this.alignmentOffset();
     offset.x *= 0.5;
     offset.y *= 0.5;
@@ -96,14 +102,14 @@ export class RectangularDonut extends Rectangle {
       this.divisions,
       ShapeAlignment.CENTER,
       true
-    ).generate();
+    );
     const outer = new Rectangle(
       offsetCenter,
       this.width,
       this.height,
       this.divisions
-    ).generate();
-    return [...outer, ...inner, outer[0]];
+    );
+    return [outer, inner];
   }
   boundingBox(): BoundingBox {
     return new BoundingBox(
@@ -150,7 +156,10 @@ export class RoundedRectangularDonut extends AbstractShape {
     this.radius = radius;
     this.thickness = thickness;
   }
-  generate() {
+  generate(): Ray[] {
+    return [];
+  }
+  children() {
     const offset = this.alignmentOffset();
     offset.x *= 0.5;
     offset.y *= 0.5;
@@ -165,7 +174,7 @@ export class RoundedRectangularDonut extends AbstractShape {
       this.height,
       this.radius,
       this.divisions
-    ).generate();
+    );
     const inner =
       this.radius - this.thickness > 0
         ? new RoundedRectangle(
@@ -176,7 +185,7 @@ export class RoundedRectangularDonut extends AbstractShape {
             this.divisions,
             ShapeAlignment.CENTER,
             true
-          ).generate()
+          )
         : new Rectangle(
             offsetCenter,
             this.width - this.thickness * 2,
@@ -184,8 +193,8 @@ export class RoundedRectangularDonut extends AbstractShape {
             this.divisions,
             ShapeAlignment.CENTER,
             true
-          ).generate();
-    return [...outer, ...inner, outer[0]];
+          );
+    return [outer, inner];
   }
   boundingBox(): BoundingBox {
     return new BoundingBox(

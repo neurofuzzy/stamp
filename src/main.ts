@@ -8,6 +8,7 @@ import colors from 'nice-color-palettes';
 import { GridShapeLayout } from './lib/shapes-layout';
 import { ShapesProvider } from './lib/shapes-provider';
 import { Circle, Rectangle } from './geom/shapes';
+import { Donut } from './geom/compoundshapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -31,7 +32,7 @@ ctx.fillStyle = 'white';
 Sequence.seed = 1;
 
 // 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[86];
+const palette = colors[8];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
@@ -50,13 +51,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const shapeProvider = new ShapesProvider([
     new Circle(),
     new Rectangle(),
-    new Circle(new Ray(w / 2, h / 2, 0), 50, 4),
-    new Circle(new Ray(w / 2, h / 2, 0 - Math.PI / 4), 50, 3),
-  ])
+    new Circle(new Ray(0, 0, 0), 50, 4),
+    new Circle(new Ray(0, 0, 0 - Math.PI / 4), 50, 5),
+    new Donut(new Ray(0, 0, 0), 30, 50, 32),
+  ], Sequence.fromStatement("shuffle 0,1,2,3,4", 1))
 
-  Sequence.fromStatement("repeat 30,30 AS RLEN");
-  Sequence.fromStatement("shuffle 120,-60,60,180,60,-60 AS RANGLE");
-
+  
   const grid = new GridShapeLayout(new Ray(w / 2, h / 2, 0), {
     shape: shapeProvider,
     style: style,
@@ -69,7 +69,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   grid.children().forEach(shape => {
    drawShape(ctx, shape, 0);
   });
-  
+
 }
 
 document.onkeydown = function (e) {
