@@ -123,6 +123,16 @@ export class AbstractShape implements IShape {
     }
     return new BoundingCircle(this.center.x, this.center.y, 0);
   }
+  protected fit(rays: Ray[], withinArea?: BoundingBox) {
+    if (withinArea) {
+      const bb = this.boundingBox();
+      const scale = Math.min(withinArea.width / bb.width, withinArea.height / bb.height);
+      rays.forEach((r) => {
+        r.x *= scale;
+        r.y *= scale;
+      });
+    }
+  }
   children(): IShape[] {
     return this.childShapes;
   }
@@ -153,7 +163,7 @@ export class Arc extends AbstractShape {
     this.endAngle = endAngle;
     this.reverse = reverse;
   }
-  generate() {
+  generate(withinArea?: BoundingBox) {
     const rays = [];
     for (let i = 0; i <= this.divisions; i++) {
       const angle = GeomHelpers.lerpAngle(
@@ -182,12 +192,14 @@ export class Arc extends AbstractShape {
         GeomHelpers.rotateRayAboutOrigin(this.center, r);
       });
     }
+    this.fit(rays, withinArea);
     return rays;
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new Arc(
       this.center.clone(),
-      this.radius,
+      this.radius * scale,
       this.startAngle,
       this.endAngle,
       this.divisions,
@@ -219,7 +231,7 @@ export class Polygon extends AbstractShape {
       this._scale = s;
     }
   }
-  generate() {
+  generate(withinArea?: BoundingBox) {
     let rays = this.rays.slice().map((r) => r.clone());
     if (this._scale !== 1) {
       rays.forEach((r) => {
@@ -240,12 +252,14 @@ export class Polygon extends AbstractShape {
       rays.reverse();
       rays.forEach((r) => (r.direction += Math.PI));
     }
+    this.fit(rays, withinArea);
     return rays;
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new Polygon(
       this.center.clone(),
-      this.rays,
+      this.rays.map((r) => r.clone()),
       this.divisions,
       this.alignment,
       this.reverse
@@ -253,6 +267,7 @@ export class Polygon extends AbstractShape {
     s.isHole = this.isHole;
     s.hidden = this.hidden;
     s.style = Object.assign({}, this.style);
+    s.setScale(scale);
     return s;
   }
 }
@@ -296,7 +311,7 @@ export class Circle extends AbstractShape {
         return new Point(0, 0);
     }
   }
-  generate() {
+  generate(withinArea?: BoundingBox) {
     const rays = [];
     const offset = this.alignmentOffset();
     for (let i = 0; i <= this.divisions; i++) {
@@ -327,12 +342,14 @@ export class Circle extends AbstractShape {
       rays.reverse();
       rays.forEach((r) => (r.direction += Math.PI));
     }
+    this.fit(rays, withinArea);
     return rays;
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new Circle(
       this.center.clone(),
-      this.radius,
+      this.radius * scale,
       this.divisions,
       this.alignment,
       this.reverse
@@ -383,7 +400,7 @@ export class Ellipse extends AbstractShape {
         return new Point(0, 0);
     }
   }
-  generate() {
+  generate(withinArea?: BoundingBox) {
     const rays = [];
     const offset = this.alignmentOffset();
     for (let i = 0; i <= this.divisions; i++) {
@@ -414,13 +431,15 @@ export class Ellipse extends AbstractShape {
       rays.reverse();
       rays.forEach((r) => (r.direction += Math.PI));
     }
+    this.fit(rays, withinArea);
     return rays;
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new Ellipse(
       this.center.clone(),
-      this.radiusX,
-      this.radiusY,
+      this.radiusX * scale,
+      this.radiusY * scale,
       this.divisions,
       this.alignment,
       this.reverse
@@ -471,7 +490,7 @@ export class Rectangle extends AbstractShape {
         return new Point(0, 0);
     }
   }
-  generate() {
+  generate(withinArea?: BoundingBox) {
     let rays: Ray[] = [];
     const offset = this.alignmentOffset();
     // add rectangle corners
@@ -520,13 +539,15 @@ export class Rectangle extends AbstractShape {
         .concat(GeomHelpers.subdivideRays(rays[2], rays[3], this.divisions))
         .concat(GeomHelpers.subdivideRays(rays[3], rays[0], this.divisions));
     }
+    this.fit(rays, withinArea);
     return rays;
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new Rectangle(
       this.center.clone(),
-      this.width,
-      this.height,
+      this.width * scale,
+      this.height * scale,
       this.divisions,
       this.alignment,
       this.reverse
@@ -552,7 +573,7 @@ export class RoundedRectangle extends Rectangle {
     super(center, width, height, divisions, alignment, reverse);
     this.radius = radius;
   }
-  generate() {
+  generate(withinArea?: BoundingBox) {
     if (this.radius === 0) {
       return super.generate();
     }
@@ -657,14 +678,16 @@ export class RoundedRectangle extends Rectangle {
         GeomHelpers.rotateRayAboutOrigin(this.center, r);
       });
     }
+    this.fit(rays, withinArea);
     return rays;
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new RoundedRectangle(
       this.center.clone(),
-      this.width,
-      this.height,
-      this.radius,
+      this.width * scale,
+      this.height * scale,
+      this.radius * scale,
       this.divisions,
       this.alignment,
       this.reverse
@@ -699,7 +722,7 @@ export class Bone extends AbstractShape {
     this.alignment = alignment;
     this.reverse = reverse;
   }
-  generate(): Ray[] {
+  generate(withinArea?: BoundingBox) {
     const bottomCenter = new Ray(
       this.center.x,
       this.center.y - this.length * 0.5,
@@ -777,14 +800,16 @@ export class Bone extends AbstractShape {
       });
     }
 
+    this.fit(rays, withinArea);
     return rays;
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new Bone(
       this.center.clone(),
-      this.length,
-      this.topRadius,
-      this.bottomRadius,
+      this.length * scale,
+      this.topRadius * scale,
+      this.bottomRadius * scale,
       this.divisions,
       this.alignment,
       this.reverse

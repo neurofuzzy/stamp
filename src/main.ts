@@ -62,8 +62,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     style: style,
     rows: 6,
     columns: 6,
-    rowSpacing: 140,
-    columnSpacing: 140
+    columnSpacing: 140,
+    columnPadding: 40,
   });
 
   grid.children().forEach(shape => {

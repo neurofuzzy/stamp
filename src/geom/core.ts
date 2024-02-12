@@ -21,8 +21,8 @@ export interface IShape {
   alignment: ShapeAlignment;
   hidden: boolean;
   style: IStyle;
-  generate(): Ray[];
-  clone(): IShape;
+  generate(withinArea?: BoundingBox): Ray[];
+  clone(atScale?: number): IShape;
   boundingBox(): BoundingBox;
   boundingCircle(): BoundingCircle;
   children(): IShape[];

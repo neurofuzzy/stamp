@@ -52,11 +52,12 @@ export class Donut extends Circle {
       this.radius * 2
     );
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new Donut(
       this.center.clone(),
-      this.innerRadius,
-      this.radius,
+      this.innerRadius * scale,
+      this.radius * scale,
       this.divisions,
       this.alignment
     );
@@ -119,13 +120,14 @@ export class RectangularDonut extends Rectangle {
       this.height
     );
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new RectangularDonut(
       this.center.clone(),
-      this.innerWidth,
-      this.innerHeight,
-      this.width,
-      this.height,
+      this.innerWidth * scale,
+      this.innerHeight * scale,
+      this.width * scale,
+      this.height * scale,
       this.divisions,
       this.alignment
     );
@@ -204,13 +206,14 @@ export class RoundedRectangularDonut extends AbstractShape {
       this.height
     );
   }
-  clone() {
+  clone(atScale = 1) {
+    const scale = atScale || 1;
     const s = new RoundedRectangularDonut(
       this.center.clone(),
-      this.width,
-      this.height,
-      this.radius,
-      this.thickness,
+      this.width * scale,
+      this.height * scale,
+      this.radius * scale,
+      this.thickness * scale,
       this.divisions,
       this.alignment
     );
