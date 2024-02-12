@@ -5,9 +5,9 @@ import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridShapeLayout } from './lib/shapes-layout';
+import { GridShapeLayout, ScatterShapeLayout } from './lib/shapes-layout';
 import { ShapesProvider } from './lib/shapes-provider';
-import { Circle, Rectangle } from './geom/shapes';
+import { Circle, Ellipse, Rectangle } from './geom/shapes';
 import { Donut } from './geom/compoundshapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -50,13 +50,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const shapeProvider = new ShapesProvider([
     new Circle(),
-    new Rectangle(),
-    new Circle(new Ray(0, 0, 0), 50, 4),
-    new Circle(new Ray(0, 0, 0 - Math.PI / 4), 50, 5),
+   // new Rectangle(),
+   // new Circle(new Ray(0, 0, 0), 50, 4),
+   // new Circle(new Ray(0, 0, 0 - Math.PI / 4), 50, 5),
     new Donut(new Ray(0, 0, 0), 30, 50, 32),
   ], Sequence.fromStatement("shuffle 0,1,2,3,4", 1))
 
-  
+  /*
   const grid = new GridShapeLayout(new Ray(w / 2, h / 2, 0), {
     shape: shapeProvider,
     style: style,
@@ -65,6 +65,15 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     columnSpacing: 140,
     columnPadding: 40,
   });
+  */
+ const grid = new ScatterShapeLayout(new Ray(w / 2, h / 2, 0), {
+   shape: shapeProvider,
+   style: style,
+   maxShapes: 83,
+   container: new Ellipse(new Ray(w / 2, h / 2, Math.PI / 4), 600, 150, 4),
+   minSpacing: 30,
+   padding: 10
+ })
 
   grid.children().forEach(shape => {
    drawShape(ctx, shape, 0);

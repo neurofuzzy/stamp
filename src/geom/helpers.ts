@@ -404,7 +404,6 @@ export class GeomHelpers {
       if (GeomHelpers.distanceBetweenPoints(ptA, ptB) < threshold * 0.5) {
         continue;
       }
-      let j = i;
       let duplicate = false;
       for (let j = 1; j < newPts.length; j++) {
         let ptC = pts[j];
@@ -449,5 +448,34 @@ export class GeomHelpers {
       return new BoundingCircle(c.x, c.y, c.r);
     }
     return null;
+  }
+
+  static pointWithinPolygon(pt: Point, shape: IShape): boolean {
+    const b = shape.boundingBox();
+
+    let startPtA = new Point(b.x - 99000.9, b.y - 1110000.1);
+    let startPtB = new Point(b.x + b.width + 1110000.1, b.y + b.height + 99000.9);
+    let segA = new Segment(startPtA, pt);
+    let segB = new Segment(startPtB, pt);
+
+    let ptsA = [];
+    let ptsB = [];
+    const polyPts = shape.generate();
+    let polySegs = [];
+    for (let i = 0; i < polyPts.length - 1; i++) {
+      polySegs.push(new Segment(polyPts[i], polyPts[i + 1]));
+    }
+    polySegs.forEach((seg) => {
+      const ptA = GeomHelpers.segmentSegmentIntersect(segA, seg);
+      if (ptA) {
+        ptsA.push(ptA);
+      }
+      const ptB = GeomHelpers.segmentSegmentIntersect(segB, seg);
+      if (ptB) {
+        ptsB.push(ptB);
+      }
+    });
+
+    return ptsA.length % 2 !== 0 && ptsB.length % 2 !== 0;
   }
 }
