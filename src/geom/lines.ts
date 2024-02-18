@@ -136,6 +136,10 @@ export class Line extends SegmentCollection {
     return this._terminate;
   }
 
+  set terminate(t: boolean) {
+    this._terminate = t;
+  }
+
   heading(): number {
     let hdg = this._heading;
     if (this._parent) {
