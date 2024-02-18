@@ -109,6 +109,11 @@ export class GeomHelpers {
     return new Point(x / points.length, y / points.length);
   }
 
+  static addToPoint(pt: Point, add: Point) {
+    pt.x += add.x;
+    pt.y += add.y;
+  }
+
   static subdividePoints(start: Point, end: Point, divisions: number): Point[] {
     const points = [];
     for (let i = 0; i <= divisions; i++) {
