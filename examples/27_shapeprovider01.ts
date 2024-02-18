@@ -1,15 +1,14 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from '../src/lib/draw';
+import { drawShape } from '../src/lib/draw';
 import { IStyle, Ray } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridShapeLayout, ScatterShapeLayout } from './lib/shapes-layout';
-import { ShapesProvider } from './lib/shapes-provider';
-import { Circle, Ellipse, Rectangle } from './geom/shapes';
-import { Donut } from './geom/compoundshapes';
-import { PenLine } from './lib/penline';
+import { GridShapeLayout, ScatterShapeLayout } from '../src/lib/shapes-layout';
+import { ShapesProvider } from '../src/lib/shapes-provider';
+import { Circle, Ellipse, Rectangle } from '../src/geom/shapes';
+import { Donut } from '../src/geom/compoundshapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -41,24 +40,35 @@ Sequence.seed = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
-//let penline = new PenLine().line(0, 50).line("-30,30 as AA", 45).repeatLast(1, 2).line("20,-20 as AB", 45).repeatLast(1, 2);
-  let penline = new PenLine(new Ray(w / 2, h / 2)).line(0, 1).lines(0, 0, 1)
-    .lines("repeat 0,120,240 as AA", 60, 3)
-    .lines("repeat 60, -60 as AB", "repeat 60,20", 3).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,20)
-    .style(PenLine.STYLE_DEFAULT)
-    .lines(0, 16, 1)
-    .lines("repeat 60, -60 as AB", "repeat 10,5", 3).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,12);
-  penline.bake();
-  let endPts = penline.getEndPoints(7);
-  let ends = [];
-  endPts.forEach(pt => {
-    ends.push(new Circle(pt.toRay(), 5, 16));
-  })
+  ctx.clearRect(0, 0, w, h);
 
-  penline.result().forEach(path => {
-    drawPath(ctx, path);
-  })
+  const style: IStyle = {
+    fillColor: "COLOR()",
+    strokeColor: "COLOR()",
+    strokeThickness: 8
+  }
 
+  const shapeProvider = new ShapesProvider([
+    new Circle(),
+   // new Rectangle(),
+   // new Circle(new Ray(0, 0, 0), 50, 4),
+   // new Circle(new Ray(0, 0, 0 - Math.PI / 4), 50, 5),
+    new Donut(new Ray(0, 0, 0), 30, 50, 32),
+  ], Sequence.fromStatement("shuffle 0,1,2,3,4", 1))
+
+  const grid = new GridShapeLayout(new Ray(w / 2, h / 2, 0), {
+    shape: shapeProvider,
+    style: style,
+    rows: 6,
+    columns: 6,
+    columnSpacing: 140,
+    columnPadding: 40,
+  });
+  
+
+  grid.children().forEach(shape => {
+   drawShape(ctx, shape, 0);
+  });
 
 }
 

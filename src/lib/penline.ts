@@ -1,7 +1,18 @@
 import { Line, EmptyLine, CircleLine, DiamondLine, HexagonLine, SquareLine } from "../geom/lines";
 import { Optimize } from "./optimize";
 import { Sequence } from "./sequence";
-import { Path, Point, Segment } from "../geom/core";
+import { Path, Point, Ray, Segment } from "../geom/core";
+
+const $ = (arg: unknown) =>
+  arg === undefined 
+    ? undefined : 
+    typeof arg === "string"
+      ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
+        ? parseInt(arg.replace("#", "0x"), 16)
+        : Sequence.resolve(arg)
+      : typeof arg === "number"
+      ? arg
+      : 0;
 
 interface INode {
   fName: string;
@@ -19,46 +30,46 @@ export class PenLine {
   static STYLE_HEXAGON = 4;
   static STYLE_DIAMOND = 5;
 
-  protected lineStyle;
+  protected _center: Ray;
+  protected _lineStyle;
   protected _nodes: INode[];
   protected _lines: Line[];
   protected _depth: number;
-  protected baked: boolean;
+  protected _baked: boolean;
 
-  constructor() {
-    /** @type {number} */
-    this.lineStyle = PenLine.STYLE_DEFAULT;
+  constructor(center: Ray) {
+    this._center = center;
+    this._lineStyle = PenLine.STYLE_DEFAULT;
     this._nodes = [];
     this._lines = [];
     this._depth = 0;
-
-    this.baked = false;
+    this._baked = false;
   }
 
-  protected _setStyle (style: number): void {
-    this.lineStyle = style;
+  protected _setStyle (style: number | string): void {
+    this._lineStyle = $(style);
   };
 
-  protected _newLineOfCurrentStyle (hdg: number, len: number, segs?: number, stripes?: number, terminate?: boolean): Line {
-    switch (this.lineStyle) {
+  protected _newLineOfCurrentStyle (hdg: number | string, len: number | string, segs?: number | string, stripes?: number | string, terminate?: number | string): Line {
+    switch (this._lineStyle) {
       case PenLine.STYLE_NONE:
-        return new EmptyLine(hdg, len, segs, stripes, terminate);
+        return new EmptyLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
       case PenLine.STYLE_CIRCLE:
-        return new CircleLine(hdg, len, segs, stripes, terminate);
+        return new CircleLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
       case PenLine.STYLE_SQUARE:
-        return new SquareLine(hdg, len, segs, stripes, terminate);
+        return new SquareLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
       case PenLine.STYLE_HEXAGON:
-        return new HexagonLine(hdg, len, segs, stripes, terminate);
+        return new HexagonLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
       case PenLine.STYLE_DIAMOND:
-        return new DiamondLine(hdg, len, segs, stripes, terminate);
+        return new DiamondLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
       default:
-        return new Line(hdg, len, segs, stripes, terminate);
+        return new Line($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
     }
   };
 
-  protected _appendLines (hdgs: number[], lens: number[], num: number, atDepth: number, segs?: number, stripes?: number, terminate?: boolean) {
+  protected _appendLines (hdgs: (number | string)[], lens: (number | string)[], num: number | string, atDepth: number, segs?: number | string, stripes?: number | string, terminate?: number | string) {
     let endLines = this.getEndLines();
-    for (let i = 0; i < num; i++) {
+    for (let i = 0; i < $(num); i++) {
       let hdg = hdgs[i];
       let len = lens[i];
       if (len === 0) {
@@ -67,7 +78,7 @@ export class PenLine {
 
       if (atDepth > 0) {
         endLines.forEach((endLine) => {
-          let t = terminate;
+          let t: any = terminate;
           if (typeof t === "string") {
             let res = Sequence.resolve(t, atDepth);
             t = res > 50 ? false : true;
@@ -93,13 +104,13 @@ export class PenLine {
     return this;
   }
 
-  line(heading: number, length: number, segs?: number, stripes?: number, terminate?: number) {
+  line(heading: number | string, length: number | string, segs?: number | string, stripes?: number | string, terminate?: number | string) {
     this._nodes.push({ fName: "_appendLines", args: [heading, length, 1, this._depth, segs, stripes, terminate] });
     this._depth++;
     return this;
   }
 
-  lines(heading: number, length: number, num: number, segs?: number, stripes?: number, terminate?: number) {
+  lines(heading: number | string, length: number | string, num: number | string, segs?: number | string, stripes?: number | string, terminate?: number | string) {
     this._nodes.push({ fName: "_appendLines", args: [heading, length, num, this._depth, segs, stripes, terminate] });
     this._depth++;
     return this;
@@ -110,7 +121,7 @@ export class PenLine {
     return this;
   }
 
-  repeatLast(steps: number, times = 1) {
+  repeatLast(steps: number | string, times: number | string = 1) {
     this._nodes.push({ fName: "_repeatLast", args: [steps, times] });
     return this;
   }
@@ -142,11 +153,11 @@ export class PenLine {
   }
 
   bake(rebake = false): PenLine {
-    if (this.baked && !rebake) {
+    if (this._baked && !rebake) {
       return this;
     }
 
-    this.baked = true;
+    this._baked = true;
 
     this._lines = [];
 
@@ -165,8 +176,8 @@ export class PenLine {
         nodes.splice(i, 1);
         i--;
         let len = nodes.length;
-        let steps = args[0];
-        let times = args[1];
+        let steps = $(args[0]);
+        let times = $(args[1]);
 
         if (steps > 0 && steps <= len) {
           let r = nodes.slice(i - steps + 1, i + 1);
@@ -253,7 +264,7 @@ export class PenLine {
    * @returns {Segments}
    */
   result(optimize = true, mergeConnectedPaths = true): Path[] {
-    if (!this.baked) {
+    if (!this._baked) {
       this.bake();
     }
 
@@ -261,6 +272,15 @@ export class PenLine {
 
     let acc: Segment[] = [];
     let segs = lines.reduce((arr, line) => arr.concat(line.toSegments()), acc);
+    const pts = [];
+    segs.forEach((s) => {
+      s.a.x += this._center.x;
+      s.a.y += this._center.y;
+      pts.push(s.a);
+      s.b.x += this._center.x;
+      s.b.y += this._center.y;
+      pts.push(s.b);
+    });
 
     if (optimize) {
       return Optimize.segments(segs.map((s) => s.toPath()), mergeConnectedPaths);

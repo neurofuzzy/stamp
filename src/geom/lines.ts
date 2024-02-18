@@ -350,7 +350,7 @@ export class CircleLine extends Line {
       if (this._numStripes && i % (this._numSegs + 1) === 0) {
         continue;
       }
-      segs.push(new Segment(pts[i - 1], pts[i]));
+      segs.push(new Segment(pts[i - 1].clone(), pts[i].clone()));
     }
     return segs;
   }
@@ -405,7 +405,7 @@ export class SquareLine extends Line {
       if (this._numStripes && i % 7 === 0) {
         continue;
       }
-      segs.push(new Segment(pts[i - 1], pts[i]));
+      segs.push(new Segment(pts[i - 1].clone(), pts[i].clone()));
     }
     return segs;
   }
