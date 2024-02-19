@@ -47,48 +47,45 @@ export class PenLine {
   }
 
   protected _setStyle (style: number | string): void {
-    this._lineStyle = $(style);
+    this._lineStyle = $(style) || 0;
   };
 
   protected _newLineOfCurrentStyle (hdg: number | string, len: number | string, segs?: number | string, stripes?: number | string, terminate?: number | string): Line {
     switch (this._lineStyle) {
       case PenLine.STYLE_NONE:
-        return new EmptyLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
+        return new EmptyLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
       case PenLine.STYLE_CIRCLE:
-        return new CircleLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
+        return new CircleLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
       case PenLine.STYLE_SQUARE:
-        return new SquareLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
+        return new SquareLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
       case PenLine.STYLE_HEXAGON:
-        return new HexagonLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
+        return new HexagonLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
       case PenLine.STYLE_DIAMOND:
-        return new DiamondLine($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
+        return new DiamondLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
       default:
-        return new Line($(hdg), $(len), $(segs), $(stripes), $(terminate) > 0.5);
+        return new Line($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
     }
   };
 
-  protected _appendLines (hdgs: (number | string)[], lens: (number | string)[], num: number | string, atDepth: number, segs?: number | string, stripes?: number | string, terminate?: number | string) {
+  protected _appendLines (hdgs: number[], lens: number[], num: number, atDepth: number, segs: number[] = [], stripes: number[] = [], terminate: number[] = []) {
     let endLines = this.getEndLines();
-    for (let i = 0; i < $(num); i++) {
+    for (let i = 0; i < num; i++) {
       let hdg = hdgs[i];
       let len = lens[i];
+      let seg = segs[i];
+      let stripe = stripes[i];
       if (len === 0) {
         continue;
       }
-
       if (atDepth > 0) {
         endLines.forEach((endLine) => {
-          let t: any = terminate;
-          if (typeof t === "string") {
-            let res = Sequence.resolve(t, atDepth);
-            t = res > 50 ? false : true;
-          }
-          let line = this._newLineOfCurrentStyle(hdg, len, segs, stripes, t);
+          let t = terminate[i % terminate.length] || 0;
+          let line = this._newLineOfCurrentStyle(hdg, len, seg, stripe, t);
           endLine.append(line);
           this._lines.push(line);
         });
       } else {
-        this._lines.push(this._newLineOfCurrentStyle(hdg, len, segs, stripes));
+        this._lines.push(this._newLineOfCurrentStyle(hdg, len, seg, stripe));
       }
     }
   };
@@ -176,8 +173,8 @@ export class PenLine {
         nodes.splice(i, 1);
         i--;
         let len = nodes.length;
-        let steps = $(args[0]);
-        let times = $(args[1]);
+        let steps = $(args[0]) || 0;
+        let times = $(args[1]) || 0;
 
         if (steps > 0 && steps <= len) {
           let r = nodes.slice(i - steps + 1, i + 1);
@@ -211,14 +208,17 @@ export class PenLine {
       // resolve all sequences
       if (fName == "_appendLines") {
         let hdgExpr = args[0];
-        let lengthExpr = args[1];
+        let lengthExpr = $(args[1]);
         let num = args[2];
         let atDepth = args[3];
         let segs = args[4];
         let stripes = args[5];
         let terminate = args[6];
         let hdgs = [];
+        let terms = [];
         let lengths = [];
+        let segsArr = [];
+        let stripesArr = [];
         if (typeof num === "string") {
           num = Sequence.resolve(num, j);
         }
@@ -228,21 +228,28 @@ export class PenLine {
           } else {
             hdgs.push(hdgExpr);
           }
-        }
-        for (let i = 0; i < num; i++) {
+          if (typeof terminate === "string") {
+            terms.push(Sequence.resolve(terminate, j));
+          } else {
+            terms.push(terminate);
+          }
           if (typeof lengthExpr === "string") {
             lengths.push(Sequence.resolve(lengthExpr, j));
           } else {
             lengths.push(lengthExpr);
           }
+          if (typeof segs === "string") {
+            segsArr.push(Sequence.resolve(segs, j));
+          } else {
+            segsArr.push(segs);
+          }
+          if (typeof stripes === "string") {
+            stripesArr.push(Sequence.resolve(stripes, j));
+          } else {
+            stripesArr.push(stripes);
+          }
         }
-        if (typeof segs === "string") {
-          segs = Sequence.resolve(segs, j);
-        }
-        if (typeof stripes === "string") {
-          stripes = Sequence.resolve(stripes, j);
-        }
-        args = [hdgs, lengths, num, atDepth, segs, stripes, terminate];
+        args = [hdgs, lengths, num, atDepth, segsArr, stripesArr, terms];
       } else {
         args = args.map((arg) => {
           if (typeof arg === "string") {

@@ -1,15 +1,12 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from '../src/lib/draw';
-import { IStyle, Ray } from '../src/geom/core';
+import { drawShape } from '../src/lib/draw';
+import { Ray } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { GridShapeLayout, ScatterShapeLayout } from './lib/shapes-layout';
-import { ShapesProvider } from './lib/shapes-provider';
-import { Circle, Ellipse, Rectangle } from './geom/shapes';
-import { Donut } from './geom/compoundshapes';
-import { PenLine } from './lib/penline';
+import { Circle } from '../src/geom/shapes';
+import { PenLine } from '../src/lib/penline';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -41,12 +38,13 @@ Sequence.seed = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
-  let penline = new PenLine(new Ray(w / 2, h / 2 + 200)).line(0, 1).lines(180, 100, 1)
-    .lines("repeat -20,40 as AA", 130, 2)
-    .lines("repeat 30, -30 as AB", 80, 2, 1, 1, "shuffle 0,0,1 AS AC").repeatLast(1, 4).style(PenLine.STYLE_CIRCLE).line(0,40)
+//let penline = new PenLine().line(0, 50).line("-30,30 as AA", 45).repeatLast(1, 2).line("20,-20 as AB", 45).repeatLast(1, 2);
+  let penline = new PenLine(new Ray(w / 2, h / 2)).line(0, 1).lines(0, 0, 1)
+    .lines("repeat 0,120,240 as AA", 130, 3)
+    .lines("repeat 60, -60 as AB", "repeat 120,40", 3).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,40)
     .style(PenLine.STYLE_DEFAULT)
-   // .lines(0, 40, 1)
-   // .lines("repeat 60, -60 as AB", "repeat 30,10", 2).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,18);
+    .lines(0, 40, 1)
+    .lines("repeat 60, -60 as AB", "repeat 30,10", 3).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,18);
   penline.bake();
   let endPts = penline.getEndPoints(7);
   let ends = [];
