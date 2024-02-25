@@ -89,7 +89,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     seedSequence: seeds,
     rows: 3,
     columns: 1,
-    rowSpacing: 420,
+    rowSpacing: 480,
     columnSpacing: 420
   });
 
