@@ -1,13 +1,14 @@
 import * as C2S from 'canvas2svg';
-import { drawShape } from '../src/lib/draw';
-import { Point, Ray, Segment } from '../src/geom/core';
+import { drawPath, drawShape } from '../src/lib/draw';
+import { Ray } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
-import { LinkedCell, LinkedGrid } from './lib/linkedgrid';
-import { Optimize } from './lib/optimize';
-import { Circle, Ellipse, RoundedRectangle } from './geom/shapes';
-import { GeomHelpers } from './geom/helpers';
+import colors from 'nice-color-palettes';
+import { GridStampLayout } from '../src/lib/stamp-layout';
+import { GeomHelpers } from '../src/geom/helpers';
+import { GeomUtils } from '../src/geom/util';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -18,152 +19,107 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
 const ratio = 2;
 canvas.width = 900 * ratio
-canvas.height = 900 * ratio
+canvas.height = 1600 * ratio
 canvas.style.width = '900px'
-canvas.style.height = '900px'
+canvas.style.height = '1600px'
 const ctx = canvas.getContext('2d')!
-ctx.scale(ratio, ratio);
+ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
-const gw = 8;
-const gh = 8;
-const startX = Math.floor(gw / 2);
-const startY = Math.floor(gh / 2);
-const midW = Math.floor(gw / 2);
-const midH = Math.floor(gh / 2); 
-const maxDist = 25;
+Sequence.seed = 1;
 
-Sequence.seed = 8;
-Sequence.seed = 17
-Sequence.seed = 33
-Sequence.seed = 50
-Sequence.seed = 67
-Sequence.seed = 81
-Sequence.seed = 91
-Sequence.fromStatement("random 1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4 AS MV");
-Sequence.fromStatement("random -1,1,0,-1,1 AS SORT");
+// 2,7,24,29,32,39,69,78,83,94,96
+const palette = colors[83];
+const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
+Sequence.fromStatement(colorSeq, 125);
 
+Sequence.seed = 2;
+Sequence.seed = 500;
+Sequence.seed = 503;
+Sequence.seed = 506;
+Sequence.seed = 518;
+Sequence.seed = 18;
+Sequence.seed = 17;
+Sequence.seed = 199;
+Sequence.seed = 198;
+Sequence.seed = 197;
+Sequence.seed = 193;
+Sequence.seed = 316;
+Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,72,72,72,72,72 AS RANGLE");
+//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
+//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
+Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
+Sequence.fromStatement("repeat 10,10 AS BERRY")
 
-function createTree (grid: LinkedGrid<any>) {
-
-  grid.cells.forEach(cell => cell.values[0] = 0);
-
-  // mask out certain grid areas
-  for (let y = 0; y < gh; y++) {
-    for (let x = 0; x < gw; x++) {
-      if (Math.abs(x - midW) < 3 && Math.abs(y - midH) < 2) {
-        //grid.cell(x, y)?.setValue(2, "x");
-      }
-    }
-  }
-
-  grid.cell(startX, startY)?.setValue(1, 1);
-  
-  const growCells: LinkedCell<any>[] = [];
-
-  const grow = (cell?: LinkedCell<any>) => {
-
-    if (!cell) {
-      return;
-    }
-
-    if (cell.values[1] >= maxDist) return;
-
-    let next = null;
-    let i = 0;
-    while (!next && i < 25) {
-      next = cell.move(Sequence.resolve("MV()"), 1);
-      if (!next){
-        continue;
-      }
-      if (next.values[2] !== "x" && !next.values[1]) {
-        break;
-      }
-      next = null;
-      i++;
-    }
-    if (next) {
-      next.setValue(0, cell);
-      next.setValue(1, cell.values[1] + 1);
-      growCells.push(next);
-    }
-
-    next = null;
-    while (!next && i < 4) {
-      next = cell.move(Sequence.resolve("MV()"), 1);
-      if (!next){
-        continue;
-      }
-      if (next.values[2] !== "x" && !next.values[1]) {
-        break;
-      }
-      next = null;
-      i++;
-    }
-    if (next) {
-      next.setValue(0, cell);
-      next.setValue(1, cell.values[1] + 1);
-      growCells.push(next);
-    }
-
-    growCells.sort((a, b) => a.values[1] - b.values[1] ? 1 : -1);
-    growCells.sort((a, b) => Sequence.resolve("SORT()"));
-    if (growCells.length) {
-      grow(growCells.shift());
-    }
-
-  }
-
-  grow(grid.cell(startX, startY) ?? undefined);
-
-  console.log(grid.print(1));
-
-}
+const len = 30;
+const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
-  let grid: LinkedGrid<any> = new LinkedGrid(gw, gh);
+  ctx.clearRect(0, 0, w, h);
 
-  createTree(grid);
+  const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
+    .noBoolean()
+    .defaultStyle({
+      strokeThickness: 0,
+      fillColor: "cyan",
+    })
+    .forward(len)
+    .circle({
+      radius: 2,
+      divisions: 3,
+      skip: 1
+    })
+    .rotate("RANGLE()")
+    .repeatLast(3, 240)
 
-  let scale = 50;
-  let segs: Segment[] = [];
+  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
+  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
+  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
+  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
+  const seeds = Sequence.fromStatement("repeat 4,5,49,42,33", 12);
 
-  for (let y = 0; y < grid.height; y++) {
-    for (let x = 0; x < grid.width; x++) {
-      const cell = grid.cell(x, y);
-      if (!cell) {
-        continue;
-      }
-      const parent = cell.values[0];
-      // draw stem
-      if (cell.values[0]) {
-        let coords = grid.getCellCoordinates(parent);
-        if (coords) {
-          // let d = { offsetX: x - coords.x, offsetY: y - coords.y };
-          segs.push(new Segment(
-            new Point(x * scale + w / 2 - (gw - 1) * scale * 0.5, y * scale + h / 2 - (gh - 1) * scale * 0.5), 
-            new Point(coords.x * scale + w / 2 - (gw - 1) * scale * 0.5, coords.y * scale + h / 2 - (gh - 1) * scale * 0.5)
-          ));
-        }
-      }
-      // draw branches
-      
-    }
-  }
-
-  //const bounds = new Circle(new Ray(w / 2 , h / 2), 200);
-  //segs = GeomHelpers.cropSegsToShape(segs, bounds);
-  const paths = Optimize.segments(segs);
-  
-  let shapes = ClipperHelpers.offsetPathsToShape(paths, 18, 4);
-  shapes.forEach(shape => {
-    drawShape(ctx, shape, 0);
+  const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    stamp: lattice,
+    seedSequence: seeds,
+    rows: 3,
+    columns: 1,
+    rowSpacing: 420,
+    columnSpacing: 420
   });
 
+  let pathSets = grid.children().map(x => {
+    let path = x.path();
+    let c = GeomHelpers.boundingCircleFromPaths(path);
+    if (c) {
+      let scale = 200 / c.radius;
+      return x.path(scale);
+    }
+    return path;
+  });
+
+  pathSets.forEach((paths) => {
+    
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 8, 4, true);
+    shapes.forEach(shape => {
+      drawShape(ctx, shape, 0);
+      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
+    });
+    shapes = ClipperHelpers.offsetPathsToShape(paths, 4, 4, true);
+    shapes.forEach(shape => {
+      drawShape(ctx, shape, 0);
+      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
+    });
+    paths.forEach((path) => {
+      drawPath(ctx, path, 0, "0xFFFFFF");
+    });
+  });
+  
 }
 
 document.onkeydown = function (e) {
