@@ -156,6 +156,10 @@ export class Line extends SegmentCollection {
     return len;
   }
 
+  setLength(len: number) {
+    this._length = len;
+  }
+
   lengthAtStart(): number {
     let len = 0;
     let ln = this._parent;
@@ -409,4 +413,8 @@ export class SquareLine extends Line {
     }
     return segs;
   }
+}
+
+export class RaycastLine extends Line {
+  
 }

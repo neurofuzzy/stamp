@@ -43,7 +43,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   let penline = new PenLine(new Ray(w / 2, h / 2 + 200)).line(0, 1).lines(180, 100, 1)
     .lines("repeat -20,40 as AA", 130, 2)
-    .lines("repeat 30, -30 as AB", 80, 2, 1, 1, "shuffle 0,0,1 AS AC").repeatLast(1, 4).style(PenLine.STYLE_CIRCLE).line(0,40)
+    .lines("repeat 30, -30 as AB", 80, 2, 1, 1, "shuffle 0,0,1 AS AC").repeatLast(1, 6).style(PenLine.STYLE_CIRCLE).line(0,40)
     .style(PenLine.STYLE_DEFAULT)
    // .lines(0, 40, 1)
    // .lines("repeat 60, -60 as AB", "repeat 30,10", 2).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,18);

@@ -371,6 +371,32 @@ export class GeomHelpers {
     return null;
   }
 
+  static segmentSegmentsIntersections(segA: Segment, segs: Segment[], ignoreTouching = false, removeDuplicates = false) {
+    let intersections: { pt: Point, dist: number }[] = [];
+    segs.forEach((seg) => {
+      if (seg == segA) {
+        return;
+      }
+      let intPt = GeomHelpers.segmentSegmentIntersect(segA, seg, ignoreTouching);
+      if (intPt) {
+        let exists = false;
+        if (removeDuplicates) {
+          for (let intersection of intersections) {
+            if (GeomHelpers.pointsAreEqual(intersection.pt, intPt)) {
+              exists = true;
+              break;
+            }
+          }
+        }
+        if (!exists) {
+          const intersection = { pt: intPt, dist: GeomHelpers.distanceBetweenPoints(segA.a, intPt) };
+          intersections.push(intersection);
+        }
+      }
+    });
+    return intersections;
+  }
+
   static segmentsAreEqual(segA: Segment, segB: Segment, threshold = 0.0001, noReverseSegCheck = false): boolean {
     if (noReverseSegCheck) {
       return GeomHelpers.pointsAreEqual(segA.a, segB.a, threshold) && GeomHelpers.pointsAreEqual(segA.b, segB.b, threshold);
@@ -483,4 +509,34 @@ export class GeomHelpers {
 
     return ptsA.length % 2 !== 0 && ptsB.length % 2 !== 0;
   }
+
+  static raycast(ptA: Point, ptB: Point, segs: Segment[], ignoreTouching = true): { pt: Point, dist: number }[] {
+
+    let hitPts = GeomHelpers.segmentSegmentsIntersections(new Segment(ptA, ptB), segs, ignoreTouching);
+
+    hitPts.sort((a, b) => {
+      const distA = a.dist;
+      const distB = b.dist;
+      if (distA > distB) {
+        return 1;
+      } else if (distA < distB) {
+        return -1;
+      }
+      return 0;
+    });
+
+    if (hitPts.length) {
+      if (GeomHelpers.pointsAreEqual(hitPts[0].pt, ptA, 10)) {
+        hitPts.shift();
+      }
+    }
+
+    if (hitPts.length) {
+      return hitPts;
+    }
+
+    return [];
+
+  }
+
 }

@@ -1,7 +1,8 @@
-import { Line, EmptyLine, CircleLine, DiamondLine, HexagonLine, SquareLine } from "../geom/lines";
+import { Line, EmptyLine, CircleLine, DiamondLine, HexagonLine, SquareLine, RaycastLine } from "../geom/lines";
 import { Optimize } from "./optimize";
 import { Sequence } from "./sequence";
 import { Path, Point, Ray, Segment } from "../geom/core";
+import { GeomHelpers } from "../geom/helpers";
 
 const $ = (arg: unknown) =>
   arg === undefined 
@@ -29,6 +30,7 @@ export class PenLine {
   static STYLE_SQUARE = 3;
   static STYLE_HEXAGON = 4;
   static STYLE_DIAMOND = 5;
+  static STYLE_RAYCAST = 6;
 
   protected _center: Ray;
   protected _lineStyle;
@@ -62,6 +64,8 @@ export class PenLine {
         return new HexagonLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
       case PenLine.STYLE_DIAMOND:
         return new DiamondLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
+      case PenLine.STYLE_RAYCAST:
+        return new RaycastLine($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
       default:
         return new Line($(hdg) || 0, $(len) || 0, $(segs), $(stripes), ($(terminate) || 0) > 0.5);
     }
@@ -82,6 +86,22 @@ export class PenLine {
           let t = terminate[i % terminate.length] || 0;
           let line = this._newLineOfCurrentStyle(hdg, len, seg, stripe, t);
           endLine.append(line);
+
+          if (line instanceof RaycastLine) {
+
+            let lines = this._lines.concat();
+
+            let acc: Segment[] = [];
+            let segs = lines.reduce((arr, line) => arr.concat(line.toSegments()), acc);
+            let seg2 = line.toSegments()[0];
+            let hits = GeomHelpers.raycast(seg2.a, seg2.b, segs, true);
+            if (hits.length) {
+              line.terminate = true;
+              line.setLength(hits[0].dist);
+            }
+
+          }
+            
           this._lines.push(line);
         });
       } else {
@@ -138,7 +158,12 @@ export class PenLine {
 
   getEndPoints(minDepth = 0, maxDepth = 100000, includeTerminators = false): Point[] {
     let endLines = this.getEndLines(minDepth, maxDepth, includeTerminators);
-    return endLines.map((ln) => ln.endPoint());
+    let endPoints = endLines.map((ln) => ln.endPoint());
+    endPoints.forEach((pt) => {
+      pt.x += this._center.x;
+      pt.y += this._center.y;
+    });
+    return endPoints;
   }
 
   setAmplitudeFunction(fn: (atLength: number) => number) {

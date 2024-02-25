@@ -1,6 +1,6 @@
 import * as C2S from 'canvas2svg';
 import { drawShape } from '../src/lib/draw';
-import { Ray } from '../src/geom/core';
+import { IShape, Ray } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
 import '../src/style.css';
@@ -38,22 +38,24 @@ Sequence.seed = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
-//let penline = new PenLine().line(0, 50).line("-30,30 as AA", 45).repeatLast(1, 2).line("20,-20 as AB", 45).repeatLast(1, 2);
-  let penline = new PenLine(new Ray(w / 2, h / 2)).line(0, 1).lines(0, 0, 1)
-    .lines("repeat 0,120,240 as AA", 130, 3)
-    .lines("repeat 60, -60 as AB", "repeat 120,40", 3).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,40)
+  let penline = new PenLine(new Ray(w / 2, h / 2 + 200)).line(0, 1).lines(180, 100, 1)
+    .lines("repeat -20,40 as AA", 130, 2)
+    .lines("repeat 30, -30 as AB", 80, 2, 1, 1, "shuffle 0,0,1 AS AC").repeatLast(1, 4).style(PenLine.STYLE_CIRCLE).line(0,32)
     .style(PenLine.STYLE_DEFAULT)
-    .lines(0, 40, 1)
-    .lines("repeat 60, -60 as AB", "repeat 30,10", 3).repeatLast(1, 2).style(PenLine.STYLE_CIRCLE).line(0,18);
+
   penline.bake();
-  let endPts = penline.getEndPoints(7);
-  let ends = [];
+  let endPts = penline.getEndPoints(3, 6, true);
+  let ends: IShape[] = [];
   endPts.forEach(pt => {
-    ends.push(new Circle(pt.toRay(), 5, 16));
+    console.log("YO")
+    ends.push(new Circle(pt.toRay(), 8, 16));
   })
 
   let shapes = ClipperHelpers.offsetPathsToShape(penline.result(), 3, 4);
   shapes.forEach(shape => {
+    drawShape(ctx, shape, 0);
+  });
+  ends.forEach(shape => {
     drawShape(ctx, shape, 0);
   });
 
