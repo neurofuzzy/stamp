@@ -971,7 +971,7 @@ export class Stamp extends AbstractShape {
     let seg = new Path(points);
 
     if (optimize) {
-      let optimizedSegs = Optimize.segments([seg], mergeConnectedPaths);
+      let optimizedSegs = Optimize.paths([seg], mergeConnectedPaths);
       return optimizedSegs;
     }
 

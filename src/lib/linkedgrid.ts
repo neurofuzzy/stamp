@@ -8,7 +8,7 @@ export enum Direction {
 export class LinkedCell<T> {
 
   protected _neighbors: (LinkedCell<T> | null)[] = [];
-  values: number[] = [];
+  values: (T | number)[] = [];
   masks: boolean[] = [];
   items: T[] = [];
   protected _visited: boolean = false;
@@ -21,7 +21,7 @@ export class LinkedCell<T> {
     this.setNeighbor(Direction.RT, right);
   }
 
-  setValue(layer: number, val: number) {
+  setValue(layer: number, val: T) {
     this.values[layer] = val;
     return this;
   }
@@ -209,7 +209,9 @@ export class LinkedCell<T> {
     )
   {
     if (!doAdd) this.values[distLayer] = 0;
-    this.values[distLayer] += dist;
+    if (!isNaN(parseFloat(`${this.values[distLayer]}`))) {
+      this.values[distLayer] = parseFloat(`${this.values[distLayer]}`) + dist;
+    }
 
     let lcs: LinkedCell<T>[] = [this];
 

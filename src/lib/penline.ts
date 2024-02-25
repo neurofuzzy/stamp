@@ -315,7 +315,7 @@ export class PenLine {
     });
 
     if (optimize) {
-      return Optimize.segments(segs.map((s) => s.toPath()), mergeConnectedPaths);
+      return Optimize.paths(segs.map((s) => s.toPath()), mergeConnectedPaths);
     }
 
     return segs.map((s) => s.toPath());
