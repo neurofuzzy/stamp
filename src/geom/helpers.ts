@@ -539,4 +539,112 @@ export class GeomHelpers {
 
   }
 
+  static cropSegsToShape (segs: Segment[], shape: IShape): Segment[] {
+
+    const outSegs = segs.concat();
+
+    let i = outSegs.length;
+
+    while (i--) {
+
+      let seg = outSegs[i];
+      let aok = GeomHelpers.pointWithinPolygon(seg.a, shape);
+      let bok = GeomHelpers.pointWithinPolygon(seg.b, shape);
+
+      if (aok && bok) {
+        continue;
+      }
+
+      const borderSegs = shape.toSegments();
+
+      let intPts = GeomHelpers.segmentSegmentsIntersections(seg, borderSegs, false, false);
+
+      if (!aok && !bok) {
+        if (intPts && intPts.length > 1) {
+          seg.a = intPts[0].pt;
+          seg.b = intPts[intPts.length - 1].pt;
+          continue;
+        }
+        outSegs.splice(i, 1);
+        continue;
+      }
+
+      if (aok && !bok) {
+        if (intPts && intPts.length) {
+          seg = seg.clone();
+          seg.b = intPts[0].pt;
+          outSegs[i] = seg;
+          continue;
+        }
+      }
+
+      if (!aok && bok) {
+        if (intPts && intPts.length) {
+          seg = seg.clone();
+          seg.a = intPts[0].pt;
+          outSegs[i] = seg;
+          continue;
+        }
+      }
+
+    }
+
+    return outSegs;
+
+  }
+
+  static cutShapeFromSegs (segs: Segment[], shape: IShape): Segment[] {
+
+    let outSegs = segs.concat();
+    let i = outSegs.length;
+    let shapeSegs = shape.toSegments();
+
+    while (i--) {
+
+      let seg = outSegs[i];
+      let aok = GeomHelpers.pointWithinPolygon(seg.a, shape);
+      let bok = GeomHelpers.pointWithinPolygon(seg.b, shape);
+
+      if (aok && bok) {
+        outSegs.splice(i, 1);
+        continue;
+      }
+
+      let intPts = GeomHelpers.segmentSegmentsIntersections(seg, shapeSegs, false, false);
+
+      if (!aok && !bok) {
+        if (intPts && intPts.length > 1) {
+
+          let segA = new Segment(seg.a, intPts[0].pt);
+          let segB = new Segment(intPts[intPts.length - 1].pt, seg.b);
+          outSegs.splice(i, 1, segA, segB);
+          continue;
+        }
+        continue;
+      }
+
+      if (aok && !bok) {
+        if (intPts && intPts.length) {
+          seg = seg.clone();
+          seg.a = intPts[0].pt;
+          outSegs[i] = seg;
+          continue;
+        }
+      }
+
+      if (!aok && bok) {
+        if (intPts && intPts.length) {
+          seg = seg.clone();
+          seg.b = intPts[0].pt;
+          outSegs[i] = seg;
+          continue;
+        }
+      }
+
+    }
+
+    return outSegs;
+
+  }
+
 }

@@ -22,6 +22,7 @@ export interface IShape {
   hidden: boolean;
   style: IStyle;
   generate(withinArea?: BoundingBox): Ray[];
+  toSegments(): Segment[];
   clone(atScale?: number): IShape;
   boundingBox(): BoundingBox;
   boundingCircle(): BoundingCircle;

@@ -1,5 +1,5 @@
 import { makeCircle } from "../lib/smallest-enclosing-circle";
-import { IShape, Ray, ShapeAlignment, IStyle, Point, BoundingBox, BoundingCircle } from "./core";
+import { IShape, Ray, ShapeAlignment, IStyle, Point, BoundingBox, BoundingCircle, Segment } from "./core";
 import { GeomHelpers } from "./helpers";
 
 export class AbstractShape implements IShape {
@@ -38,6 +38,17 @@ export class AbstractShape implements IShape {
   generate(): Ray[] {
     console.log("generate", this.divisions);
     throw new Error("Generate method not implemented.");
+  }
+  toSegments(): Segment[] {
+    const rays = this.generate();
+    const segs: Segment[] = [];
+    rays.forEach((r, idx) => {
+      if (idx > 0) {
+        segs.push(new Segment(rays[idx - 1], r));
+      }
+    });
+    segs.push(new Segment(rays[rays.length - 1], rays[0]));
+    return segs;
   }
   protected alignmentOffset(): Point {
     let d = this.center.direction;
