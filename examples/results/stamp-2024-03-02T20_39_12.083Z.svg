@@ -39,7 +39,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path2"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -48,7 +48,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path3"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -57,7 +57,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path4"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -66,7 +66,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path5"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -75,7 +75,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path6"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -84,7 +84,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path7"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -93,7 +93,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path8"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -102,7 +102,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path9"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -111,7 +111,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path10"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -120,7 +120,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path11"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -129,7 +129,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path12"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -138,7 +138,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path13"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -147,7 +147,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path14"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -156,7 +156,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path15"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -165,7 +165,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path16"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -174,7 +174,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path17"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -183,7 +183,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path18"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -192,7 +192,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path19"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -201,7 +201,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path20"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -210,7 +210,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path21"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -219,7 +219,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path22"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -228,7 +228,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path23"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -237,7 +237,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path24"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <path
      fill="#000000"
      stroke="#cccccc"
@@ -246,7 +246,7 @@
      fill-opacity="0"
      stroke-miterlimit="10"
      id="path25"
-     style="stroke-width:0.479782" />
+     style="stroke-width:0.479782;stroke:#000000" />
   <plotdata
      application="axidraw"
      model="1"
