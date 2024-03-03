@@ -88,17 +88,17 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
     seedSequence: seeds,
-    rows: 3,
-    columns: 1,
-    rowSpacing: 480,
-    columnSpacing: 420,
+    rows: 4,
+    columns: 2,
+    rowSpacing: 380,
+    columnSpacing: 380,
   });
 
   let pathSets = grid.children().map(x => {
     let path = x.path();
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
-      let scale = 200 / c.radius;
+      let scale = 150 / c.radius;
       return x.path(scale);
     }
     return path;
@@ -106,7 +106,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   pathSets.forEach((paths) => {
     
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 8, 4, true);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 4, 4, true);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);
       console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));

@@ -18,9 +18,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
 const ratio = 2;
-canvas.width = 900 * ratio
+canvas.width = 1200 * ratio
 canvas.height = 1600 * ratio
-canvas.style.width = '900px'
+canvas.style.width = '1200px'
 canvas.style.height = '1600px'
 const ctx = canvas.getContext('2d')!
 ctx.scale(ratio, ratio)
@@ -35,26 +35,6 @@ Sequence.seed = 1;
 const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 125);
-
-Sequence.seed = 2;
-Sequence.seed = 500;
-Sequence.seed = 503;
-Sequence.seed = 506;
-Sequence.seed = 518;
-Sequence.seed = 18;
-Sequence.seed = 17;
-Sequence.seed = 199;
-Sequence.seed = 198;
-Sequence.seed = 197;
-Sequence.seed = 193;
-Sequence.seed = 316;
-Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,72,72,72,72,72 AS RANGLE");
-//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
-//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
-Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP")
-Sequence.fromStatement("repeat 10,10 AS BERRY")
 
 const len = 30;
 const weight = 2;
@@ -78,27 +58,30 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate("RANGLE()")
     .repeatLast(3, 240)
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
-  //const seeds = Sequence.fromStatement("repeat 57,5,43,4,49,42,33,26,47,56", 12);
-  const seeds = Sequence.fromStatement("repeat 222,318,213,256,257,4,5,49,42,33", 12);
+  //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,60,-60,-60,60,60,60,60,-60,60,60,60,-60,60,-60,-60,60,60,60,60,60,60 AS RANGLE");
+  //const seeds = Sequence.fromStatement("repeat 257,4,5,6,9,122,101,127,115", 12);
+
+  //Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,72,72,72,180 AS RANGLE");
+  //const seeds = Sequence.fromStatement("repeat 122,128,157,170,191,202,278,368,297", 12);
+
+  Sequence.fromStatement("shuffle -90,180,180,0,90,-90,-90,90,90,90 AS RANGLE");
+  //const seeds = Sequence.fromStatement("repeat 122,128,157,170,191,202,278,368,297", 12);
+  const seeds = Sequence.fromStatement("repeat 80-100", 12);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
     seedSequence: seeds,
-    rows: 3,
-    columns: 1,
-    rowSpacing: 480,
-    columnSpacing: 420,
+    rows: 4,
+    columns: 3,
+    rowSpacing: 380,
+    columnSpacing: 380,
   });
 
   let pathSets = grid.children().map(x => {
     let path = x.path();
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
-      let scale = 200 / c.radius;
+      let scale = 150 / c.radius;
       return x.path(scale);
     }
     return path;
@@ -106,7 +89,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   pathSets.forEach((paths) => {
     
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 6, 4, true);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 10, 4, true, true);
     shapes.forEach(shape => {
       drawShape(ctx, shape, 0);
       console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
