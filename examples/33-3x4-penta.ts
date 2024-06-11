@@ -59,7 +59,7 @@ Sequence.seed = 316;
 //Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
 // golden angle = 13
 Sequence.fromStatement(
-  "shuffle -72,-72,-72,-72,-72,-72,72,72,72,72,-108,108,-108,108 AS RANGLE",
+  "shuffle -72,-72,-72,-72,-72,-72,72,72,72,72,-144,144 AS RANGLE",
 );
 Sequence.fromStatement("shuffle 90,90 AS RLEN");
 
@@ -93,8 +93,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
   //const seeds = Sequence.fromStatement("repeat 11,13,16,22,23,110");
   //const seeds = Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30");
-  //const seeds = Sequence.fromStatement("repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118");
-  const seeds = Sequence.fromStatement("repeat 1,2,10, 18,107,22, 31,95,59, 69,100,103,105");
+  const seeds = Sequence.fromStatement("repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118");
   //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
