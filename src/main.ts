@@ -1,155 +1,71 @@
-import * as C2S from "canvas2svg";
-import { drawPath, drawShape } from "../src/lib/draw";
-import { Ray } from "../src/geom/core";
-import { ClipperHelpers } from "../src/lib/clipper-helpers";
-import { Sequence } from "../src/lib/sequence";
-import { Stamp } from "../src/lib/stamp";
-import "../src/style.css";
-import colors from "nice-color-palettes";
-import { GridStampLayout } from "../src/lib/stamp-layout";
-import { GeomHelpers } from "../src/geom/helpers";
-import { GeomUtils } from "../src/geom/util";
-import { Rectangle } from "./geom/shapes";
+import * as C2S from 'canvas2svg';
+import { drawRay, drawShape } from '../src/lib/draw';
+import { Ray, ShapeAlignment } from '../src/geom/core';
+import { ClipperHelpers } from '../src/lib/clipper-helpers';
+import { Hatch } from '../src/lib/hatch';
+import { Sequence } from '../src/lib/sequence';
+import { Stamp } from '../src/lib/stamp';
+import '../src/style.css';
+import colors from 'nice-color-palettes';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
+import { Circle, LeafShape, Rectangle } from './geom/shapes';
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
   </div>
 `;
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const canvas = document.getElementById('canvas') as HTMLCanvasElement
 const ratio = 2;
-canvas.width = 1350 * ratio;
-canvas.height = 1800 * ratio;
-canvas.style.width = "1350px";
-canvas.style.height = "1800px";
-const ctx = canvas.getContext("2d")!;
-ctx.scale(ratio, ratio);
+canvas.width = 768 * ratio
+canvas.height = 768 * ratio
+canvas.style.width = '768px'
+canvas.style.height = '768px'
+const ctx = canvas.getContext('2d')!
+ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-ctx.fillStyle = "white";
+ctx.fillStyle = 'white';
 
 Sequence.seed = 1;
 
-// 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[83];
-const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
-Sequence.fromStatement(colorSeq, 125);
-
-Sequence.seed = 2;
-Sequence.seed = 500;
-Sequence.seed = 503;
-Sequence.seed = 506;
-Sequence.seed = 518;
-Sequence.seed = 18;
-Sequence.seed = 17;
-Sequence.seed = 199;
-Sequence.seed = 198;
-Sequence.seed = 197;
-Sequence.seed = 193;
-Sequence.seed = 316;
-//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,-144,72,-72 AS RANGLE");
-//Sequence.fromStatement("shuffle -120,-120,60,60,-60,-60,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -60,-60,60,0,180,0,-60,-60,60,0,180,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,72,72,180,0,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -90,-90,90,-90,0,-90,-90,90,0,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,72,72,72,72,72 AS RANGLE");
-//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
-// golden angle = 13
-Sequence.fromStatement(
-  "shuffle -72,-72,-72,-72,-72,-72,72,72,-108,108,-108,108,-144,-144,144 AS RANGLE",
-);
-Sequence.fromStatement("shuffle 90,90 AS RLEN");
-
-Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP");
-Sequence.fromStatement("repeat 10,10 AS BERRY");
-
-const len = 90;
-const weight = 2;
-
 const draw = (ctx: CanvasRenderingContext2D) => {
+
   ctx.clearRect(0, 0, w, h);
 
-  const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
-    .noBoolean()
-    .defaultStyle({
-      strokeThickness: 0,
-      fillColor: "cyan",
-    })
-    .forward("RLEN()")
-    .circle({
-      radius: 2,
-      divisions: 3,
-      skip: 1,
-    })
-    .rotate("RANGLE()")
-    .repeatLast(3, 180);
+  const child = new Circle(new Ray(w / 2, h / 2, 0), 100, 24, ShapeAlignment.TOP);
+  const child2 = new LeafShape(
+    new Ray(w / 2, h / 2, 1), 300, 16, 50, 80, ShapeAlignment.TOP
+  );
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
-  //const seeds = Sequence.fromStatement("repeat 11,13,16,22,23,110");
-  //const seeds = Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30");
-  //const seeds = Sequence.fromStatement("repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118");
-  //const seeds = Sequence.fromStatement("repeat 1,2,10, 18,107,22, 31,95,59, 69,100,103,105");
-  const seeds = Sequence.fromStatement("repeat 331,335,350, 384,461,456, 457,421,460, 459,473,494");
-  //const seeds = Sequence.fromStatement("repeat 491,492,493, 494,495,496, 497,498,499, 500,501,502");
-  //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
-
-  const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
-    stamp: lattice,
-    seedSequence: seeds,
-    rows: 4,
-    columns: 3,
-    rowSpacing: 400,
-    columnSpacing: 400,
+  console.log(child2.generate())
+  // draw children
+  drawShape(ctx, child)
+  drawShape(ctx, child2)
+  child2.generate().forEach((r, idx) => {
+    if (idx < 7) drawRay(ctx, r)
   });
-
-  let pathSets = grid.children().map((x) => {
-    let path = x.path();
-    let c = GeomHelpers.boundingCircleFromPaths(path);
-    if (c) {
-      let scale = 170 / c.radius;
-      return x.path(scale);
-    }
-    return path;
+  child.generate().forEach((r, idx) => {
+    if (idx < 8) drawRay(ctx, r)
   });
+  drawRay(ctx, child2.center)
 
-  const border = new Rectangle(new Ray(w / 2, h / 2), w, h);
-  border.style.fillAlpha = 0;
-  drawShape(ctx, border);
-
-  pathSets.forEach((paths) => {
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 0.001, 4);
-    shapes.forEach((shape) => {
-      drawShape(ctx, shape, 0);
-      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
-    });
-    paths.forEach((path) => {
-      //drawPath(ctx, path, 0);
-    });
-  });
-};
+}
 
 document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
-    // reset Sequences
-    Sequence.resetAll();
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
-    ctx2.backgroundColor = "#000";
+    ctx2.backgroundColor = '#000';
     // draw the shapes
     draw(ctx2);
     // download the SVG
-  
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
+    const blob = new Blob([svg], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -158,11 +74,14 @@ document.onkeydown = function (e) {
 };
 
 async function main() {
+
   await ClipperHelpers.init();
 
   const now = new Date().getTime();
   draw(ctx);
   console.log(`${new Date().getTime() - now}ms`);
+
 }
+
 
 main();
