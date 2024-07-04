@@ -59,7 +59,7 @@ Sequence.seed = 316;
 //Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
 // golden angle = 13
 Sequence.fromStatement(
-  "shuffle -72,-72,-72,-72,-72,-72,72,72,72,72,-108,108,-108,108 AS RANGLE",
+  "shuffle -72,-72,-72,-72,-72,-72,72,72,-108,108,-108,108,-144,-144,144 AS RANGLE",
 );
 Sequence.fromStatement("shuffle 90,90 AS RLEN");
 
@@ -94,7 +94,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //const seeds = Sequence.fromStatement("repeat 11,13,16,22,23,110");
   //const seeds = Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30");
   //const seeds = Sequence.fromStatement("repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118");
-  const seeds = Sequence.fromStatement("repeat 1,2,10, 18,107,22, 31,95,59, 69,100,103,105");
+  //const seeds = Sequence.fromStatement("repeat 1,2,10, 18,107,22, 31,95,59, 69,100,103,105");
+  const seeds = Sequence.fromStatement("repeat 331,335,350, 384,461,456, 457,421,460, 459,473,494");
+  //const seeds = Sequence.fromStatement("repeat 491,492,493, 494,495,496, 497,498,499, 500,501,502");
   //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
@@ -123,11 +125,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   pathSets.forEach((paths) => {
     let shapes = ClipperHelpers.offsetPathsToShape(paths, 0.001, 4);
     shapes.forEach((shape) => {
-      //drawShape(ctx, shape, 0);
+      drawShape(ctx, shape, 0);
       console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
     });
     paths.forEach((path) => {
-      drawPath(ctx, path, 0);
+      //drawPath(ctx, path, 0);
     });
   });
 };
