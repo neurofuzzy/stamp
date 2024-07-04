@@ -17,6 +17,7 @@ import {
   Rectangle,
   RoundedRectangle,
   Bone,
+  LeafShape,
 } from "../geom/shapes";
 import { Donut } from "../geom/compoundshapes";
 import { RoundedTangram, Tangram } from "../geom/tangram";
@@ -56,6 +57,13 @@ export interface ICircleParams extends IShapeParams {
 export interface IEllipseParams extends IShapeParams {
   radiusX: number | string;
   radiusY: number | string;
+}
+
+export interface ILeafShapeParams extends IShapeParams {
+  radius: number | string;
+  splitAngle: number | string;
+  splitAngle2?: number | string;
+  serration?: number | string;
 }
 
 export interface IRectangleParams extends IShapeParams {
@@ -510,6 +518,42 @@ export class Stamp extends AbstractShape {
     this._make(shapes, $(params.outlineThickness));
   }
 
+  private _leafShape(params: ILeafShapeParams) {
+    let shapes: IShape[] = [];
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        GeomHelpers.rotatePoint(offset, this._cursor.direction);
+        const s = new LeafShape(
+          new Ray(
+            nspx * i - o.x + offset.x,
+            nspy * j - o.y + offset.y,
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
+          ),
+          $(params.radius),
+          $(params.divisions),
+          $(params.splitAngle) || 60,
+          $(params.splitAngle2) || $(params.splitAngle),
+          $(params.serration) || 0,
+          $(params.align)
+        );
+        if ($(params.skip) > 0) {
+          s.hidden = true;
+        }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
+      }
+    }
+    this._make(shapes, $(params.outlineThickness));
+  }
+
   private _rectangle(params: IRectangleParams) {
     let shapes: IShape[] = [];
     let nnx = $(params.numX),
@@ -841,6 +885,15 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  leafShape(params: ILeafShapeParams) {
+    params = paramsWithDefaults<ILeafShapeParams>(params);
+    this._nodes.push({
+      fName: "_leafShape",
+      args: [params],
+    });
+    return this;
+  }
+
   rectangle(params: IRectangleParams) {
     params = paramsWithDefaults<IRectangleParams>(params);
     this._nodes.push({
@@ -1066,6 +1119,7 @@ export class Stamp extends AbstractShape {
       _stepBack: this._stepBack,
       _circle: this._circle,
       _ellipse: this._ellipse,
+      _leafShape: this._leafShape,
       _rectangle: this._rectangle,
       _reset: this._reset,
       _roundedRectangle: this._roundedRectangle,

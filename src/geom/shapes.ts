@@ -836,12 +836,14 @@ export class LeafShape extends AbstractShape {
   radius: number;
   splitAngle: number;
   splitAngle2: number;
+  serration: number;
   constructor(
     center?: Ray, 
     radius: number = 50, 
     divisions: number = 12, 
     splitAngle: number = 45, 
-    splitAngle2: number = 0, 
+    splitAngle2: number = 0,
+    serration: number = 0,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false
   ) {
@@ -850,6 +852,7 @@ export class LeafShape extends AbstractShape {
     this.radius = radius;
     this.splitAngle = splitAngle;
     this.splitAngle2 = splitAngle2 || this.splitAngle;
+    this.serration = serration;
   }
   protected alignmentOffset(): Point {
     const r1 = this.radius - Math.cos(this.splitAngle2 * Math.PI / 180) * this.radius;
@@ -885,22 +888,30 @@ export class LeafShape extends AbstractShape {
     let rays = [];
     const offset = this.alignmentOffset();
     let degsPerStep = this.splitAngle * 2 / this.divisions;
-    const r1 = this.radius - Math.cos(this.splitAngle2 * Math.PI / 180) * this.radius;
+    const r1 = this.radius - Math.cos(this.splitAngle2 * Math.PI / 180) * (this.radius + this.serration);
     for (let i = 0; i <= this.divisions / 2; i++) {
       let currentAngle = degsPerStep * i;
       let deg = 90 + currentAngle - this.splitAngle;
-      let r = new Ray(0, r1);
+      let delta = r1;
+      if (this.serration !== 0 && i % 2 === 0) {
+        delta = r1 + this.serration;
+      }
+      let r = new Ray(0, delta);
       GeomHelpers.rotatePoint(r, deg * Math.PI / 180);
       r.x += this.radius - r1;
       r.y = 0 - r.y;
       rays.push(r);
     }
-    const r2 = this.radius - Math.cos(this.splitAngle * Math.PI / 180) * this.radius;
+    const r2 = this.radius - Math.cos(this.splitAngle * Math.PI / 180) * (this.radius + this.serration);
     degsPerStep = this.splitAngle2 * 2 / this.divisions;
     for (let i = this.divisions / 2; i <= this.divisions; i++) {
       let currentAngle = degsPerStep * i;
       let deg = 90 + currentAngle - this.splitAngle2;
-      let r = new Ray(0, r2);
+      let delta = r2;
+      if (this.serration !== 0 && i % 2 === 0) {
+        delta = r2 + this.serration;
+      }
+      let r = new Ray(0, delta);
       GeomHelpers.rotatePoint(r, deg * Math.PI / 180);
       r.x += this.radius - r2;
       r.y = 0 - r.y;
@@ -928,5 +939,22 @@ export class LeafShape extends AbstractShape {
     }
     this.fit(rays, withinArea);
     return rays;
+  }
+  clone(atScale = 1) {
+    const scale = atScale || 1;
+    const s = new LeafShape(
+      this.center.clone(),
+      this.radius * scale,
+      this.divisions,
+      this.splitAngle,
+      this.splitAngle2,
+      this.serration,
+      this.alignment,
+      this.reverse
+    );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
+    return s;
   }
 }
