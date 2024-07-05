@@ -35,10 +35,10 @@ const palette = colors[79];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
-Sequence.fromStatement("binary -36,36 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 70 AS RLENGTH")
+Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
+Sequence.fromStatement("repeat 200 AS RLENGTH")
 Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
-Sequence.fromStatement("repeat 90 AS BERRY")
+Sequence.fromStatement("repeat 170 AS BERRY")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -48,25 +48,64 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       // fillColor: "COLOR()",
-      strokeThickness: 1,
+      strokeThickness: 2.5,
       fillColor: 0,
     })
-    .forward("RLENGTH")
+    .forward("RLENGTH()")
     .rotate("RANGLE()")
     .rotate(72)
     .leafShape({
       radius: "BERRY()",
-      outlineThickness: 5,
+      outlineThickness: 8,
       divisions: 36,
       splitAngle: 50,
       splitAngle2: 80,
       serration: 0,
       align: ShapeAlignment.TOP
+    }).
+    circle({
+      radius: 30,
+      divisions: 36,
+      outlineThickness: 8,
     })
-    .repeatLast(2, 5)
-    .repeatLast(5, 9)
+    .repeatLast(3, 5)
+    .repeatLast(6, 6)
+
+  const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
+    .defaultStyle({
+      // fillColor: "COLOR()",
+      strokeThickness: 3.5,
+      fillColor: 0,
+    })
+    .forward("RLENGTH()")
+    .rotate("RANGLE()")
+    .rotate(72)
+    .leafShape({
+      radius: 140,
+      outlineThickness: 0,
+      divisions: 36,
+      splitAngle: 60,
+      splitAngle2: 90,
+      serration: 0,
+      align: ShapeAlignment.TOP
+    }).
+    circle({
+      radius: 30,
+      divisions: 36,
+      outlineThickness: 0,
+    })
+    .repeatLast(3, 5)
+    .repeatLast(6, 6)
 
   // draw children
+  tree2.children().forEach(child => {
+    if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
+      const shape = Hatch.subtractHatchFromShape(child);
+      if (shape) drawShape(ctx, shape)
+    } else {
+      drawShape(ctx, child)
+    }
+  });
   tree.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
