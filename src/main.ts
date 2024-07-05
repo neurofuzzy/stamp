@@ -56,7 +56,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate(72)
     .leafShape({
       radius: "BERRY()",
-      outlineThickness: 8,
+      outlineThickness: 12,
       divisions: 36,
       splitAngle: 50,
       splitAngle2: 80,
@@ -66,7 +66,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     circle({
       radius: 30,
       divisions: 36,
-      outlineThickness: 8,
+      outlineThickness: 12,
     })
     .repeatLast(3, 5)
     .repeatLast(6, 6)
@@ -81,10 +81,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate("RANGLE()")
     .rotate(72)
     .leafShape({
-      radius: 140,
+      radius: 152,
       outlineThickness: 0,
       divisions: 36,
-      splitAngle: 60,
+      splitAngle: 54,
       splitAngle2: 90,
       serration: 0,
       align: ShapeAlignment.TOP
