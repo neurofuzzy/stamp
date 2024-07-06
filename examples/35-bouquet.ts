@@ -36,9 +36,9 @@ const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 2.4 add AS RSCALE");
-Sequence.fromStatement("repeat 1.08 POW AS ROFFSET");
-Sequence.fromStatement("repeat 100 AS BERRY")
+Sequence.fromStatement("repeat 200 AS RLENGTH")
+Sequence.fromStatement("repeat 20,16,16,12,12,8,8,4,4,4 AS RWEIGHT")
+Sequence.fromStatement("repeat 170 AS BERRY")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -50,50 +50,54 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       // fillColor: "COLOR()",
       strokeThickness: 2.5,
       fillColor: 0,
-      fillAlpha: 0,
     })
-    .rotate(137.508)
+    .forward("RLENGTH()")
+    .rotate("RANGLE()")
+    .rotate(72)
     .leafShape({
-      radius: "74 - RSCALE()",
-      outlineThickness: 15,
-      divisions: 24,
-      splitAngle: 80,
-      splitAngle2: 160,
+      radius: "BERRY()",
+      outlineThickness: 12,
+      divisions: 36,
+      splitAngle: 50,
+      splitAngle2: 80,
       serration: 0,
-      angle: 90,
-      align: ShapeAlignment.TOP,
-      offsetX: "80 - 10 * ROFFSET()",
+      align: ShapeAlignment.TOP
+    }).
+    circle({
+      radius: 30,
+      divisions: 36,
+      outlineThickness: 12,
     })
-    .repeatLast(2, 19)
-    .circle({
-      radius: 20
-    })
+    .repeatLast(3, 5)
+    .repeatLast(6, 6)
 
-    
   const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       // fillColor: "COLOR()",
-      strokeThickness: 2.5,
+      strokeThickness: 3.5,
       fillColor: 0,
-      fillAlpha: 0,
     })
-    .rotate(137.508)
+    .forward("RLENGTH()")
+    .rotate("RANGLE()")
+    .rotate(72)
     .leafShape({
-      radius: "74 - RSCALE()",
-      outlineThickness: -15,
-      divisions: 24,
-      splitAngle: 80,
-      splitAngle2: 160,
+      radius: 152,
+      outlineThickness: 0,
+      divisions: 36,
+      splitAngle: 54,
+      splitAngle2: 90,
       serration: 0,
-      angle: 90,
-      align: ShapeAlignment.TOP,
-      offsetX: "80 - 10 * ROFFSET()",
+      align: ShapeAlignment.TOP
+    }).
+    circle({
+      radius: 30,
+      divisions: 36,
+      outlineThickness: 0,
     })
-    .repeatLast(2, 39)
-    .circle({
-      radius: 180,
-    });
-  
+    .repeatLast(3, 5)
+    .repeatLast(6, 6)
+
+  // draw children
   tree2.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
@@ -102,9 +106,6 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       drawShape(ctx, child)
     }
   });
-
-  Sequence.resetAll();
-
   tree.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
@@ -113,32 +114,26 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       drawShape(ctx, child)
     }
   });
-
 }
 
 document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
-    // reset Sequences
-    Sequence.resetAll();
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
-    ctx2.backgroundColor = "#000";
+    ctx2.backgroundColor = '#000';
     // draw the shapes
     draw(ctx2);
     // download the SVG
-  
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
+    const blob = new Blob([svg], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
     link.click();
   }
 };
-
 
 async function main() {
 

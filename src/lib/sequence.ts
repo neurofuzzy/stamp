@@ -21,11 +21,16 @@ export class Sequence {
   static readonly RANDOM = "random";
   static readonly BINARY = "binary";
   static readonly AS = "as";
+  // accumulation types for sequences (i.e. REPEAT 10,20 ADD)
   static readonly REPLACE = "replace";
   static readonly ADD = "add";
   static readonly SUBTRACT = "subtract";
   static readonly MULTIPLY = "multiply";
   static readonly DIVIDE = "divide";
+  static readonly LOG = "log";
+  static readonly LOG2 = "log2";
+  static readonly LOG10 = "log10";
+  static readonly POW = "pow";
   static readonly ismaxIterations = /\(\d+\)/g;
   static seed = 1792;
   static sequences: { [key:string]: Sequence } = {};
@@ -63,7 +68,7 @@ export class Sequence {
 
   static readonly reserved: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY, Sequence.AS];
   static readonly types: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY];
-  static readonly accumulators: string[] = [Sequence.REPLACE, Sequence.ADD, Sequence.SUBTRACT, Sequence.MULTIPLY, Sequence.DIVIDE];
+  static readonly accumulators: string[] = [Sequence.REPLACE, Sequence.ADD, Sequence.SUBTRACT, Sequence.MULTIPLY, Sequence.DIVIDE, Sequence.LOG, Sequence.LOG2, Sequence.LOG10, Sequence.POW];
 
   _prevValue: number | Sequence;
   _currentValue: number | Sequence;
@@ -134,7 +139,11 @@ export class Sequence {
     }
     if (typeof this._prevValue === "number") {
       if (isNaN(this._prevValue)) {
-        this._prevValue = 0;
+        if (this._accumulationType === Sequence.REPLACE) {
+          this._prevValue = 0;
+        } else {
+          this._prevValue = out;
+        }
       }
       switch (this._accumulationType) {
         case Sequence.ADD:
@@ -148,6 +157,16 @@ export class Sequence {
             return 0;
           }
           return this._prevValue / out;
+        case Sequence.LOG:
+          return Math.log(1 + this._iterations) * out;
+        case Sequence.LOG2:
+          return Math.log2(1 + this._iterations) * out;
+        case Sequence.LOG10:
+          return Math.log10(1 + this._iterations) * out;
+        case Sequence.POW:
+          return Math.pow(out, this._iterations) - out;
+        default:
+          return out;
       }
     }
     return out;

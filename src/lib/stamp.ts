@@ -318,7 +318,7 @@ export class Stamp extends AbstractShape {
             if (g.hidden) {
               continue;
             }
-            if (outln) {
+            if (outln > 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
                 delta: outln * 100000,
                 offsetInputs: [
@@ -335,6 +335,32 @@ export class Stamp extends AbstractShape {
                   ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
                 const polyResult = ClipperHelpers.clipper.clipToPolyTree({
                   clipType: clipperLib.ClipType.Difference,
+                  subjectInputs: [{ data: paths, closed: true }],
+                  clipInputs: [{ data: offsetPaths }],
+                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
+                });
+                this._tree = polyResult;
+              } else {
+                console.log("error offseting", outln);
+              }
+            } else if (outln < 0) {
+              const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
+                delta: -outln * 100000,
+                offsetInputs: [
+                  {
+                    data: b2.data,
+                    joinType: clipperLib.JoinType.Round,
+                    endType: clipperLib.EndType.ClosedPolygon,
+                  },
+                ],
+                arcTolerance: 5000,
+              });
+              if (offsetResult) {
+                let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
+                let offsetPaths =
+                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
+                const polyResult = ClipperHelpers.clipper.clipToPolyTree({
+                  clipType: clipperLib.ClipType.Union,
                   subjectInputs: [{ data: paths, closed: true }],
                   clipInputs: [{ data: offsetPaths }],
                   subjectFillType: clipperLib.PolyFillType.EvenOdd,
@@ -367,7 +393,35 @@ export class Stamp extends AbstractShape {
               });
               if (polyResult) {
                 this._tree = polyResult;
+                if (outln < 0) {
+                  const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
+                    delta: -outln * 100000,
+                    offsetInputs: [
+                      {
+                        data: b.data,
+                        joinType: clipperLib.JoinType.Round,
+                        endType: clipperLib.EndType.ClosedPolygon,
+                      },
+                    ],
+                    arcTolerance: 5000,
+                  });
+                  if (offsetResult) {
+                    let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
+                    let offsetPaths =
+                      ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
+                    const polyResult = ClipperHelpers.clipper.clipToPolyTree({
+                      clipType: clipperLib.ClipType.Union,
+                      subjectInputs: [{ data: paths, closed: true }],
+                      clipInputs: [{ data: offsetPaths }],
+                      subjectFillType: clipperLib.PolyFillType.EvenOdd,
+                    });
+                    this._tree = polyResult;
+                  } else {
+                    console.log("error offseting", outln);
+                  }
+                }
               }
+              
             } catch (e) {
               console.log("error unioning", e);
             }
@@ -527,8 +581,8 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this._cursor.direction);
+        const offset = new Point(0 - $(params.offsetX || 0), $(params.offsetY || 0));
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new LeafShape(
           new Ray(
             nspx * i - o.x + offset.x,

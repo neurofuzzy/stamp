@@ -36,8 +36,8 @@ const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 2.4 add AS RSCALE");
-Sequence.fromStatement("repeat 1.08 POW AS ROFFSET");
+Sequence.fromStatement("repeat 1.9 add AS RSCALE");
+Sequence.fromStatement("repeat 1.03 multiply AS ROFFSET");
 Sequence.fromStatement("repeat 100 AS BERRY")
 
 
@@ -54,21 +54,29 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .rotate(137.508)
     .leafShape({
-      radius: "74 - RSCALE()",
+      radius: "180 - RSCALE()",
       outlineThickness: 15,
       divisions: 24,
-      splitAngle: 80,
-      splitAngle2: 160,
+      splitAngle: 40,
+      splitAngle2: 70,
       serration: 0,
       angle: 90,
       align: ShapeAlignment.TOP,
-      offsetX: "80 - 10 * ROFFSET()",
+      offsetX: "180 - 20 * ROFFSET()",
     })
-    .repeatLast(2, 19)
+    .repeatLast(2, 59)
     .circle({
-      radius: 20
+      radius: 42,
+      outlineThickness: 15,
     })
-
+    .subtract()
+    .circle({
+      radius: 27,
+    })
+    .add()
+    .circle({
+      radius: 12,
+    });
     
   const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
@@ -79,21 +87,21 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .rotate(137.508)
     .leafShape({
-      radius: "74 - RSCALE()",
+      radius: "180 - RSCALE()",
       outlineThickness: -15,
       divisions: 24,
-      splitAngle: 80,
-      splitAngle2: 160,
+      splitAngle: 40,
+      splitAngle2: 70,
       serration: 0,
       angle: 90,
       align: ShapeAlignment.TOP,
-      offsetX: "80 - 10 * ROFFSET()",
+      offsetX: "180 - 20 * ROFFSET()",
     })
-    .repeatLast(2, 39)
+    .repeatLast(2, 59)
     .circle({
       radius: 180,
     });
-  
+    
   tree2.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
