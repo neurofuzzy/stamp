@@ -36,8 +36,8 @@ const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 2.4 add AS RSCALE");
-Sequence.fromStatement("repeat 1.08 POW AS ROFFSET");
+Sequence.fromStatement("repeat 5 LOG2 AS RSCALE");
+Sequence.fromStatement("repeat 5 LOG2 AS ROFFSET");
 Sequence.fromStatement("repeat 100 AS BERRY")
 
 
@@ -52,22 +52,24 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillColor: 0,
       fillAlpha: 0,
     })
+    .circle({
+      radius: 20,
+      outlineThickness: 10,
+    })
     .rotate(137.508)
     .leafShape({
-      radius: "74 - RSCALE()",
-      outlineThickness: 15,
+      radius: "10 * RSCALE()",
+      outlineThickness: 10,
       divisions: 24,
       splitAngle: 80,
       splitAngle2: 160,
       serration: 0,
       angle: 90,
       align: ShapeAlignment.TOP,
-      offsetX: "80 - 10 * ROFFSET()",
+      offsetX: "12 * ROFFSET()",
     })
-    .repeatLast(2, 19)
-    .circle({
-      radius: 20
-    })
+    .repeatLast(2, 29)
+    .flip();
 
     
   const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
@@ -94,6 +96,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       radius: 180,
     });
   
+    /*
   tree2.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
@@ -102,6 +105,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       drawShape(ctx, child)
     }
   });
+  */
 
   Sequence.resetAll();
 

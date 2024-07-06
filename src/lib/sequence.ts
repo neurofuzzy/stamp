@@ -158,11 +158,11 @@ export class Sequence {
           }
           return this._prevValue / out;
         case Sequence.LOG:
-          return Math.log(1 + this._iterations) * out;
+          return Math.log(1 + this._iterations * out);
         case Sequence.LOG2:
-          return Math.log2(1 + this._iterations) * out;
+          return Math.log2(1 + this._iterations * out);
         case Sequence.LOG10:
-          return Math.log10(1 + this._iterations) * out;
+          return Math.log10(1 + this._iterations * out);
         case Sequence.POW:
           return Math.pow(out, this._iterations) - out;
         default:

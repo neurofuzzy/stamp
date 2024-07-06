@@ -147,6 +147,8 @@ export class Stamp extends AbstractShape {
   private _nodes: INode[] = [];
   private _tree: clipperLib.PolyTree | null = null;
   private _polys: Polygon[] = [];
+  private _unclippedShapes:{ mode: number, shape: IShape, outln: number }[] = [];
+  private _flipBeforeClip: boolean = false;
   private _styleMap: IStyleMap[] = [];
   private _mode: number = Stamp.UNION;
   private _cursor: Ray = new Ray(0, 0, 0);
@@ -165,6 +167,7 @@ export class Stamp extends AbstractShape {
   private _reset() {
     this._tree = null;
     this._polys = [];
+    this._unclippedShapes = [];
     this._styleMap = [];
     this._mode = Stamp.UNION;
     this._baked = false;
@@ -302,10 +305,21 @@ export class Stamp extends AbstractShape {
         }
       }
 
+      this._unclippedShapes.push({ mode: this._mode, shape: g, outln: outln });
+    }
+  }
+
+  private _clipShapes() {
+
+    for (let i = 0; i < this._unclippedShapes.length; i++) {
+      let g = this._unclippedShapes[i].shape;
+      let outln = this._unclippedShapes[i].outln;
+      let mode = this._unclippedShapes[i].mode;
+
       let b: clipperLib.SubjectInput;
       let b2 = null;
 
-      switch (this._mode) {
+      switch (mode) {
         case Stamp.NONE:
           if (!this._polys) {
             this._polys = [];
@@ -1113,6 +1127,14 @@ export class Stamp extends AbstractShape {
   }
 
   /**
+   * Flips the order of the shapes before clipping
+   */
+  flip() {
+    this._flipBeforeClip = !this._flipBeforeClip;
+    return this;
+  }
+
+  /**
    * Bakes the clipped solution into a final polytree
    * @param {boolean} rebake whether to re-bake a baked shape
    */
@@ -1198,6 +1220,12 @@ export class Stamp extends AbstractShape {
         fn.apply(this, args);
       }
     }
+    
+    if (this._flipBeforeClip) {
+      this._unclippedShapes.reverse();
+    }
+
+    this._clipShapes();
 
     if (this._tree) {
       this._polys = ClipperHelpers.polyTreeToPolygons(this._tree);
