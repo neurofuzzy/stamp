@@ -516,7 +516,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this._cursor.direction);
+        GeomHelpers.rotatePoint(offset, 0 - this._cursor.direction);
         let s;
         let innerRadius = $(params.innerRadius);
         let cen = new Ray(
@@ -562,7 +562,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this._cursor.direction);
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new Ellipse(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -632,7 +632,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this._cursor.direction);
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new Rectangle(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -667,7 +667,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this._cursor.direction);
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new RoundedRectangle(
           new Ray(
             nspx * i - o.x + offset.x,
@@ -706,7 +706,7 @@ export class Stamp extends AbstractShape {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
-        GeomHelpers.rotatePoint(offset, this._cursor.direction);
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new Polygon(
           new Ray(
             nspx * i - o.x + offset.x,

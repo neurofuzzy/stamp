@@ -927,7 +927,7 @@ export class LeafShape extends AbstractShape {
     rays.forEach((r) => {
       r.x += this.center.x + offset.x;
       r.y += this.center.y + offset.y;
-    })
+    });
     if (this.center.direction) {
       rays.forEach((r) => {
         GeomHelpers.rotateRayAboutOrigin(this.center, r);

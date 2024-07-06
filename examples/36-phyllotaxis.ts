@@ -88,10 +88,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate(137.508)
     .leafShape({
       radius: "180 - RSCALE()",
-      outlineThickness: -15,
+      outlineThickness: 0,
       divisions: 24,
-      splitAngle: 40,
-      splitAngle2: 70,
+      splitAngle: 45,
+      splitAngle2: 75,
       serration: 0,
       angle: 90,
       align: ShapeAlignment.TOP,

@@ -32,7 +32,7 @@ export class Sequence {
   static readonly LOG10 = "log10";
   static readonly POW = "pow";
   static readonly ismaxIterations = /\(\d+\)/g;
-  static seed = 1792;
+  static seed = 0;
   static sequences: { [key:string]: Sequence } = {};
   static __prng: { (): number } | null = null;
   static random = () => {
@@ -158,11 +158,11 @@ export class Sequence {
           }
           return this._prevValue / out;
         case Sequence.LOG:
-          return Math.log(1 + this._iterations * out);
+          return Math.log(Math.max(Math.abs(1 + this._seed + this._iterations * out), 1));
         case Sequence.LOG2:
-          return Math.log2(1 + this._iterations * out);
+          return Math.log2(Math.max(Math.abs(1 + this._seed + this._iterations * out), 1));
         case Sequence.LOG10:
-          return Math.log10(1 + this._iterations * out);
+          return Math.log10(Math.max(Math.abs(1 + this._seed + this._iterations * out), 1));
         case Sequence.POW:
           return Math.pow(out, this._iterations) - out;
         default:

@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { drawShape } from '../src/lib/draw';
+import { drawRay, drawShape } from '../src/lib/draw';
 import { Ray, ShapeAlignment } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Hatch } from '../src/lib/hatch';
@@ -8,6 +8,7 @@ import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
 import { HatchBooleanType } from '../src/geom/hatch-patterns';
+import { Ellipse, LeafShape } from './geom/shapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -28,7 +29,7 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
-Sequence.seed = 1;
+Sequence.seed = 2;
 
 // 2,7,24,29,32,39,69,78,83,94,96
 const palette = colors[79];
@@ -37,7 +38,7 @@ Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 5 LOG2 AS RSCALE");
-Sequence.fromStatement("repeat 5 LOG2 AS ROFFSET");
+Sequence.fromStatement("repeat 0.3 LOG10 AS ROFFSET");
 Sequence.fromStatement("repeat 100 AS BERRY")
 
 
@@ -48,27 +49,53 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       // fillColor: "COLOR()",
-      strokeThickness: 2.5,
-      fillColor: 0,
-      fillAlpha: 0,
+      strokeThickness: 0,
+      fillColor: "COLOR()",
+      fillAlpha: 1,
+
     })
+    /*
     .circle({
-      radius: 20,
+      radius: 3,
+      divisions: 32,
       outlineThickness: 10,
     })
+    */
     .rotate(137.508)
+    /*
     .leafShape({
-      radius: "10 * RSCALE()",
-      outlineThickness: 10,
+      radius: 30,
+      outlineThickness: 4,
       divisions: 24,
       splitAngle: 80,
       splitAngle2: 160,
       serration: 0,
       angle: 90,
       align: ShapeAlignment.TOP,
-      offsetX: "12 * ROFFSET()",
+      offsetY: 200,
     })
-    .repeatLast(2, 29)
+    
+    .ellipse({
+      radiusX: "32 - RSCALE()",
+      radiusY: "48 - RSCALE()",
+      divisions: 32,
+      outlineThickness: 4,
+      //angle: 90,
+      align: ShapeAlignment.TOP,
+      offsetY: "100 * ROFFSET()",
+    })
+    */
+
+    .rectangle({
+      width: "3 * RSCALE()",
+      height: "20 * RSCALE()",
+      divisions: 24,
+      align: ShapeAlignment.TOP,
+      offsetY: "100 * ROFFSET()",
+      outlineThickness: 4,
+    })
+    
+    .repeatLast(2, 82)
     .flip();
 
     
@@ -117,6 +144,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       drawShape(ctx, child)
     }
   });
+
+  /*
+  const ang = Math.PI * 0.25;
+  const ellipse = new Ellipse(new Ray(w / 2, h / 2 + 100, ang), 50, 70, 32, ShapeAlignment.TOP, false);
+
+  drawShape(ctx, ellipse);
+  drawRay(ctx, ellipse.center);
+
+  const leafShape = new LeafShape(new Ray(w / 2, h / 2 + 100, ang), 100, 20, 60, 80, 0, ShapeAlignment.TOP);
+
+  drawShape(ctx, leafShape);
+  drawRay(ctx, leafShape.center);
+  */
+
+  //drawRay(ctx, tree.center)
+  
 
 }
 
