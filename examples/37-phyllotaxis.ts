@@ -37,7 +37,7 @@ Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 2.4 add AS RSCALE");
-Sequence.fromStatement("repeat 1.08 POW AS ROFFSET");
+Sequence.fromStatement("repeat 80 POW AS ROFFSET");
 Sequence.fromStatement("repeat 100 AS BERRY")
 
 

@@ -164,7 +164,8 @@ export class Sequence {
         case Sequence.LOG10:
           return Math.log10(Math.max(Math.abs(1 + this._seed + this._iterations * out), 1));
         case Sequence.POW:
-          return Math.pow(out, this._iterations) - out;
+          const out2 = 1 + out * 0.001;
+          return Math.pow(out2, this._iterations) - out2;
         default:
           return out;
       }
