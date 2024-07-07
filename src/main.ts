@@ -54,21 +54,21 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
     })
     .circle({
-      radius: 38,
-      divisions: 32,
-      outlineThickness: 8,
+      radius: 76,
+      divisions: 64,
+      outlineThickness: 16,
     })
     .rotate(137.508)
     .leafShape({
-      radius: "20 + RSCALE() * 6",
-      outlineThickness: 8,
+      radius: "40 + RSCALE() * 12",
+      outlineThickness: 16,
       divisions: 32,
       splitAngle: 60,
       splitAngle2: 160,
       serration: 0,
       angle: 0,
       align: ShapeAlignment.TOP,
-      offsetY: "30 * ROFFSET()",
+      offsetY: "60 * ROFFSET()",
     })
     .repeatLast(2, 27)
     .flip();
@@ -82,21 +82,21 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillAlpha: 0,
     })
     .circle({
-      radius: 38,
+      radius: 76,
       divisions: 32,
       outlineThickness: 8,
     })
     .rotate(137.508)
     .leafShape({
-      radius: "20 + RSCALE() * 6",
-      outlineThickness: -8,
+      radius: "40 + RSCALE() * 12",
+      outlineThickness: -16,
       divisions: 32,
       splitAngle: 60,
       splitAngle2: 160,
       serration: 0,
       angle: 0,
       align: ShapeAlignment.TOP,
-      offsetY: "30 * ROFFSET()",
+      offsetY: "60 * ROFFSET()",
     })
     .repeatLast(2, 27);
   
