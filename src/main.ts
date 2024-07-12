@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { drawRay, drawShape } from '../src/lib/draw';
+import { drawHatchPattern, drawRay, drawShape } from '../src/lib/draw';
 import { Ray, ShapeAlignment } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Hatch } from '../src/lib/hatch';
@@ -7,8 +7,8 @@ import { Sequence } from '../src/lib/sequence';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType } from '../src/geom/hatch-patterns';
-import { Ellipse, LeafShape } from './geom/shapes';
+import { HatchBooleanType, HatchPatternType } from '../src/geom/hatch-patterns';
+import { Ellipse, LeafShape } from '../src/geom/shapes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -29,7 +29,7 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = 'white';
 
-Sequence.seed = 2;
+Sequence.seed = 0;
 
 // 2,7,24,29,32,39,69,78,83,94,96
 const palette = colors[79];
@@ -37,14 +37,33 @@ const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 0 LOG2 AS RSCALE");
-Sequence.fromStatement("repeat 6 LOG10 AS ROFFSET");
-Sequence.fromStatement("repeat 100 AS BERRY")
+Sequence.fromStatement("repeat 0.5 LOG2 AS RSCALE", 0);
+Sequence.fromStatement("repeat 1 LOG2 AS ROFFSET", 1);
+Sequence.fromStatement("repeat 1.02 ADD AS RLA");
+Sequence.fromStatement("repeat 100,60 AS BERRY")
+Sequence.fromStatement("repeat 40,70,100 AS BHEIGHT")
+Sequence.fromStatement("random 0,0,0,0 AS BANG")
+Sequence.fromStatement("repeat 1,2,3 AS STORIES")
+Sequence.fromStatement("repeat 1,4,5,6,7 AS HATCH")
+Sequence.fromStatement("repeat 45,90,45,90,45 AS HATCHANG")
+Sequence.fromStatement("repeat 35[6],0[6] AS BOFFSET")
+Sequence.fromStatement("repeat 0[5],1,0[6] AS BSKIP")
+Sequence.fromStatement("random 0x111111, 0x222222, 0x333333, 0x444444, 0x555555 AS BCOL", 12)
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   ctx.clearRect(0, 0, w, h);
+
+  // compound leaf
+  const leaf = new Stamp(new Ray(0, 0))
+    .rotate(90)
+    .ellipse({
+      radiusX: "1.3 * RSCALE() * RSCALE()",
+      radiusY: "12 * RSCALE()",
+      divisions: 64,
+    });
+
 
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
@@ -54,23 +73,30 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
     })
     .circle({
-      radius: 76,
-      divisions: 64,
-      outlineThickness: 16,
+      radius: 56,
+      outlineThickness: 8,
+      style: {
+        fillAlpha: 0,
+        hatchPattern: HatchPatternType.LINE,
+        hatchScale: 1
+      }
     })
+    // 48
+    // 67
+    // 210
     .rotate(137.508)
-    .leafShape({
-      radius: "40 + RSCALE() * 12",
-      outlineThickness: 16,
-      divisions: 32,
-      splitAngle: 60,
-      splitAngle2: 160,
-      serration: 0,
-      angle: 0,
-      align: ShapeAlignment.TOP,
-      offsetY: "60 * ROFFSET()",
+    .forward("40 * ROFFSET()")
+    .stamp({
+      subStamp: leaf,
+      outlineThickness: 8,
+      style: {
+        fillAlpha: 0,
+        hatchPattern: HatchPatternType.LINE,
+        hatchScale: 1
+      }  
     })
-    .repeatLast(2, 27)
+    .stepBack(1)
+    .repeatLast(4, 27)
     .flip();
 
     
@@ -82,24 +108,25 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillAlpha: 0,
     })
     .circle({
-      radius: 76,
+      radius: 84,
       divisions: 32,
       outlineThickness: 8,
     })
-    .rotate(137.508)
+    .rotate(67)
     .leafShape({
-      radius: "40 + RSCALE() * 12",
-      outlineThickness: -16,
+      radius: "60 + RSCALE() * 12",
+      outlineThickness: -10,
       divisions: 32,
-      splitAngle: 60,
-      splitAngle2: 160,
+      splitAngle: "40 + RLA() * 1.4",
+      splitAngle2: 80,
       serration: 0,
       angle: 0,
       align: ShapeAlignment.TOP,
-      offsetY: "60 * ROFFSET()",
+      offsetY: "30 * ROFFSET()",
     })
-    .repeatLast(2, 27);
+    .repeatLast(2, 30);
   
+    /*
   tree2.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
@@ -108,8 +135,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       drawShape(ctx, child)
     }
   });
+  */
   
-
   Sequence.resetAll();
 
   tree.children().forEach(child => {
@@ -118,6 +145,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       if (shape) drawShape(ctx, shape)
     } else {
       drawShape(ctx, child)
+    }
+  });
+
+  tree.children().forEach(child => {
+    if (child.style.hatchPattern) {
+      const fillPattern = Hatch.applyHatchToShape(child);
+      if (fillPattern) drawHatchPattern(ctx, fillPattern);
     }
   });
 

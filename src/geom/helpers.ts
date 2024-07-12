@@ -99,6 +99,17 @@ export class GeomHelpers {
     point.y = x * Math.sin(origin.direction) + y * Math.cos(origin.direction) + origin.y;
   }
 
+  static scalePointsRelativeToCenter(points: { x: number, y: number }[], center: { x: number, y: number }, scale: number) {
+    points.forEach((pt) => {
+      pt.x -= center.x;
+      pt.y -= center.y;
+      pt.x *= scale;
+      pt.y *= scale;
+      pt.x += center.x;
+      pt.y += center.y;
+    }); 
+  }
+
   static averagePoints(points: Point[]) {
     let x = 0;
     let y = 0;

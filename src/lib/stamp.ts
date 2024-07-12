@@ -43,6 +43,7 @@ interface IShapeParams {
   spacingX?: number | string;
   spacingY?: number | string;
   outlineThickness?: number | string;
+  scale?: number | string;
   offsetX?: number | string;
   offsetY?: number | string;
   skip?: number | string;
@@ -147,7 +148,7 @@ export class Stamp extends AbstractShape {
   private _nodes: INode[] = [];
   private _tree: clipperLib.PolyTree | null = null;
   private _polys: Polygon[] = [];
-  private _unclippedShapes:{ mode: number, shape: IShape, outln: number }[] = [];
+  private _unclippedShapes:{ mode: number, shape: IShape, outln: number, scale: number }[] = [];
   private _flipBeforeClip: boolean = false;
   private _styleMap: IStyleMap[] = [];
   private _mode: number = Stamp.UNION;
@@ -281,7 +282,8 @@ export class Stamp extends AbstractShape {
     }
   }
 
-  private _make(shapes: IShape[], outln: number = 0) {
+  private _make(shapes: IShape[], outln: number = 0, scale: number = 1) {
+    scale = scale || 1;
     for (let i = 0; i < shapes.length; i++) {
       let shape: IShape | undefined = shapes[i];
 
@@ -305,7 +307,7 @@ export class Stamp extends AbstractShape {
         }
       }
 
-      this._unclippedShapes.push({ mode: this._mode, shape: g, outln: outln });
+      this._unclippedShapes.push({ mode: this._mode, shape: g, outln: outln, scale: scale });
     }
   }
 
@@ -315,6 +317,7 @@ export class Stamp extends AbstractShape {
       let g = this._unclippedShapes[i].shape;
       let outln = this._unclippedShapes[i].outln;
       let mode = this._unclippedShapes[i].mode;
+      let scale = this._unclippedShapes[i].scale;
 
       let b: clipperLib.SubjectInput;
       let b2 = null;
@@ -328,7 +331,7 @@ export class Stamp extends AbstractShape {
           break;
         case Stamp.UNION:
           if (this._tree) {
-            b2 = ClipperHelpers.shapeToClipperPaths(g);
+            b2 = ClipperHelpers.shapeToClipperPaths(g, scale);
             if (g.hidden) {
               continue;
             }
@@ -393,7 +396,7 @@ export class Stamp extends AbstractShape {
             });
             this._tree = polyResult;
           } else {
-            b = ClipperHelpers.shapeToClipperPaths(g);
+            b = ClipperHelpers.shapeToClipperPaths(g, scale);
             if (g.hidden) {
               continue;
             }
@@ -444,7 +447,7 @@ export class Stamp extends AbstractShape {
 
         case Stamp.SUBTRACT:
           if (this._tree) {
-            b2 = ClipperHelpers.shapeToClipperPaths(g);
+            b2 = ClipperHelpers.shapeToClipperPaths(g, scale);
             if (g.hidden) {
               continue;
             }
@@ -470,7 +473,7 @@ export class Stamp extends AbstractShape {
 
         case Stamp.INTERSECT:
           if (this._tree) {
-            b2 = ClipperHelpers.shapeToClipperPaths(g);
+            b2 = ClipperHelpers.shapeToClipperPaths(g, scale);
             if (g.hidden) {
               continue;
             }
@@ -549,7 +552,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _ellipse(params: IEllipseParams) {
@@ -583,7 +586,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _leafShape(params: ILeafShapeParams) {
@@ -619,7 +622,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _rectangle(params: IRectangleParams) {
@@ -653,7 +656,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _roundedRectangle(params: IRoundedRectangleParams) {
@@ -690,7 +693,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _polygon(params: IPolygonParams) {
@@ -726,7 +729,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _stamp(params: IStampParams) {
@@ -758,7 +761,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _tangram(params: ITangramParams) {
@@ -791,7 +794,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _roundedTangram(params: ITangramParams) {
@@ -824,7 +827,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   private _bone(params: IBoneParams) {
@@ -857,7 +860,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._make(shapes, $(params.outlineThickness));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
   reset() {

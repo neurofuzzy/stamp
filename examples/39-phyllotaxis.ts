@@ -37,8 +37,8 @@ const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 5 LOG2 AS RSCALE");
-Sequence.fromStatement("repeat 0.3 LOG10 AS ROFFSET");
+Sequence.fromStatement("repeat 0 LOG2 AS RSCALE");
+Sequence.fromStatement("repeat 6 LOG10 AS ROFFSET");
 Sequence.fromStatement("repeat 100 AS BERRY")
 
 
@@ -49,91 +49,57 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       // fillColor: "COLOR()",
-      strokeThickness: 0,
-      fillColor: "COLOR()",
-      fillAlpha: 1,
+      strokeThickness: 1,
+      fillAlpha: 0,
+
     })
-    /*
     .circle({
-      radius: 3,
-      divisions: 32,
-      outlineThickness: 10,
-    })
-    */
-   .leafShape({
-      radius: 40,
-      outlineThickness: 4,
-      divisions: 24,
-      splitAngle: 70,
-      splitAngle2: 160,
-      serration: 0,
-      angle: 180,
-      offsetY: 17,
+      radius: 84,
+      divisions: 64,
+      outlineThickness: 14,
     })
     .rotate(137.508)
-    
     .leafShape({
-      radius: "10 + RSCALE()",
-      outlineThickness: 4,
-      divisions: 24,
-      splitAngle: 70,
+      radius: "40 + RSCALE() * 12",
+      outlineThickness: 14,
+      divisions: 32,
+      splitAngle: 60,
       splitAngle2: 160,
       serration: 0,
       angle: 0,
       align: ShapeAlignment.TOP,
-      offsetY: "200 * ROFFSET()",
+      offsetY: "60 * ROFFSET()",
     })
-    /*
-    .ellipse({
-      radiusX: "32 - RSCALE()",
-      radiusY: "48 - RSCALE()",
-      divisions: 32,
-      outlineThickness: 4,
-      //angle: 90,
-      align: ShapeAlignment.TOP,
-      offsetY: "100 * ROFFSET()",
-    })
-    */
-    /*
-    .rectangle({
-      width: "3 * RSCALE()",
-      height: "20 * RSCALE()",
-      divisions: 4,
-      angle: 0,
-      align: ShapeAlignment.TOP,
-      offsetY: "100 * ROFFSET()",
-      outlineThickness: 4,
-    })
-    */
-    .repeatLast(2, 82)
+    .repeatLast(2, 27)
     .flip();
 
     
   const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       // fillColor: "COLOR()",
-      strokeThickness: 2.5,
+      strokeThickness: 1.5,
       fillColor: 0,
       fillAlpha: 0,
     })
+    .circle({
+      radius: 84,
+      divisions: 32,
+      outlineThickness: 8,
+    })
     .rotate(137.508)
     .leafShape({
-      radius: "74 - RSCALE()",
-      outlineThickness: -15,
-      divisions: 24,
-      splitAngle: 80,
+      radius: "40 + RSCALE() * 12",
+      outlineThickness: -14,
+      divisions: 32,
+      splitAngle: 60,
       splitAngle2: 160,
       serration: 0,
-      angle: 90,
+      angle: 0,
       align: ShapeAlignment.TOP,
-      offsetX: "80 - 10 * ROFFSET()",
+      offsetY: "60 * ROFFSET()",
     })
-    .repeatLast(2, 39)
-    .circle({
-      radius: 180,
-    });
+    .repeatLast(2, 27);
   
-    /*
   tree2.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
@@ -142,7 +108,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       drawShape(ctx, child)
     }
   });
-  */
+  
 
   Sequence.resetAll();
 

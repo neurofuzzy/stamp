@@ -7,6 +7,7 @@ import {
   Path
 } from "../geom/core";
 import { HatchFillShape, IHatchPattern } from "../geom/hatch-patterns";
+import { GeomHelpers } from "../geom/helpers";
 
 export class ClipperHelpers {
 
@@ -20,7 +21,7 @@ export class ClipperHelpers {
     return !!ClipperHelpers.clipper;
   }
 
-  static shapeToClipperPaths(shape: IShape): {
+  static shapeToClipperPaths(shape: IShape, scale: number = 1): {
     data: clipperLib.IntPoint[] | clipperLib.IntPoint[][];
     closed: boolean;
   } {
@@ -37,9 +38,11 @@ export class ClipperHelpers {
           y: Math.round(r.y * 100000),
         } as clipperLib.IntPoint)
     );
+    GeomHelpers.scalePointsRelativeToCenter(path, shape.center, scale);
+
     paths.push(path);
     shape.children().forEach((s: IShape) => {
-      let p = ClipperHelpers.shapeToClipperPaths(s);
+      let p = ClipperHelpers.shapeToClipperPaths(s, scale);
       paths.push(...p.data);
     });
     return {
