@@ -69,7 +69,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.GRID,
+        hatchPattern: HatchPatternType.HERRINGBONE,
         hatchInset: 2,
         hatchScale: 1
       }
@@ -85,7 +85,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.GRID,
+        hatchPattern: HatchPatternType.BRICK,
         hatchInset: 2,
         hatchScale: 0.5
       }  

@@ -296,7 +296,7 @@ export class RockHatchPattern extends HatchPattern {
   }
 }
 
-export class GridHatchPattern extends HatchPattern {
+export class HerringboneHatchPattern extends HatchPattern {
   generate(): Path[] {
     // generate a series of paths that are evenly spaced apart
     const segments: Path[] = [];
@@ -369,14 +369,15 @@ export enum HatchPatternType {
   LINE = 1,
   CIRCLE = 2,
   CROSS = 3,
-  DASHED = 4,
-  SAWTOOTH = 5,
-  SINEWAVE = 6,
-  BUNTING = 7,
-  SLATE = 8,
-  ROCK = 9,
-  OFFSET = 10,
-  GRID = 11,
+  BRICK = 4,
+  HERRINGBONE = 5,
+  DASHED = 6,
+  SAWTOOTH = 7,
+  SINEWAVE = 8,
+  BUNTING = 9,
+  SLATE = 10,
+  ROCK = 11,
+  OFFSET = 12,
 }
 
 export enum HatchBooleanType {
