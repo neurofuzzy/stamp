@@ -1,8 +1,10 @@
 import * as clipperLib from "js-angusj-clipper/web";
 import {
   BuntingHatchPattern,
+  CircleHatchPattern,
   CrossHatchPattern,
   DashedHatchPattern,
+  GridHatchPattern,
   HatchBooleanType,
   HatchFillShape,
   HatchPatternType,
@@ -48,6 +50,9 @@ export class Hatch {
       case HatchPatternType.LINE:
         hatchPattern = new LineHatchPattern(...args);
         break;
+      case HatchPatternType.CIRCLE:
+        hatchPattern = new CircleHatchPattern(...args);
+        break;
       case HatchPatternType.CROSS:
         hatchPattern = new CrossHatchPattern(...args);
         break;
@@ -71,6 +76,9 @@ export class Hatch {
         break;
       case HatchPatternType.OFFSET:
         return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);
+      case HatchPatternType.GRID:
+        hatchPattern = new GridHatchPattern(...args);
+        break;
       default:
         return null;
     }

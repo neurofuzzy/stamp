@@ -69,9 +69,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.GRID,
+        hatchPattern: HatchPatternType.SINEWAVE,
         hatchInset: 2,
-        hatchScale: 1
+        hatchScale: 0.5
       }
     })
     // 48
@@ -85,13 +85,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.GRID,
+        hatchPattern: HatchPatternType.SINEWAVE,
         hatchInset: 2,
         hatchScale: 0.5
       }  
     })
     .stepBack(1)
-    .repeatLast(4, 10)
+    .repeatLast(4, 100)
     .flip();
 
   

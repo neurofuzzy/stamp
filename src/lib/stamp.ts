@@ -292,20 +292,14 @@ export class Stamp extends AbstractShape {
       }
 
       let g = shape.clone();
+      // TODO: make shape clone copy style
+      if (shape.style) {
+        g.style = Object.assign({}, shape.style);
+      }
 
       g.center.x += this.center.x + this._cursor.x;
       g.center.y += this.center.y + this._cursor.y;
       g.center.direction += this.center.direction + this._cursor.direction;
-
-      if (shape.style && shape.style !== AbstractShape.defaultStyle) {
-        const style = resolveStyle(shape.style);
-        if (this._mode !== Stamp.SUBTRACT && !shape.hidden) {
-          this._styleMap.push({
-            bounds: g.boundingBox(),
-            style,
-          });
-        }
-      }
 
       this._unclippedShapes.push({ mode: this._mode, shape: g, outln: outln, scale: scale });
     }
@@ -318,6 +312,16 @@ export class Stamp extends AbstractShape {
       let outln = this._unclippedShapes[i].outln;
       let mode = this._unclippedShapes[i].mode;
       let scale = this._unclippedShapes[i].scale;
+
+      if (g.style && g.style !== AbstractShape.defaultStyle) {
+        const style = resolveStyle(g.style);
+        if (mode !== Stamp.SUBTRACT && !g.hidden) {
+          this._styleMap.push({
+            bounds: g.boundingBox(),
+            style,
+          });
+        }
+      }
 
       let b: clipperLib.SubjectInput;
       let b2 = null;
