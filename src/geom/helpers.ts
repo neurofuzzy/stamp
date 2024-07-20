@@ -142,6 +142,26 @@ export class GeomHelpers {
     return GeomHelpers.subdividePoints(start, end, divisions);
   }
 
+  static subdividePointsByDistanceExact(start: Point, end: Point, dist: number): Point[] {
+    const points = [];
+    const len = GeomHelpers.distanceBetweenPoints(start, end);
+    const ang = GeomHelpers.angleBetweenPoints(start, end);
+    let runningDist = 0;
+    while (runningDist < len + dist) {
+      if (runningDist > len) {
+        points.push(end);
+        break;
+      }
+      const pt = new Point(
+        start.x + Math.cos(ang) * runningDist,
+        start.y + Math.sin(ang) * runningDist
+      );
+      runningDist += dist;
+      points.push(pt);
+    }
+    return points;
+  }
+
   static rotateRayAboutOrigin(origin: Ray, ray: Ray) {
     const x = ray.x - origin.x;
     const y = ray.y - origin.y;

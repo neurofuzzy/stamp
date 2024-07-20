@@ -71,7 +71,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         hatchStrokeThickness: 0.5,
         hatchPattern: HatchPatternType.QBERT,
         hatchInset: 2,
-        hatchScale: 2
+        hatchScale: 0.5
       }
     })
     // 48

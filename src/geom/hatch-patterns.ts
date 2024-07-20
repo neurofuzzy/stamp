@@ -393,33 +393,38 @@ export class TriangularGridHatchPattern extends HatchPattern {
 }
 
 
-export class QbertHatchPattern extends HatchPattern {
+export class TriGridHatchPattern extends HatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x + y) % 3 === 0;
+  }
   generate(): Path[] {
     // generate a triangle grid, which has lines at 0, 120, 240 degrees
     const segments: Path[] = [];
-    const radius = Math.max(this.width, this.height) * 0.5;
-    const hatchStep = radius / 10 * this.scale;
+    const radius = Math.max(this.width, this.height);
+    const hatchStep = radius / 10;
     const tCenter = this.center.clone();
-    let startX = this.center.x - radius;
-    let startY = this.center.y - radius;
-    let numSegments = Math.round(radius * 2 / hatchStep);
-    if (numSegments % 2 === 1) {
-      numSegments = numSegments + 1;
-      startX -= hatchStep / 2;
-      startY -= hatchStep / 2;
-    }
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
+    console.log('numSegments', hatchStep);
+    const yOffset = 0;
     for (let k = 0; k < 3; k++) {
       tCenter.direction = (270 + 120 * k) * Math.PI / 180;
       let tSegments: Path[] = [];
       for (let y = 0; y < numSegments; y++) {
-        const a = new Point(startX, startY + y * hatchStep);
-        const b = new Point(startX + radius * 2, startY + y * hatchStep);
+        const a = new Point(this.center.x - radius, this.center.y - radius + y * hatchStep + yOffset);
+        const b = new Point(this.center.x, this.center.y - radius + y * hatchStep + yOffset);
+        const c = new Point(this.center.x + radius, this.center.y - radius + y * hatchStep + yOffset);
+
         a.x -= hatchStep / Math.sqrt(3) * y;
-        b.x += hatchStep / Math.sqrt(3) * y;
-        let pts = GeomHelpers.subdividePointsByDistance(a, b, 2 * hatchStep / Math.sqrt(3));
+        b.x -= hatchStep / Math.sqrt(3) * y;
+        c.x += hatchStep / Math.sqrt(3) * y;
+
+        let ptsA = GeomHelpers.subdividePointsByDistanceExact(b, a, 2 * hatchStep / Math.sqrt(3)).reverse();
+        let ptsB = GeomHelpers.subdividePointsByDistanceExact(b, c, 2 * hatchStep / Math.sqrt(3));
+        ptsA.pop();
+        let pts = ptsA.concat(ptsB);
         pts.forEach((ptB, idx) => {
           if (idx === 0) return;
-          if ((idx + y) % 3 === 0) return;
+          if (this.shouldSkipSegment(idx, y)) return;
           const ptA = pts[idx - 1].clone();
           tSegments.push(new Path([ptA, ptB]));
         });
@@ -432,10 +437,33 @@ export class QbertHatchPattern extends HatchPattern {
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
     });
+    segments.forEach((s) => {
+      s.points.forEach((p) => {
+        p.x -= this.center.x;
+        p.y -= this.center.y;
+        p.x *= this.scale;
+        p.y *= this.scale;
+        p.x += this.center.x;
+        p.y += this.center.y;
+      });
+    })
     return segments;
   }
 }
 
+
+export class HexHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x + y) % 3 !== 0;
+  }
+}
+
+
+export class QbertHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x + y) % 3 === 0;
+  }
+}
 
 
 export class OffsetHatchPattern extends HatchPattern {
