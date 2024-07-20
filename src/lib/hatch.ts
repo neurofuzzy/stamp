@@ -16,6 +16,7 @@ import {
   SawtoothHatchPattern,
   SinewaveHatchPattern,
   SlateHatchPattern,
+  TriangularGridHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
@@ -64,10 +65,13 @@ export class Hatch {
         hatchPattern = new HerringboneHatchPattern(...args);
         break;
       case HatchPatternType.BRICK:
-        hatchPattern = new GridHatchPattern(...args);
+        hatchPattern = new BrickHatchPattern(...args);
         break;
       case HatchPatternType.DASHED:
         hatchPattern = new DashedHatchPattern(...args);
+        break;
+      case HatchPatternType.TRIANGLE:
+        hatchPattern = new TriangularGridHatchPattern(...args);
         break;
       case HatchPatternType.SAWTOOTH:
         hatchPattern = new SawtoothHatchPattern(...args);

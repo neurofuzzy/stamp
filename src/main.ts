@@ -69,9 +69,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.HERRINGBONE,
+        hatchPattern: HatchPatternType.TRIANGLE,
         hatchInset: 2,
-        hatchScale: 1
+        hatchScale: 3
       }
     })
     // 48
@@ -85,9 +85,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.BRICK,
+        hatchPattern: HatchPatternType.HERRINGBONE,
         hatchInset: 2,
-        hatchScale: 0.5
+        hatchScale: 1
       }  
     })
     .stepBack(1)

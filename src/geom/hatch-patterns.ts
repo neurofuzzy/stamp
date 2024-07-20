@@ -356,6 +356,41 @@ export class BrickHatchPattern extends HatchPattern {
 }
 
 
+export class TriangularGridHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    // generate a triangle grid, which has lines at 0, 120, 240 degrees
+    const segments: Path[] = [];
+    const radius = Math.max(this.width, this.height) * 0.5;
+    const hatchStep = radius / 10 * this.scale;
+    const tCenter = this.center.clone();
+
+    for (let k = 0; k < 3; k++) {
+      tCenter.direction = 120 * k * Math.PI / 180;
+      let tSegments: Path[] = [];
+      let startX = this.center.x - radius;
+      let startY = this.center.y - radius;
+      let numSegments = Math.ceil(radius * 2 / hatchStep);
+      for (let y = 0; y < numSegments; y++) {
+        for (let x = 0; x < numSegments; x++) {
+          const a = new Point(startX + x * hatchStep, startY + y * hatchStep);
+          const b = new Point(startX + x * hatchStep, startY + (y + 1) * hatchStep);
+          tSegments.push(new Path([a, b]));
+        }
+      }
+      tSegments.forEach((s) => {
+        s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(tCenter, p));
+      });
+      segments.push(...tSegments);
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    });
+    return segments;
+  }
+}
+
+
+
 export class OffsetHatchPattern extends HatchPattern {
   get offsetStep(): number {
     return this.scale * 10;
@@ -372,12 +407,13 @@ export enum HatchPatternType {
   BRICK = 4,
   HERRINGBONE = 5,
   DASHED = 6,
-  SAWTOOTH = 7,
-  SINEWAVE = 8,
-  BUNTING = 9,
-  SLATE = 10,
-  ROCK = 11,
-  OFFSET = 12,
+  TRIANGLE = 7,
+  SAWTOOTH = 8,
+  SINEWAVE = 9,
+  BUNTING = 10,
+  SLATE = 11,
+  ROCK = 12,
+  OFFSET = 13,
 }
 
 export enum HatchBooleanType {
