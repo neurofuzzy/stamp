@@ -64,14 +64,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillAlpha: 0,
     })
     .circle({
-      radius: 56,
+      radius: 106,
       outlineThickness: 10,
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.TRIANGLE,
+        hatchPattern: HatchPatternType.QBERT,
         hatchInset: 2,
-        hatchScale: 3
+        hatchScale: 2
       }
     })
     // 48

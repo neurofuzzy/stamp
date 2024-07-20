@@ -370,12 +370,59 @@ export class TriangularGridHatchPattern extends HatchPattern {
       let startX = this.center.x - radius;
       let startY = this.center.y - radius;
       let numSegments = Math.ceil(radius * 2 / hatchStep);
+      if (numSegments % 2 === 1) {
+        numSegments = numSegments + 1;
+        startX -= hatchStep / 2;
+        startY -= hatchStep / 2;
+      }
       for (let y = 0; y < numSegments; y++) {
-        for (let x = 0; x < numSegments; x++) {
-          const a = new Point(startX + x * hatchStep, startY + y * hatchStep);
-          const b = new Point(startX + x * hatchStep, startY + (y + 1) * hatchStep);
-          tSegments.push(new Path([a, b]));
-        }
+        const a = new Point(startX, startY + y * hatchStep);
+        const b = new Point(startX + radius * 2, startY + y * hatchStep);
+        tSegments.push(new Path([a, b]));
+      }
+      tSegments.forEach((s) => {
+        s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(tCenter, p));
+      });
+      segments.push(...tSegments);
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    });
+    return segments;
+  }
+}
+
+
+export class QbertHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    // generate a triangle grid, which has lines at 0, 120, 240 degrees
+    const segments: Path[] = [];
+    const radius = Math.max(this.width, this.height) * 0.5;
+    const hatchStep = radius / 10 * this.scale;
+    const tCenter = this.center.clone();
+    let startX = this.center.x - radius;
+    let startY = this.center.y - radius;
+    let numSegments = Math.round(radius * 2 / hatchStep);
+    if (numSegments % 2 === 1) {
+      numSegments = numSegments + 1;
+      startX -= hatchStep / 2;
+      startY -= hatchStep / 2;
+    }
+    for (let k = 0; k < 3; k++) {
+      tCenter.direction = 120 * k * Math.PI / 180;
+      let tSegments: Path[] = [];
+      for (let y = 0; y < numSegments; y++) {
+        const a = new Point(startX, startY + y * hatchStep);
+        const b = new Point(startX + radius * 2, startY + y * hatchStep);
+        a.x -= hatchStep / Math.sqrt(3) * y;
+        b.x += hatchStep / Math.sqrt(3) * y;
+        let pts = GeomHelpers.subdividePointsByDistance(a, b, 2 * hatchStep / Math.sqrt(3));
+        pts.forEach((ptB, idx) => {
+          if (idx === 0) return;
+          if ((idx + y) % 3 === 0) return;
+          const ptA = pts[idx - 1].clone();
+          tSegments.push(new Path([ptA, ptB]));
+        });
       }
       tSegments.forEach((s) => {
         s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(tCenter, p));
@@ -408,12 +455,13 @@ export enum HatchPatternType {
   HERRINGBONE = 5,
   DASHED = 6,
   TRIANGLE = 7,
-  SAWTOOTH = 8,
-  SINEWAVE = 9,
-  BUNTING = 10,
-  SLATE = 11,
-  ROCK = 12,
-  OFFSET = 13,
+  QBERT = 8,
+  SAWTOOTH = 9,
+  SINEWAVE = 10,
+  BUNTING = 11,
+  SLATE = 12,
+  ROCK = 13,
+  OFFSET = 14,
 }
 
 export enum HatchBooleanType {

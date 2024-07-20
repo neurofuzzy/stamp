@@ -12,6 +12,7 @@ import {
   IHatchPattern,
   LineHatchPattern,
   OffsetHatchPattern,
+  QbertHatchPattern,
   RockHatchPattern,
   SawtoothHatchPattern,
   SinewaveHatchPattern,
@@ -72,6 +73,9 @@ export class Hatch {
         break;
       case HatchPatternType.TRIANGLE:
         hatchPattern = new TriangularGridHatchPattern(...args);
+        break;
+      case HatchPatternType.QBERT:
+        hatchPattern = new QbertHatchPattern(...args);
         break;
       case HatchPatternType.SAWTOOTH:
         hatchPattern = new SawtoothHatchPattern(...args);
