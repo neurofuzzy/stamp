@@ -409,7 +409,7 @@ export class QbertHatchPattern extends HatchPattern {
       startY -= hatchStep / 2;
     }
     for (let k = 0; k < 3; k++) {
-      tCenter.direction = 120 * k * Math.PI / 180;
+      tCenter.direction = (270 + 120 * k) * Math.PI / 180;
       let tSegments: Path[] = [];
       for (let y = 0; y < numSegments; y++) {
         const a = new Point(startX, startY + y * hatchStep);
