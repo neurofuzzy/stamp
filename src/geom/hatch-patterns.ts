@@ -458,10 +458,28 @@ export class HexHatchPattern extends TriGridHatchPattern {
   }
 }
 
+export class WeaveHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return x % 3 - y % 3 === 0;
+  }
+}
+
+export class PinwheelHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return x % 3 - y % 3 !== 0;
+  }
+}
+
+export class ChevronHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x % 3 + y % 3) % 2 === 0;
+  }
+}
 
 export class QbertHatchPattern extends TriGridHatchPattern {
   shouldSkipSegment(x: number, y: number) {
-    return (x + y) % 3 === 0;
+    return (y / 3) % 1 !== 0 && 
+      (x + y) % 3 !== 0;
   }
 }
 
