@@ -400,8 +400,8 @@ export class TriGridHatchPattern extends HatchPattern {
   generate(): Path[] {
     // generate a triangle grid, which has lines at 0, 120, 240 degrees
     const segments: Path[] = [];
-    const radius = Math.max(this.width, this.height);
-    const hatchStep = radius / 10;
+    const radius = Math.max(this.width, this.height) * 2;
+    const hatchStep = radius / 20;
     const tCenter = this.center.clone();
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     console.log('numSegments', hatchStep);
@@ -520,6 +520,11 @@ export enum HatchPatternType {
   SLATE = 12,
   ROCK = 13,
   OFFSET = 14,
+  TRIWEAVE = 15,
+  CHEVRON = 16,
+  ALTWEAVE = 17,
+  PINWHEEL = 18,
+  HEXAGON = 19,
 }
 
 export enum HatchBooleanType {

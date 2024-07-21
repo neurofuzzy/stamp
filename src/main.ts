@@ -69,9 +69,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.QBERT,
+        hatchPattern: HatchPatternType.TRIWEAVE,
         hatchInset: 2,
-        hatchScale: 0.5
+        hatchScale: 0.25
       }
     })
     // 48

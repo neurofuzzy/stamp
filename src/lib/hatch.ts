@@ -1,7 +1,9 @@
 import * as clipperLib from "js-angusj-clipper/web";
 import {
+  AltWeaveHatchPattern,
   BrickHatchPattern,
   BuntingHatchPattern,
+  ChevronHatchPattern,
   CircleHatchPattern,
   CrossHatchPattern,
   DashedHatchPattern,
@@ -9,14 +11,17 @@ import {
   HatchFillShape,
   HatchPatternType,
   HerringboneHatchPattern,
+  HexHatchPattern,
   IHatchPattern,
   LineHatchPattern,
   OffsetHatchPattern,
+  PinwheelHatchPattern,
   QbertHatchPattern,
   RockHatchPattern,
   SawtoothHatchPattern,
   SinewaveHatchPattern,
   SlateHatchPattern,
+  TriWeaveHatchPattern,
   TriangularGridHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
@@ -94,6 +99,21 @@ export class Hatch {
         break;
       case HatchPatternType.OFFSET:
         return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);
+      case HatchPatternType.TRIWEAVE:
+        hatchPattern = new TriWeaveHatchPattern(...args);
+        break;
+      case HatchPatternType.CHEVRON:
+        hatchPattern = new ChevronHatchPattern(...args);
+        break;
+      case HatchPatternType.ALTWEAVE:
+        hatchPattern = new AltWeaveHatchPattern(...args);
+        break;
+      case HatchPatternType.PINWHEEL:
+        hatchPattern = new PinwheelHatchPattern(...args);
+        break;
+      case HatchPatternType.HEXAGON:
+        hatchPattern = new HexHatchPattern(...args);
+        break;
       default:
         return null;
     }
