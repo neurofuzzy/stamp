@@ -479,7 +479,8 @@ export class ChevronHatchPattern extends TriGridHatchPattern {
 export class QbertHatchPattern extends TriGridHatchPattern {
   shouldSkipSegment(x: number, y: number) {
     return (y / 3) % 1 !== 0 && 
-      (x + y) % 3 !== 0;
+      (x % 3 + y % 3) % 4 !== 0 &&
+      true;//((2 + x) % 3 + (2 + y) % 3) % 4 !== 0;
   }
 }
 
