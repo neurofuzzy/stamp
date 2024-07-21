@@ -64,14 +64,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillAlpha: 0,
     })
     .circle({
-      radius: 106,
+      radius: 56,
       outlineThickness: 10,
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
         hatchPattern: HatchPatternType.TRIWEAVE,
         hatchInset: 2,
-        hatchScale: 0.25
+        hatchScale: 0.5
       }
     })
     // 48
@@ -85,13 +85,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillAlpha: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.HERRINGBONE,
+        hatchPattern: HatchPatternType.TRIWEAVE,
         hatchInset: 2,
-        hatchScale: 1
+        hatchScale: 0.5
       }  
     })
     .stepBack(1)
-    .repeatLast(4, 10)
+    .repeatLast(4, 40)
     .flip();
 
   
