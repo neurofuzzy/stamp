@@ -2,6 +2,7 @@ import { IHatchPattern } from "../geom/hatch-patterns";
 import { BoundingBox, BoundingCircle, IShape, IStyle, Point, Ray, Path } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 import { Sequence } from "./sequence";
+import { Optimize } from "./optimize";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -76,11 +77,17 @@ export function drawShape(
 
 export function drawHatchPattern(
   ctx: CanvasRenderingContext2D,
-  hatch: IHatchPattern
+  hatch: IHatchPattern,
+  optimize: boolean = false
 ) {
-  const segments = hatch.generate();
+  let segments = hatch.generate();
+  
+  if (optimize) {
+    segments = Optimize.paths(segments, true, true);
+  }
 
   ctx.beginPath();
+
   segments.forEach((seg) => {
     ctx.moveTo(seg.points[0].x, seg.points[0].y);
     for (let i = 1; i < seg.points.length; i++) {
@@ -101,10 +108,57 @@ export function drawHatchPattern(
   if (ss === "#FFFFFF") ss = "#EEEEEE";
   ctx.fillStyle = "rgba(0, 0, 0, 0)";
   ctx.strokeStyle = ss ?? "#999999";
+  
   const lw = parseFloat(`${hatch.style.hatchStrokeThickness || hatch.style.strokeThickness || 1}`) || 1;
   ctx.lineWidth = lw;
 
   ctx.stroke();
+
+}
+
+
+export function drawHatchPatternDebug(
+  ctx: CanvasRenderingContext2D,
+  hatch: IHatchPattern,
+  optimize: boolean = false
+) {
+  let segments = hatch.generate();
+  
+  if (optimize) {
+    console.log("Optimizing", segments.length);
+    segments = Optimize.paths(segments, true, true);
+    console.log("Optimized", segments.length);
+  }
+
+  ctx.beginPath();
+
+  // give me a palette of 10 differnt colors
+  let colors = ["#ff2200", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#00ffff", "#cc3300", "#33cc33", "#cc33cc", "#33cccc", "#cccc33"];
+  
+  segments.forEach((seg, idx) => {
+    ctx.beginPath();
+    ctx.moveTo(seg.points[0].x, seg.points[0].y);
+    for (let i = 1; i < seg.points.length; i++) {
+      ctx.lineTo(seg.points[i].x, seg.points[i].y);
+    }
+    if (GeomHelpers.pointsAreEqual(seg.points[0], seg.points[seg.points.length - 1])) {
+      ctx.closePath();
+    }
+    ctx.fillStyle = "rgba(0, 0, 0, 0)";
+    ctx.strokeStyle = colors[idx % colors.length];
+    ctx.stroke();
+  });
+
+  const lw = parseFloat(`${hatch.style.hatchStrokeThickness || hatch.style.strokeThickness || 1}`) || 1;
+  ctx.lineWidth = lw;
+
+  ctx.stroke();
+  
+  let endpoints = segments.map((seg) => seg.points[seg.points.length - 1]);
+  endpoints.forEach((pt) => {
+    drawRay(ctx, new Ray(pt.x, pt.y));
+  })
+
 }
 
 export function drawBoundingBox(

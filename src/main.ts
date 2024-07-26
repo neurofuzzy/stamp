@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawRay, drawShape } from '../src/lib/draw';
+import { drawHatchPattern, drawHatchPatternDebug, drawRay, drawShape } from '../src/lib/draw';
 import { Ray, ShapeAlignment } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Hatch } from '../src/lib/hatch';
@@ -9,6 +9,7 @@ import '../src/style.css';
 import colors from 'nice-color-palettes';
 import { HatchBooleanType, HatchPatternType } from '../src/geom/hatch-patterns';
 import { Ellipse, LeafShape } from '../src/geom/shapes';
+import { Optimize } from './lib/optimize';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -37,8 +38,8 @@ const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
 
 Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 0.5 LOG2 AS RSCALE", 0);
-Sequence.fromStatement("repeat 0.7 LOG2 AS ROFFSET", 1);
+Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
+Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
 Sequence.fromStatement("repeat 100,60 AS BERRY")
 
@@ -50,10 +51,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // compound leaf
   const leaf = new Stamp(new Ray(0, 0))
     .rotate(90)
-    .ellipse({
-      radiusX: "1.3 * RSCALE() * RSCALE()",
-      radiusY: "12 * RSCALE()",
-      divisions: 64,
+    .leafShape({
+      radius: "20 * RSCALE()",
+      angle: -90,
+      divisions: 24,
+      splitAngle: 60,
+      splitAngle2: 90,
     });
 
 
@@ -64,16 +67,18 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillAlpha: 0,
     })
     .circle({
-      radius: 56,
-      outlineThickness: 10,
+      radius: 256,
+      outlineThickness: 2,
       style: {
         fillAlpha: 0,
+        strokeThickness: 0,
         hatchStrokeThickness: 0.5,
         hatchPattern: HatchPatternType.TRIWEAVE,
         hatchInset: 2,
-        hatchScale: 0.5
+        hatchScale: 2
       }
     })
+    /*
     // 48
     // 67
     // 210
@@ -81,18 +86,20 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .forward("40 * ROFFSET()")
     .stamp({
       subStamp: leaf,
-      outlineThickness: "8 + ROFFSET * 1.2",
+      outlineThickness: 2,
       style: {
         fillAlpha: 0,
+        strokeThickness: 0,
         hatchStrokeThickness: 0.5,
         hatchPattern: HatchPatternType.TRIWEAVE,
         hatchInset: 2,
-        hatchScale: 0.5
+        hatchScale: 0.35
       }  
     })
     .stepBack(1)
-    .repeatLast(4, 40)
+    .repeatLast(4, 30)
     .flip();
+    */
 
   
   tree.children().forEach(child => {
@@ -103,13 +110,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       drawShape(ctx, child)
     }
   });
-
   Sequence.resetAll();
 
   tree.children().forEach(child => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern) drawHatchPattern(ctx, fillPattern);
+      if (fillPattern) {
+        drawHatchPatternDebug(ctx, fillPattern, true);
+      }
     }
   });
 

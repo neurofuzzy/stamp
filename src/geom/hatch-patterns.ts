@@ -2,7 +2,6 @@ import * as arbit from "arbit";
 import { GeomHelpers } from "./helpers";
 import { IStyle, Point, Ray, Path } from "./core";
 
-
 const prng = arbit(29374);
 
 export interface IHatchPattern {
