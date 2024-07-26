@@ -135,28 +135,23 @@ export class Optimize {
         let i = inSegs.length;
         let firstSeg = orderedSegs[0];
         let lastSeg = orderedSegs[orderedSegs.length - 1];
-        let found = false;
         let candidates: { seg: Segment; idx: number, isStart?: boolean, isReverse?: boolean, score: number }[] = [];
         while (i--) {
           let seg = inSegs[i];
           if (GeomHelpers.pointsAreEqual(seg.a, lastSeg.b, 0.1)) {
             candidates.push({ seg, idx: i, score: pointsScore[pointKey(seg.b.x, seg.b.y)] });
-            found = true;
           }
           if (GeomHelpers.pointsAreEqual(seg.b, lastSeg.b, 0.1)) {
             candidates.push({ seg, idx: i, isReverse: true, score: pointsScore[pointKey(seg.a.x, seg.a.y)] });
-            found = true;
           }
           if (GeomHelpers.pointsAreEqual(seg.b, firstSeg.a, 0.1)) {
             candidates.push({ seg, idx: i, isStart: true, score: pointsScore[pointKey(seg.a.x, seg.a.y)] });
-            found = true;
           }
           if (GeomHelpers.pointsAreEqual(seg.a, firstSeg.a, 0.1)) {
             candidates.push({ seg, idx: i, isStart: true, isReverse: true, score: pointsScore[pointKey(seg.b.x, seg.b.y)] });
-            found = true;
           }
         }
-        if (found) {
+        if (candidates.length) {
           candidates.sort((a, b) => {
             if (a.score > b.score) return -1;
             if (a.score < b.score) return 1;
@@ -174,6 +169,8 @@ export class Optimize {
             orderedSegs.push(newSeg);
           }
           inSegs.splice(candidates[0].idx, 1);
+          pointsScore[pointKey(newSeg.a.x, newSeg.a.y)] -= 1;
+          pointsScore[pointKey(newSeg.b.x, newSeg.b.y)] -= 1;
         } else {
           if (orderedSegs.length) {
             let fs = new Path([orderedSegs[0].a, ...orderedSegs.map(s => s.b)]);
@@ -181,6 +178,13 @@ export class Optimize {
           }
           if (!inSegs.length) {
             break;
+          }
+          if (joinedPaths.length) {
+            // sort inSegs by distance from orderedSegs[0].b
+            const endOfStartSeg = joinedPaths[joinedPaths.length - 1].points[joinedPaths[joinedPaths.length - 1].points.length - 1];
+            inSegs.sort((a, b) => {
+              return GeomHelpers.distanceBetweenPoints(endOfStartSeg, a.a) - GeomHelpers.distanceBetweenPoints(endOfStartSeg, b.a);
+            });
           }
           orderedSegs = [inSegs[0]];
           inSegs.shift();

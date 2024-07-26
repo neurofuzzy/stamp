@@ -154,10 +154,12 @@ export function drawHatchPatternDebug(
 
   ctx.stroke();
   
+  /*
   let endpoints = segments.map((seg) => seg.points[seg.points.length - 1]);
   endpoints.forEach((pt) => {
     drawRay(ctx, new Ray(pt.x, pt.y));
-  })
+  });
+  */
 
 }
 
