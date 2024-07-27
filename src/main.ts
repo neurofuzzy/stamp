@@ -73,9 +73,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         fillAlpha: 0,
         strokeThickness: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.TRIWEAVE,
+        hatchPattern: HatchPatternType.ORIGAMI,
         hatchInset: 2,
-        hatchScale: 2
+        hatchScale: 1
       }
     })
     /*

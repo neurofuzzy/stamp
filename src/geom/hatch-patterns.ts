@@ -403,14 +403,13 @@ export class TriGridHatchPattern extends HatchPattern {
     const hatchStep = radius / 20;
     const tCenter = this.center.clone();
     const numSegments = Math.ceil(radius * 2 / hatchStep);
-    const yOffset = 0;
     for (let k = 0; k < 3; k++) {
       tCenter.direction = (270 + 120 * k) * Math.PI / 180;
       let tSegments: Path[] = [];
       for (let y = 0; y < numSegments; y++) {
-        const a = new Point(this.center.x - radius, this.center.y - radius + y * hatchStep + yOffset);
-        const b = new Point(this.center.x, this.center.y - radius + y * hatchStep + yOffset);
-        const c = new Point(this.center.x + radius, this.center.y - radius + y * hatchStep + yOffset);
+        const a = new Point(this.center.x - radius, this.center.y - radius + y * hatchStep);
+        const b = new Point(this.center.x, this.center.y - radius + y * hatchStep);
+        const c = new Point(this.center.x + radius, this.center.y - radius + y * hatchStep);
 
         a.x -= hatchStep / Math.sqrt(3) * y;
         b.x -= hatchStep / Math.sqrt(3) * y;
@@ -486,6 +485,13 @@ export class TriWeaveHatchPattern extends TriGridHatchPattern {
   }
 }
 
+export class OrigamiHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x % 3 + y % 3) % 4 !== 0 &&
+      ((2 - x) % 3 - (2 + y) % 3) % 4 !== 0;
+  }
+}
+
 
 export class QbertHatchPattern extends TriGridHatchPattern {
   shouldSkipSegment(x: number, y: number) {
@@ -523,6 +529,7 @@ export enum HatchPatternType {
   ALTWEAVE = 17,
   PINWHEEL = 18,
   HEXAGON = 19,
+  ORIGAMI = 20,
 }
 
 export enum HatchBooleanType {

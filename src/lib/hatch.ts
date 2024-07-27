@@ -15,6 +15,7 @@ import {
   IHatchPattern,
   LineHatchPattern,
   OffsetHatchPattern,
+  OrigamiHatchPattern,
   PinwheelHatchPattern,
   QbertHatchPattern,
   RockHatchPattern,
@@ -113,6 +114,9 @@ export class Hatch {
         break;
       case HatchPatternType.HEXAGON:
         hatchPattern = new HexHatchPattern(...args);
+        break;
+      case HatchPatternType.ORIGAMI:
+        hatchPattern = new OrigamiHatchPattern(...args);
         break;
       default:
         return null;
