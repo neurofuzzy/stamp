@@ -113,13 +113,28 @@ export class Optimize {
         return Math.round(x*10) + "," + Math.round(y*10);
       }
 
+      const center = GeomHelpers.averagePoints(inSegs.map((s) => s.a));
+      let maxDist = 0;
+      inSegs.forEach((s) => {
+        maxDist = Math.max(maxDist, GeomHelpers.distanceBetweenPoints(center, s.a));
+      })
+
       for (let i = 0; i < inSegs.length; i++) {
         let seg = inSegs[i];
         pointsScore[pointKey(seg.a.x, seg.a.y)] = pointsScore[pointKey(seg.a.x, seg.a.y)] || 0;
         pointsScore[pointKey(seg.b.x, seg.b.y)] = pointsScore[pointKey(seg.b.x, seg.b.y)] || 0;
         pointsScore[pointKey(seg.a.x, seg.a.y)]++;
         pointsScore[pointKey(seg.b.x, seg.b.y)]++;
+        // reduce score for points far from center
+        const midpt = GeomHelpers.averagePoints([seg.a, seg.b]);
+        const dist = GeomHelpers.distanceBetweenPoints(midpt, center);
+        pointsScore[pointKey(seg.a.x, seg.a.y)] -= dist / maxDist;
+        pointsScore[pointKey(seg.b.x, seg.b.y)] -= dist / maxDist;
       }
+
+      // sort inSegs by score
+      inSegs.sort((a, b) => pointsScore[pointKey(a.a.x, a.a.y)] - pointsScore[pointKey(b.a.x, b.a.y)]);
+      inSegs.reverse();
 
       let joinedPaths: Path[] = [];
       let orderedSegs: Segment[] = [];

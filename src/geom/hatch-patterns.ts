@@ -360,7 +360,7 @@ export class TriangularGridHatchPattern extends HatchPattern {
     // generate a triangle grid, which has lines at 0, 120, 240 degrees
     const segments: Path[] = [];
     const radius = Math.max(this.width, this.height) * 0.5;
-    const hatchStep = radius / 10 * this.scale;
+    const hatchStep = radius / 3 * this.scale;
     const tCenter = this.center.clone();
 
     for (let k = 0; k < 3; k++) {
@@ -399,7 +399,7 @@ export class TriGridHatchPattern extends HatchPattern {
   generate(): Path[] {
     // generate a triangle grid, which has lines at 0, 120, 240 degrees
     const segments: Path[] = [];
-    const radius = 300;
+    const radius = 200;
     const hatchStep = radius / 20;
     const tCenter = this.center.clone();
     const numSegments = Math.ceil(radius * 2 / hatchStep);

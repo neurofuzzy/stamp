@@ -132,8 +132,8 @@ export function drawHatchPatternDebug(
 
   ctx.beginPath();
 
-  // give me a palette of 10 differnt colors
-  let colors = ["#ff2200", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#00ffff", "#cc3300", "#33cc33", "#cc33cc", "#33cccc", "#cccc33"];
+  // give me a palette of 10 different colors
+  let colors = ["#ff0022", "#33dd00", "#0099ff", "#6633ff", "#eecc00", "#ff00ff", "#7799cc", "#00ffcc", "#cc6600", "#33cc33", "#cc33cc", "#33cccc", "#cccc33"];
   
   segments.forEach((seg, idx) => {
     ctx.beginPath();
@@ -148,18 +148,6 @@ export function drawHatchPatternDebug(
     ctx.strokeStyle = colors[idx % colors.length];
     ctx.stroke();
   });
-
-  const lw = parseFloat(`${hatch.style.hatchStrokeThickness || hatch.style.strokeThickness || 1}`) || 1;
-  ctx.lineWidth = lw;
-
-  ctx.stroke();
-  
-  /*
-  let endpoints = segments.map((seg) => seg.points[seg.points.length - 1]);
-  endpoints.forEach((pt) => {
-    drawRay(ctx, new Ray(pt.x, pt.y));
-  });
-  */
 
 }
 

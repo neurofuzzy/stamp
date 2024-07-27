@@ -10,6 +10,7 @@ import colors from 'nice-color-palettes';
 import { HatchBooleanType, HatchPatternType } from '../src/geom/hatch-patterns';
 import { Ellipse, LeafShape } from '../src/geom/shapes';
 import { Optimize } from './lib/optimize';
+import { GridStampLayout } from './lib/stamp-layout';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -41,65 +42,41 @@ Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-Sequence.fromStatement("repeat 100,60 AS BERRY")
+Sequence.fromStatement("repeat 1-25 AS HATCH")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   ctx.clearRect(0, 0, w, h);
 
+  const style: IStyle = {
+    strokeThickness: 0,
+    fillColor: 0,
+    hatchPattern: "HATCH()",
+    hatchAngle: 45,
+    hatchScale: 1,
+    hatchStrokeColor: "0xffffff",
+    hatchStrokeThickness: 2,
+    hatchBooleanType: HatchBooleanType.DIFFERENCE,
+  }
+
   // compound leaf
   const leaf = new Stamp(new Ray(0, 0))
-    .rotate(90)
-    .leafShape({
-      radius: "20 * RSCALE()",
-      angle: -90,
-      divisions: 24,
-      splitAngle: 60,
-      splitAngle2: 90,
-    });
-
-
-  const tree = new Stamp(new Ray(w / 2, h / 2, 0))
-    .defaultStyle({
-      // fillColor: "COLOR()",
-      strokeThickness: 1,
-      fillAlpha: 0,
-    })
+    .defaultStyle(style)
     .circle({
-      radius: 256,
-      outlineThickness: 2,
-      style: {
-        fillAlpha: 0,
-        strokeThickness: 0,
-        hatchStrokeThickness: 2,
-        hatchPattern: HatchPatternType.TERRACE,
-        hatchInset: 2,
-        hatchScale: 1
-      }
+      radius: 40,
     })
-    /*
-    // 48
-    // 67
-    // 210
-    .rotate(137.508)
-    .forward("40 * ROFFSET()")
-    .stamp({
-      subStamp: leaf,
-      outlineThickness: 2,
-      style: {
-        fillAlpha: 0,
-        strokeThickness: 0,
-        hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.TRIWEAVE,
-        hatchInset: 2,
-        hatchScale: 0.35
-      }  
-    })
-    .stepBack(1)
-    .repeatLast(4, 30)
-    .flip();
-    */
+
+
+  const tree = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    stamp: leaf,
+    seedSequence: Sequence.fromStatement("REPEAT 1-25"),
+    rows: 6,
+    columns: 6,
+    rowSpacing: 120,
+    columnSpacing: 120,
+  });
+
 
   
   tree.children().forEach(child => {
@@ -116,7 +93,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) {
-        drawHatchPatternDebug(ctx, fillPattern, true);
+        drawHatchPattern(ctx, fillPattern, true);
       }
     }
   });
