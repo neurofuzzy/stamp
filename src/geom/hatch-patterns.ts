@@ -492,6 +492,12 @@ export class OrigamiHatchPattern extends TriGridHatchPattern {
   }
 }
 
+export class LatticeHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x % 3 + y % 3) % 4 !== 0 &&
+      ((1 - x) % 3 * (1 - y) % 3) % 3 === 0;
+  }
+}
 
 export class QbertHatchPattern extends TriGridHatchPattern {
   shouldSkipSegment(x: number, y: number) {
@@ -530,6 +536,7 @@ export enum HatchPatternType {
   PINWHEEL = 18,
   HEXAGON = 19,
   ORIGAMI = 20,
+  LATTICE = 21,
 }
 
 export enum HatchBooleanType {

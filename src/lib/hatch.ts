@@ -13,6 +13,7 @@ import {
   HerringboneHatchPattern,
   HexHatchPattern,
   IHatchPattern,
+  LatticeHatchPattern,
   LineHatchPattern,
   OffsetHatchPattern,
   OrigamiHatchPattern,
@@ -117,6 +118,9 @@ export class Hatch {
         break;
       case HatchPatternType.ORIGAMI:
         hatchPattern = new OrigamiHatchPattern(...args);
+        break;
+      case HatchPatternType.LATTICE:
+        hatchPattern = new LatticeHatchPattern(...args);
         break;
       default:
         return null;

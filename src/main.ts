@@ -73,7 +73,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         fillAlpha: 0,
         strokeThickness: 0,
         hatchStrokeThickness: 0.5,
-        hatchPattern: HatchPatternType.ORIGAMI,
+        hatchPattern: HatchPatternType.LATTICE,
         hatchInset: 2,
         hatchScale: 1
       }
@@ -116,7 +116,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) {
-        drawHatchPatternDebug(ctx, fillPattern, true);
+        drawHatchPattern(ctx, fillPattern, true);
       }
     }
   });
