@@ -499,12 +499,35 @@ export class LatticeHatchPattern extends TriGridHatchPattern {
   }
 }
 
+export class TerraceHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return x % 3 - y % 3 === 0 || x % 3 === 2;
+  }
+}
+
+export class HexagonHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return x % 3 - y % 3 === 0 || (x % 3 + y % 3) % 2 !== 0;
+  }
+}
+
+export class MoleculeHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return x % 3 + y % 3 === 0 || (x % 3 + y % 3) % 2 !== 0;
+  }
+}
+
+export class BraidHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x % 3 + y % 3) % 2 !== 0;
+  }
+}
+
 export class QbertHatchPattern extends TriGridHatchPattern {
   shouldSkipSegment(x: number, y: number) {
     return (x + y) % 3 === 0;
   }
 }
-
 
 export class OffsetHatchPattern extends HatchPattern {
   get offsetStep(): number {
@@ -534,9 +557,13 @@ export enum HatchPatternType {
   CHEVRON = 16,
   ALTWEAVE = 17,
   PINWHEEL = 18,
-  HEXAGON = 19,
+  HEX = 19,
   ORIGAMI = 20,
   LATTICE = 21,
+  TERRACE = 22,
+  HEXAGON = 23,
+  MOLECULE = 24,
+  BRAID = 25,
 }
 
 export enum HatchBooleanType {

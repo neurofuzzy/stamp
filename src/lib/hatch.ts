@@ -1,6 +1,7 @@
 import * as clipperLib from "js-angusj-clipper/web";
 import {
   AltWeaveHatchPattern,
+  BraidHatchPattern,
   BrickHatchPattern,
   BuntingHatchPattern,
   ChevronHatchPattern,
@@ -12,9 +13,11 @@ import {
   HatchPatternType,
   HerringboneHatchPattern,
   HexHatchPattern,
+  HexagonHatchPattern,
   IHatchPattern,
   LatticeHatchPattern,
   LineHatchPattern,
+  MoleculeHatchPattern,
   OffsetHatchPattern,
   OrigamiHatchPattern,
   PinwheelHatchPattern,
@@ -23,6 +26,7 @@ import {
   SawtoothHatchPattern,
   SinewaveHatchPattern,
   SlateHatchPattern,
+  TerraceHatchPattern,
   TriWeaveHatchPattern,
   TriangularGridHatchPattern,
 } from "../geom/hatch-patterns";
@@ -113,7 +117,7 @@ export class Hatch {
       case HatchPatternType.PINWHEEL:
         hatchPattern = new PinwheelHatchPattern(...args);
         break;
-      case HatchPatternType.HEXAGON:
+      case HatchPatternType.HEX:
         hatchPattern = new HexHatchPattern(...args);
         break;
       case HatchPatternType.ORIGAMI:
@@ -121,6 +125,18 @@ export class Hatch {
         break;
       case HatchPatternType.LATTICE:
         hatchPattern = new LatticeHatchPattern(...args);
+        break;
+      case HatchPatternType.TERRACE:
+        hatchPattern = new TerraceHatchPattern(...args);
+        break;
+      case HatchPatternType.HEXAGON:
+        hatchPattern = new HexagonHatchPattern(...args);
+        break;
+      case HatchPatternType.MOLECULE:
+        hatchPattern = new MoleculeHatchPattern(...args);
+        break;
+      case HatchPatternType.BRAID:
+        hatchPattern = new BraidHatchPattern(...args);
         break;
       default:
         return null;
