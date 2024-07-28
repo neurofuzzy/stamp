@@ -61,9 +61,9 @@ export class LineHatchPattern extends HatchPattern {
   generate(): Path[] {
     const hatchStep = this.scale * 10;
     const segments: Path[] = [];
-    let radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const radius = Math.max(this.width, this.height) * 0.5;
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
@@ -81,7 +81,7 @@ export class CircleHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 20;
     const radius = Math.max(this.width, this.height) * 0.5 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let j = 0; j < numSegments; j++) {
       const pts:Point[] = [];
       const currentRadius = j / numSegments * radius + radius / numSegments / 1.5;
@@ -109,7 +109,7 @@ export class SpiralHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 15;
     const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     let currentRadius = 0;
     const step = radius / numSegments;
     const div = 4;
@@ -138,9 +138,9 @@ export class CrossHatchPattern extends HatchPattern {
     const hatchStep = this.scale * 10;
     const segments: Path[] = [];
     let radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
-    let rotationOrigins = [this.center.clone(), this.center];
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
+    const rotationOrigins = [this.center.clone(), this.center];
     rotationOrigins[0].direction = Math.PI / 2;
     for (let j = 0; j < 2; j++) {
       for (let i = 0; i < numSegments; i++) {
@@ -161,8 +161,8 @@ export class SawtoothHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
@@ -186,8 +186,8 @@ export class SinewaveHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
@@ -209,8 +209,8 @@ export class WaveHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startY = this.center.y - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const startY = this.center.y - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(this.center.x - radius, startY + i * hatchStep);
       const b = new Point(this.center.x + radius, startY + i * hatchStep);
@@ -233,8 +233,8 @@ export class DashedHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
@@ -263,8 +263,8 @@ export class SlateHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius * 2);
       const b = new Point(startX + i * hatchStep, this.center.y + radius * 2);
@@ -299,8 +299,8 @@ export class RockHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius * 4);
       const b = new Point(startX + i * hatchStep, this.center.y + radius * 4);
@@ -341,9 +341,9 @@ export class BrickHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
-    let startX = this.center.x - radius - hatchStep * 0.5;
-    let startY = this.center.y - radius - hatchStep * 0.5;
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const startY = this.center.y - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let y = 0; y < numSegments; y++) {
       for (let x = 0; x < numSegments; x++) {
         const a = new Point(startX + x * hatchStep, startY + y * hatchStep);
@@ -375,9 +375,9 @@ export class HerringboneHatchPattern extends BrickHatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let startY = this.center.y - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const startY = this.center.y - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let y = 0; y < numSegments; y++) {
       for (let x = 0; x < numSegments; x++) {
         const a = new Point(startX + x * hatchStep, startY + y * hatchStep);
@@ -408,7 +408,6 @@ export class TriangularGridHatchPattern extends HatchPattern {
     const radius = Math.max(this.width, this.height) * 0.5;
     const hatchStep = radius / 3 * this.scale;
     const tCenter = this.center.clone();
-
     for (let k = 0; k < 3; k++) {
       tCenter.direction = 120 * k * Math.PI / 180;
       let tSegments: Path[] = [];

@@ -59,32 +59,29 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     hatchStrokeThickness: 2,
     hatchBooleanType: HatchBooleanType.DIFFERENCE,
     hatchOffsetX: 0,
-    hatchOffsetY: 5,
+    hatchOffsetY: 0,
   }
 
   // compound leaf
-  const leaf = new Stamp(new Ray(0, 0))
+  const child = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
-    .leafShape({
-      radius: 100,
-      splitAngle: 50,
-      splitAngle2: 90,
-      divisions: 12,
+    .circle({
+      radius: 50,
     })
 
 
-  const tree = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
-    stamp: leaf,
+  const parent = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    stamp: child,
     seedSequence: Sequence.fromStatement("REPEAT 1-25"),
     rows: 5,
     columns: 5,
-    rowSpacing: 155,
-    columnSpacing: 125,
+    rowSpacing: 130,
+    columnSpacing: 130,
   });
 
 
   
-  tree.children().forEach(child => {
+  parent.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
       const shape = Hatch.subtractHatchFromShape(child);
       if (shape) drawShape(ctx, shape)
@@ -94,7 +91,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
   Sequence.resetAll();
 
-  tree.children().forEach(child => {
+  parent.children().forEach(child => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) {
