@@ -102,16 +102,17 @@ export class SpiralHatchPattern extends HatchPattern {
     let numSegments = Math.ceil(radius * 2 / hatchStep);
     let currentRadius = 0;
     const step = radius / numSegments;
+    const div = 4;
+    const pts:Point[] = [];
     for (let j = 0; j < numSegments; j++) {
-      const pts:Point[] = [];
-      for (let i = 0; i <= 360; i+=4) {
+      for (let i = 0; i < 360; i+=div) {
         const angle = i * Math.PI / 180;
         pts.push(new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius));
-        currentRadius += step / 90;
+        currentRadius += step / (360 / div);
       }
-      let p = new Path(pts);
-      segments.push(p);
     }
+    let p = new Path(pts);
+    segments.push(p);
     return segments;
   }
 }
@@ -494,7 +495,14 @@ export class AltWeaveHatchPattern extends TriGridHatchPattern {
 
 export class PinwheelHatchPattern extends TriGridHatchPattern {
   shouldSkipSegment(x: number, y: number) {
-    return x % 3 - y % 3 !== 0;
+    return x % 2 - y % 2 !== 0;
+  }
+}
+
+
+export class CloverHatchPattern extends TriGridHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x % 3 * y % 3) % 3 !== 2;
   }
 }
 
@@ -593,8 +601,9 @@ export enum HatchPatternType {
   BRAID = 23,
   RAIL = 24,
   SPIRAL = 25,
-  ROCK = 26,
-  OFFSET = 27,
+  CLOVER = 26,
+  ROCK = 27,
+  OFFSET = 28,
 }
 
 export enum HatchBooleanType {

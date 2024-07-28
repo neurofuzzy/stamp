@@ -6,6 +6,7 @@ import {
   BuntingHatchPattern,
   ChevronHatchPattern,
   CircleHatchPattern,
+  CloverHatchPattern,
   CrossHatchPattern,
   DashedHatchPattern,
   HatchBooleanType,
@@ -145,6 +146,9 @@ export class Hatch {
         break;
       case HatchPatternType.SPIRAL:
         hatchPattern = new SpiralHatchPattern(...args);
+        break;
+      case HatchPatternType.CLOVER:
+        hatchPattern = new CloverHatchPattern(...args);
         break;
       default:
         return null;

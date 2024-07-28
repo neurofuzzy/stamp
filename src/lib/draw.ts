@@ -125,9 +125,7 @@ export function drawHatchPatternDebug(
   let segments = hatch.generate();
   
   if (optimize) {
-    console.log("Optimizing", segments.length);
     segments = Optimize.paths(segments, true, true);
-    console.log("Optimized", segments.length);
   }
 
   ctx.beginPath();
