@@ -204,7 +204,7 @@ export class SinewaveHatchPattern extends HatchPattern {
   }
 }
 
-export class BuntingHatchPattern extends HatchPattern {
+export class WaveHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
@@ -602,7 +602,7 @@ export enum HatchPatternType {
   QBERT = 8,
   SAWTOOTH = 9,
   SINEWAVE = 10,
-  BUNTING = 11,
+  WAVE = 11,
   SLATE = 12,
   TRIWEAVE = 13,
   CHEVRON = 14,

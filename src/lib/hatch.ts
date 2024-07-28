@@ -3,7 +3,7 @@ import {
   AltWeaveHatchPattern,
   BraidHatchPattern,
   BrickHatchPattern,
-  BuntingHatchPattern,
+  WaveHatchPattern,
   ChevronHatchPattern,
   CircleHatchPattern,
   CloverHatchPattern,
@@ -101,8 +101,8 @@ export class Hatch {
       case HatchPatternType.SINEWAVE:
         hatchPattern = new SinewaveHatchPattern(...args);
         break;
-      case HatchPatternType.BUNTING:
-        hatchPattern = new BuntingHatchPattern(...args);
+      case HatchPatternType.WAVE:
+        hatchPattern = new WaveHatchPattern(...args);
         break;
       case HatchPatternType.SLATE:
         hatchPattern = new SlateHatchPattern(...args);
