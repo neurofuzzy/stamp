@@ -81,16 +81,17 @@ export class CircleHatchPattern extends HatchPattern {
     for (let j = 0; j < numSegments; j++) {
       const pts:Point[] = [];
       const currentRadius = j / numSegments * radius + radius / numSegments / 1.5;
-      for (let i = 0; i < 64; i++) {
-        const angle = i * Math.PI * 2 / 64;
+      for (let i = 0; i < 360; i+=4) {
+        const angle = i * Math.PI / 180;
         pts.push(new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius));
         
       }
       pts.push(pts[0]);
-      segments.push(new Path(pts));
+      let p = new Path(pts);
+      segments.push(p);
     }
     segments.forEach((s) => {
-      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+      //s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
     })
     return segments;
   }
@@ -307,14 +308,15 @@ export class HerringboneHatchPattern extends HatchPattern {
     for (let y = 0; y < numSegments; y++) {
       for (let x = 0; x < numSegments; x++) {
         const a = new Point(startX + x * hatchStep, startY + y * hatchStep);
-        const b = new Point(startX + x * hatchStep, startY + (y + 1) * hatchStep);
+        const b1 = new Point(startX + x * hatchStep, startY + (y + 1) * hatchStep);
+        const b2 = new Point(startX + x * hatchStep, startY + (y + 1) * hatchStep);
         const c = new Point(startX + (x + 1) * hatchStep, startY + (y + 1) * hatchStep);
         // create paths in herringbone pattern
         if ((x + y) % 4 !== 0) {
-          segments.push(new Path([a,b]));
+          segments.push(new Path([a,b1]));
         } 
         if ((x + y) % 4 !== 1) {
-          segments.push(new Path([b,c]));
+          segments.push(new Path([b2,c]));
         }
       }
     }
