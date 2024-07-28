@@ -67,7 +67,11 @@ export class LineHatchPattern extends HatchPattern {
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
-      segments.push(new Path([a, b]));
+      if (i % 2 === 0) {
+        segments.push(new Path([a, b]));
+      } else {
+        segments.push(new Path([b, a]));
+      }
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -146,7 +150,11 @@ export class CrossHatchPattern extends HatchPattern {
       for (let i = 0; i < numSegments; i++) {
         const a = new Point(startX + i * hatchStep, this.center.y - radius);
         const b = new Point(startX + i * hatchStep, this.center.y + radius);
-        segments.push(new Path([a, b]));
+        if (i % 2 === 0) {
+          segments.push(new Path([a, b]));
+        } else {
+          segments.push(new Path([b, a]));
+        }
       }
       segments.forEach((s) => {
         s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(rotationOrigins[j], p));
@@ -172,6 +180,9 @@ export class SawtoothHatchPattern extends HatchPattern {
           p.x += hatchStep;
         }
       });
+      if (i % 2 === 0) {
+        pts.reverse();
+      }
       segments.push(new Path(pts));
     }
     segments.forEach((s) => {
@@ -195,6 +206,9 @@ export class SinewaveHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         p.x += Math.sin(idx * Math.PI / 16) * hatchStep * 0.25;
       });
+      if (i % 2 === 0) {
+        pts.reverse();
+      }
       segments.push(new Path(pts));
     }
     segments.forEach((s) => {
@@ -219,6 +233,9 @@ export class WaveHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         p.y += Math.abs(Math.sin(idx * Math.PI / 12) * hatchStep * 0.5) - hatchStep * 0.25;
       });
+      if (i % 2 === 0) {
+        pts.reverse();
+      }
       segments.push(new Path(pts));
     }
     segments.forEach((s) => {
@@ -405,8 +422,8 @@ export class TriangularGridHatchPattern extends HatchPattern {
   generate(): Path[] {
     // generate a triangle grid, which has lines at 0, 120, 240 degrees
     const segments: Path[] = [];
-    const radius = Math.max(this.width, this.height) * 0.5;
-    const hatchStep = radius / 3 * this.scale;
+    const radius = 250;
+    const hatchStep = radius / 20;
     const tCenter = this.center.clone();
     for (let k = 0; k < 3; k++) {
       tCenter.direction = 120 * k * Math.PI / 180;
@@ -524,7 +541,7 @@ export class CloverHatchPattern extends TriGridHatchPattern {
 
 export class ChevronHatchPattern extends TriGridHatchPattern {
   shouldSkipSegment(x: number, y: number) {
-    return (x % 3 + y % 3) % 2 === 0;
+    return ((1 + x) % 4 * (y + 1) % 4) % 3 === 0;
   }
 }
 

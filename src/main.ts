@@ -1,15 +1,13 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawHatchPatternDebug, drawRay, drawShape } from '../src/lib/draw';
-import { IStyle, Ray, ShapeAlignment } from '../src/geom/core';
+import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { IStyle, Ray } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Hatch } from '../src/lib/hatch';
 import { Sequence } from '../src/lib/sequence';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType, HatchPatternType } from '../src/geom/hatch-patterns';
-import { Ellipse, LeafShape } from '../src/geom/shapes';
-import { Optimize } from './lib/optimize';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
 import { GridStampLayout } from './lib/stamp-layout';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -19,11 +17,13 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
+const pageWidth = 8.5 * 96;
+const pageHeight = 11 * 96;
 const ratio = 2;
-canvas.width = 768 * ratio
-canvas.height = 768 * ratio
-canvas.style.width = '768px'
-canvas.style.height = '768px'
+canvas.width = pageWidth * ratio;
+canvas.height = pageHeight * ratio;
+canvas.style.width = pageWidth + 'px';
+canvas.style.height = pageHeight + 'px';
 const ctx = canvas.getContext('2d')!
 ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
@@ -51,13 +51,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const style: IStyle = {
     strokeThickness: 0,
-    fillColor: 0,
+    fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
     hatchScale: 0.75,
-    hatchStrokeColor: "0xffffff",
+    hatchStrokeColor: "0x6633cc",
     hatchStrokeThickness: 2,
-    hatchBooleanType: HatchBooleanType.DIFFERENCE,
     hatchOffsetX: 0,
     hatchOffsetY: 0,
   }
