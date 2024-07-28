@@ -75,7 +75,7 @@ export class LineHatchPattern extends HatchPattern {
 export class CircleHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    const hatchStep = this.scale * 30;
+    const hatchStep = this.scale * 20;
     const radius = Math.max(this.width, this.height) * 0.5;
     let numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let j = 0; j < numSegments; j++) {
@@ -90,9 +90,28 @@ export class CircleHatchPattern extends HatchPattern {
       let p = new Path(pts);
       segments.push(p);
     }
-    segments.forEach((s) => {
-      //s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
-    })
+    return segments;
+  }
+}
+
+export class SpiralHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 15;
+    const radius = Math.max(this.width, this.height) * 2;
+    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    let currentRadius = 0;
+    const step = radius / numSegments;
+    for (let j = 0; j < numSegments; j++) {
+      const pts:Point[] = [];
+      for (let i = 0; i <= 360; i+=4) {
+        const angle = i * Math.PI / 180;
+        pts.push(new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius));
+        currentRadius += step / 90;
+      }
+      let p = new Path(pts);
+      segments.push(p);
+    }
     return segments;
   }
 }
@@ -296,7 +315,44 @@ export class RockHatchPattern extends HatchPattern {
   }
 }
 
-export class HerringboneHatchPattern extends HatchPattern {
+export class BrickHatchPattern extends HatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x + y) % 2 === 0;
+  }
+  generate(): Path[] {
+    // generate a series of paths that are evenly spaced apart
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 10;
+    const radius = Math.max(this.width, this.height) * 0.5;
+    let numSegments = Math.ceil(radius * 2 / hatchStep);
+    let startX = this.center.x - radius - hatchStep * 0.5;
+    let startY = this.center.y - radius - hatchStep * 0.5;
+    for (let y = 0; y < numSegments; y++) {
+      for (let x = 0; x < numSegments; x++) {
+        const a = new Point(startX + x * hatchStep, startY + y * hatchStep);
+        const b = new Point(startX + x * hatchStep, startY + (y + 1) * hatchStep);
+        const c = new Point(startX + (x + 1) * hatchStep, startY + (y + 1) * hatchStep);
+        if (this.shouldSkipSegment(x, y)) {
+          segments.push(new Path([b,c]));
+        } else {
+          segments.push(new Path([a,b,c]));
+        }
+      }
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    return segments;
+  }
+}
+
+export class RailHatchPattern extends BrickHatchPattern {
+  shouldSkipSegment(x: number, y: number) {
+    return (x * y) % 2 - (x + y) % 2 !== 0;
+  }
+}
+
+export class HerringboneHatchPattern extends BrickHatchPattern {
   generate(): Path[] {
     // generate a series of paths that are evenly spaced apart
     const segments: Path[] = [];
@@ -317,35 +373,6 @@ export class HerringboneHatchPattern extends HatchPattern {
         } 
         if ((x + y) % 4 !== 1) {
           segments.push(new Path([b2,c]));
-        }
-      }
-    }
-    segments.forEach((s) => {
-      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
-    })
-    return segments;
-  }
-}
-
-export class BrickHatchPattern extends HatchPattern {
-  generate(): Path[] {
-    // generate a series of paths that are evenly spaced apart
-    const segments: Path[] = [];
-    const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
-    let startY = this.center.y - radius;
-    let numSegments = Math.ceil(radius * 2 / hatchStep);
-    for (let y = 0; y < numSegments; y++) {
-      for (let x = 0; x < numSegments; x++) {
-        const a = new Point(startX + x * hatchStep, startY + y * hatchStep);
-        const b = new Point(startX + x * hatchStep, startY + (y + 1) * hatchStep);
-        const c = new Point(startX + (x + 1) * hatchStep, startY + (y + 1) * hatchStep);
-        // create paths in herringbone pattern
-        if ((x + y) % 2 === 0) {
-          segments.push(new Path([b,c]));
-        } else {
-          segments.push(new Path([a,b,c]));
         }
       }
     }
@@ -553,19 +580,21 @@ export enum HatchPatternType {
   SINEWAVE = 10,
   BUNTING = 11,
   SLATE = 12,
-  ROCK = 13,
-  OFFSET = 14,
-  TRIWEAVE = 15,
-  CHEVRON = 16,
-  ALTWEAVE = 17,
-  PINWHEEL = 18,
-  HEX = 19,
-  ORIGAMI = 20,
-  LATTICE = 21,
-  TERRACE = 22,
-  HEXAGON = 23,
-  MOLECULE = 24,
-  BRAID = 25,
+  TRIWEAVE = 13,
+  CHEVRON = 14,
+  ALTWEAVE = 15,
+  PINWHEEL = 16,
+  HEX = 17,
+  ORIGAMI = 18,
+  LATTICE = 19,
+  TERRACE = 20,
+  HEXAGON = 21,
+  MOLECULE = 22,
+  BRAID = 23,
+  RAIL = 24,
+  SPIRAL = 25,
+  ROCK = 26,
+  OFFSET = 27,
 }
 
 export enum HatchBooleanType {

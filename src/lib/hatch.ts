@@ -22,10 +22,12 @@ import {
   OrigamiHatchPattern,
   PinwheelHatchPattern,
   QbertHatchPattern,
+  RailHatchPattern,
   RockHatchPattern,
   SawtoothHatchPattern,
   SinewaveHatchPattern,
   SlateHatchPattern,
+  SpiralHatchPattern,
   TerraceHatchPattern,
   TriWeaveHatchPattern,
   TriangularGridHatchPattern,
@@ -137,6 +139,12 @@ export class Hatch {
         break;
       case HatchPatternType.BRAID:
         hatchPattern = new BraidHatchPattern(...args);
+        break;
+      case HatchPatternType.RAIL:
+        hatchPattern = new RailHatchPattern(...args);
+        break;
+      case HatchPatternType.SPIRAL:
+        hatchPattern = new SpiralHatchPattern(...args);
         break;
       default:
         return null;

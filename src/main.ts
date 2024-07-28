@@ -1,6 +1,6 @@
 import * as C2S from 'canvas2svg';
 import { drawHatchPattern, drawHatchPatternDebug, drawRay, drawShape } from '../src/lib/draw';
-import { Ray, ShapeAlignment } from '../src/geom/core';
+import { IStyle, Ray, ShapeAlignment } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Hatch } from '../src/lib/hatch';
 import { Sequence } from '../src/lib/sequence';
@@ -64,15 +64,15 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const leaf = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
     .circle({
-      radius: 40,
+      radius: 50,
     })
 
 
   const tree = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: leaf,
     seedSequence: Sequence.fromStatement("REPEAT 1-25"),
-    rows: 6,
-    columns: 6,
+    rows: 5,
+    columns: 5,
     rowSpacing: 120,
     columnSpacing: 120,
   });
