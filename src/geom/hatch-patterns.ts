@@ -209,15 +209,15 @@ export class WaveHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
     const radius = Math.max(this.width, this.height) * 0.5;
-    let startX = this.center.x - radius;
+    let startY = this.center.y - radius;
     let numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
-      const a = new Point(startX + i * hatchStep, this.center.y - radius);
-      const b = new Point(startX + i * hatchStep, this.center.y + radius);
+      const a = new Point(this.center.x - radius, startY + i * hatchStep);
+      const b = new Point(this.center.x + radius, startY + i * hatchStep);
       const dist = Math.max(0.5, Math.floor(hatchStep / 6));
       const pts = GeomHelpers.subdividePointsByDistance(a, b, dist);
       pts.forEach((p, idx) => {
-        p.x += Math.abs(Math.sin(idx * Math.PI / 12) * hatchStep * 0.5) - hatchStep * 0.25;
+        p.y += Math.abs(Math.sin(idx * Math.PI / 12) * hatchStep * 0.5) - hatchStep * 0.25;
       });
       segments.push(new Path(pts));
     }
