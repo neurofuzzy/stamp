@@ -20,12 +20,16 @@ export class HatchPattern implements IHatchPattern {
   protected width: number;
   protected height: number;
   protected scale: number;
+  protected offsetX: number;
+  protected offsetY: number;
   style: IStyle = HatchPattern.defaultStyle;
-  constructor(center: Ray, width: number, height: number, scale: number = 1) {
+  constructor(center: Ray, width: number, height: number, scale: number = 1, offsetX: number = 0, offsetY: number = 0) {
     this.center = center;
     this.width = width;
     this.height = height;
     this.scale = scale;
+    this.offsetX = offsetX;
+    this.offsetY = offsetY;
   }
   generate():Path[] {
     return [];
@@ -76,7 +80,7 @@ export class CircleHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 20;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     let numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let j = 0; j < numSegments; j++) {
       const pts:Point[] = [];
@@ -86,10 +90,16 @@ export class CircleHatchPattern extends HatchPattern {
         pts.push(new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius));
         
       }
-      pts.push(pts[0]);
+      pts.push(pts[0].clone());
       let p = new Path(pts);
       segments.push(p);
     }
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
     return segments;
   }
 }
@@ -98,7 +108,7 @@ export class SpiralHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 15;
-    const radius = Math.max(this.width, this.height) * 2;
+    const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     let numSegments = Math.ceil(radius * 2 / hatchStep);
     let currentRadius = 0;
     const step = radius / numSegments;
@@ -113,6 +123,12 @@ export class SpiralHatchPattern extends HatchPattern {
     }
     let p = new Path(pts);
     segments.push(p);
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
     return segments;
   }
 }

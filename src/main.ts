@@ -54,17 +54,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillColor: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 1,
+    hatchScale: 0.75,
     hatchStrokeColor: "0xffffff",
     hatchStrokeThickness: 2,
     hatchBooleanType: HatchBooleanType.DIFFERENCE,
+    hatchOffsetX: 0,
+    hatchOffsetY: 5,
   }
 
   // compound leaf
   const leaf = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
-    .circle({
-      radius: 50,
+    .leafShape({
+      radius: 100,
+      splitAngle: 50,
+      splitAngle2: 90,
+      divisions: 12,
     })
 
 
@@ -73,8 +78,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     seedSequence: Sequence.fromStatement("REPEAT 1-25"),
     rows: 5,
     columns: 5,
-    rowSpacing: 120,
-    columnSpacing: 120,
+    rowSpacing: 155,
+    columnSpacing: 125,
   });
 
 
@@ -93,7 +98,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) {
-        drawHatchPatternDebug(ctx, fillPattern, true);
+        drawHatchPattern(ctx, fillPattern, true);
       }
     }
   });

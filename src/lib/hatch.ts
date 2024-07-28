@@ -53,13 +53,17 @@ export class Hatch {
     const npattern = $(shape.style.hatchPattern) || 0;
     const nangle = $(shape.style.hatchAngle) || 0;
     const nscale = $(shape.style.hatchScale) || 1;
+    const noffsetX = $(shape.style.hatchOffsetX) || 0;
+    const noffsetY = $(shape.style.hatchOffsetY) || 0;
     const ninset = $(shape.style.hatchInset) || 0;
     const bc = shape.boundingCircle();
-    const args: [Ray, number, number, number] = [
+    const args: [Ray, number, number, number, number, number] = [
       new Ray(bc.x, bc.y, (nangle * Math.PI) / 180),
       bc.radius * 2,
       bc.radius * 2,
       nscale,
+      noffsetX,
+      noffsetY,
     ];
     let hatchPattern: IHatchPattern;
 

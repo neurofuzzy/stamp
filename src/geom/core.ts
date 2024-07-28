@@ -42,6 +42,8 @@ export interface IStyle {
   hatchAngle?: number | string;
   hatchInset?: number | string;
   hatchBooleanType?: number | string;
+  hatchOffsetX?: number | string;
+  hatchOffsetY?: number | string;
 }
 
 export class Point {
