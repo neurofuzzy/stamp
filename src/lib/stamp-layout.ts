@@ -1,4 +1,5 @@
 import { Ray } from "../geom/core";
+import { GeomHelpers } from "../geom/helpers";
 import { AbstractShape } from "../geom/shapes";
 import { Sequence } from "./sequence";
 import { Stamp } from "./stamp";
@@ -13,6 +14,12 @@ interface IGridStampLayoutParams extends IStampLayoutParams {
   rows: number;
   columnSpacing: number;
   rowSpacing: number;
+  offsetAlternateRows?: boolean;
+}
+
+interface ICircleGridStampLayoutParams extends IStampLayoutParams {
+  steps: number;
+  spacing: number;
 }
 
 class AbstractStampLayout extends AbstractShape {
@@ -41,7 +48,11 @@ export class GridStampLayout extends AbstractStampLayout {
     const w = params.columnSpacing * (params.columns - 1);
     const h = params.rowSpacing * (params.rows - 1);
     for (let j = 0; j < params.rows; j++) {
-      for (let i = 0; i < params.columns; i++) {
+      let cols = params.columns;
+      if (params.offsetAlternateRows && j % 2 === 1) {
+        cols++;
+      }
+      for (let i = 0; i < cols; i++) {
         const seed = params.seedSequence?.next() || i;
         Sequence.resetAll(seed, [params.seedSequence]);
         Sequence.seed = seed;
@@ -49,6 +60,46 @@ export class GridStampLayout extends AbstractStampLayout {
         const y = params.rowSpacing * j;
         const stamp = params.stamp.clone();
         stamp.center = new Ray(this.center.x + x - w / 2, this.center.y + y - h / 2, stamp.center.direction);
+        if (params.offsetAlternateRows && j % 2 === 1) {
+          stamp.center.x -= params.columnSpacing / 2;
+        }
+        stamp.generate();
+        c.push(stamp);
+      }
+    }
+    return c;
+  }
+  
+}
+
+export class CircleGridStampLayout extends AbstractStampLayout {
+  
+  constructor(center: Ray, params: ICircleGridStampLayoutParams) {
+    super(center, params);
+  }
+
+  children(): Stamp[] {
+    const c: Stamp[] = [];
+    const params = this.params as ICircleGridStampLayoutParams;
+    for (let j = 0; j < params.steps; j++) {
+      for (let i = 0; i < Math.max(1, 6 * j); i++) {
+        const seed = params.seedSequence?.next() || i;
+        Sequence.resetAll(seed, [params.seedSequence]);
+        Sequence.seed = seed;
+        const stamp = params.stamp.clone();
+        const center = new Ray(0, params.spacing * j);
+        if (j > 1) {
+          center.y -= j * params.spacing / 24;
+        }
+        if (j > 0) {
+          GeomHelpers.rotatePoint(center, i * (60 / j) * Math.PI / 180);
+        }
+        if (j > 0) {
+          GeomHelpers.rotatePoint(center, (15 * (j - 1)) * Math.PI / 180);
+        }
+        center.x += this.center.x;
+        center.y += this.center.y;
+        stamp.center = new Ray(center.x, center.y, stamp.center.direction);
         stamp.generate();
         c.push(stamp);
       }

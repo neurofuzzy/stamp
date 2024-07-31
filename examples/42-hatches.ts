@@ -8,7 +8,7 @@ import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
 import { HatchBooleanType } from '../src/geom/hatch-patterns';
-import { GridStampLayout, CircleGridStampLayout } from '../src/lib/stamp-layout';
+import { GridStampLayout } from '../src/lib/stamp-layout';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -18,7 +18,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
 const pageWidth = 8.5 * 96;
-const pageHeight = 8.5 * 96;
+const pageHeight = 11 * 96;
 const ratio = 2;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
@@ -69,11 +69,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
 
 
-  const parent = new CircleGridStampLayout(new Ray(w / 2, h / 2, 0), {
+  const parent = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
     seedSequence: Sequence.fromStatement("REPEAT 1-25"),
-    steps: 5,
-    spacing: 120,
+    rows: 5,
+    columns: 5,
+    rowSpacing: 130,
+    columnSpacing: 130,
   });
 
 
