@@ -598,6 +598,88 @@ export class QbertHatchPattern extends TriGridHatchPattern {
   }
 }
 
+export class CurlyHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 10;
+    const radius = Math.max(this.width, this.height) * 0.5;
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep / 4);
+    for (let i = 0; i < numSegments; i++) {
+      const a = new Point(startX + i * hatchStep * 4, this.center.y - radius - hatchStep * 3);
+      const b = new Point(startX + i * hatchStep * 4, this.center.y + radius + hatchStep * 3);
+      const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 24)));
+      pts.forEach((p, idx) => {
+        p.x += Math.sin(idx * Math.PI / 16 / this.scale) * hatchStep * 3.7;
+        p.y -= Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 3.7;
+      });
+      if (i % 2 === 0) {
+        pts.reverse();
+      }
+      segments.push(new Path(pts));
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    return segments;
+  }
+}
+
+export class ScribbleHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 10;
+    const radius = Math.max(this.width, this.height) * 0.5;
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep / 4);
+    for (let i = 0; i < numSegments; i++) {
+      const a = new Point(startX + i * hatchStep * 4, this.center.y - radius - hatchStep);
+      const b = new Point(startX + i * hatchStep * 4, this.center.y + radius + hatchStep);
+      const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 24)));
+      pts.forEach((p, idx) => {
+        p.x += Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
+        p.x += Math.sin(idx * Math.PI / 64 / this.scale) * hatchStep;
+      });
+      if (i % 2 === 0) {
+        pts.reverse();
+      }
+      segments.push(new Path(pts));
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    return segments;
+  }
+}
+
+export class LoopHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 10;
+    const radius = Math.max(this.width, this.height) * 0.5;
+    const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
+    const numSegments = Math.ceil(radius * 2 / hatchStep / 5);
+    for (let i = 0; i < numSegments; i++) {
+      const a = new Point(startX + i * hatchStep * 5, this.center.y - radius - hatchStep);
+      const b = new Point(startX + i * hatchStep * 5, this.center.y + radius + hatchStep);
+      const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 24)));
+      pts.forEach((p, idx) => {
+        p.x += Math.sin(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
+        p.x += Math.sin(idx * Math.PI / 64 / this.scale) * hatchStep;
+        p.y -= Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
+      });
+      if (i % 2 === 0) {
+        pts.reverse();
+      }
+      segments.push(new Path(pts));
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    return segments;
+  }
+}
+
 export class OffsetHatchPattern extends HatchPattern {
   get offsetStep(): number {
     return this.scale * 10;
@@ -634,8 +716,11 @@ export enum HatchPatternType {
   RAIL = 24,
   SPIRAL = 25,
   CLOVER = 26,
-  ROCK = 27,
-  OFFSET = 28,
+  CURLY = 27,
+  SCRIBBLE = 28,
+  LOOP = 29,
+  ROCK = 30,
+  OFFSET = 31,
 }
 
 export enum HatchBooleanType {

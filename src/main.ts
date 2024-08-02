@@ -7,7 +7,7 @@ import { Sequence } from '../src/lib/sequence';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { HatchBooleanType } from '../src/geom/hatch-patterns';
+import { HatchBooleanType, HatchPatternType } from '../src/geom/hatch-patterns';
 import { GridStampLayout, CircleGridStampLayout } from '../src/lib/stamp-layout';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -42,7 +42,7 @@ Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-Sequence.fromStatement("repeat 1-26 AS HATCH")
+Sequence.fromStatement("repeat 27-29 AS HATCH")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -54,7 +54,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 0.75,
+    hatchScale: 1,
     hatchStrokeColor: "0x6633cc",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,
@@ -65,15 +65,16 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const child = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
     .circle({
-      radius: 50,
+      radius: 100,
     })
 
 
   const parent = new CircleGridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
     seedSequence: Sequence.fromStatement("REPEAT 1-25"),
-    steps: 5,
-    spacing: 120,
+    rings: 2,
+    numPerRing: 6,
+    spacing: 200,
   });
 
 
@@ -92,7 +93,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) {
-        drawHatchPattern(ctx, fillPattern, true);
+        drawHatchPattern(ctx, fillPattern, false);
       }
     }
   });

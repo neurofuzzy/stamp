@@ -32,6 +32,9 @@ import {
   TerraceHatchPattern,
   TriWeaveHatchPattern,
   TriangularGridHatchPattern,
+  CurlyHatchPattern,
+  ScribbleHatchPattern,
+  LoopHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
@@ -110,8 +113,6 @@ export class Hatch {
       case HatchPatternType.ROCK:
         hatchPattern = new RockHatchPattern(...args);
         break;
-      case HatchPatternType.OFFSET:
-        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);
       case HatchPatternType.TRIWEAVE:
         hatchPattern = new TriWeaveHatchPattern(...args);
         break;
@@ -154,6 +155,17 @@ export class Hatch {
       case HatchPatternType.CLOVER:
         hatchPattern = new CloverHatchPattern(...args);
         break;
+      case HatchPatternType.CURLY:
+        hatchPattern = new CurlyHatchPattern(...args);
+        break;
+      case HatchPatternType.SCRIBBLE:
+        hatchPattern = new ScribbleHatchPattern(...args);
+        break;
+      case HatchPatternType.LOOP:
+        hatchPattern = new LoopHatchPattern(...args);
+        break;
+      case HatchPatternType.OFFSET:
+        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);
       default:
         return null;
     }

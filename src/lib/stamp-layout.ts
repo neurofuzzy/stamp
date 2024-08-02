@@ -18,7 +18,8 @@ interface IGridStampLayoutParams extends IStampLayoutParams {
 }
 
 interface ICircleGridStampLayoutParams extends IStampLayoutParams {
-  steps: number;
+  rings: number;
+  numPerRing: number;
   spacing: number;
 }
 
@@ -81,21 +82,18 @@ export class CircleGridStampLayout extends AbstractStampLayout {
   children(): Stamp[] {
     const c: Stamp[] = [];
     const params = this.params as ICircleGridStampLayoutParams;
-    for (let j = 0; j < params.steps; j++) {
-      for (let i = 0; i < Math.max(1, 6 * j); i++) {
+    for (let j = 0; j < params.rings; j++) {
+      for (let i = 0; i < Math.max(1, params.numPerRing * j); i++) {
         const seed = params.seedSequence?.next() || i;
         Sequence.resetAll(seed, [params.seedSequence]);
         Sequence.seed = seed;
         const stamp = params.stamp.clone();
         const center = new Ray(0, params.spacing * j);
-        if (j > 1) {
-          center.y -= j * params.spacing / 24;
+        if (j > 0) {
+          GeomHelpers.rotatePoint(center, i * (360 / params.numPerRing / j) * Math.PI / 180);
         }
         if (j > 0) {
-          GeomHelpers.rotatePoint(center, i * (60 / j) * Math.PI / 180);
-        }
-        if (j > 0) {
-          GeomHelpers.rotatePoint(center, (15 * (j - 1)) * Math.PI / 180);
+          GeomHelpers.rotatePoint(center, (90 / params.numPerRing * (j - 1)) * Math.PI / 180);
         }
         center.x += this.center.x;
         center.y += this.center.y;
