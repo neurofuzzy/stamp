@@ -36,6 +36,8 @@ import {
   ScribbleHatchPattern,
   LoopHatchPattern,
   GlobeHatchPattern,
+  FlowerHatchPattern,
+  PhylloHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
@@ -164,6 +166,12 @@ export class Hatch {
         break;
       case HatchPatternType.LOOP:
         hatchPattern = new LoopHatchPattern(...args);
+        break;
+      case HatchPatternType.PHYLLO:
+        hatchPattern = new PhylloHatchPattern(...args);
+        break;
+      case HatchPatternType.FLOWER:
+        hatchPattern = new FlowerHatchPattern(...args);
         break;
       case HatchPatternType.GLOBE:
         hatchPattern = new GlobeHatchPattern(...args);

@@ -144,6 +144,79 @@ export class SpiralHatchPattern extends HatchPattern {
   }
 }
 
+export class PhylloHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 15;
+    const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
+    let currentRadius = 0;
+    const step = radius / numSegments;
+    const div = 2;
+    const pts:Point[] = [];
+    for (let j = 0; j < numSegments; j++) {
+      for (let i = 0; i <= 360; i+=div) {
+        const angle = i * Math.PI / 180;
+        const pt = new Point(0, currentRadius);
+        pt.y += Math.sin(angle * (12 / this.scale + 0.5)) * currentRadius / 12.5 * this.scale * (j % 2 - 0.5);
+        GeomHelpers.rotatePoint(pt, angle);
+        pt.x += this.center.x;
+        pt.y += this.center.y;
+        pts.push(pt);
+        currentRadius += step / (360 / div);
+      }
+    }
+    let p = new Path(pts);
+    segments.push(p);
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
+    return segments;
+  }
+}
+
+export class FlowerHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    let hatchStep = this.scale * 25;
+    const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
+    let currentRadius = 0;
+    let step = radius / numSegments;
+    const div = 0.5;
+    const pts:Point[] = [];
+    const valuesAtAngle = [];
+    for (let j = 0; j < numSegments; j++) {
+      for (let i = 0; i <= 360; i+=div) {
+        const lastValueAtAngle = valuesAtAngle[i] || 0;
+        const angle = i * Math.PI / 180;
+        const pt = new Point(0, currentRadius);
+        pt.y += Math.sin(angle * (12 / this.scale + 0.5)) * currentRadius / 6.5 * this.scale * (j % 2 - 0.5);
+        valuesAtAngle[i] = pt.y;
+        pt.y = Math.max(lastValueAtAngle, pt.y);
+        GeomHelpers.rotatePoint(pt, angle);
+        pt.x += this.center.x;
+        pt.y += this.center.y;
+        pts.push(pt);
+        currentRadius += step / (360 / div);
+        step *= 1.0001;
+      }
+    }
+    let p = new Path(pts);
+    segments.push(p);
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
+    return segments;
+  }
+}
+
 export class CrossHatchPattern extends HatchPattern {
   generate(): Path[] {
     const hatchStep = this.scale * 10;
@@ -766,14 +839,16 @@ export enum HatchPatternType {
   MOLECULE = 22,
   BRAID = 23,
   RAIL = 24,
-  SPIRAL = 25,
-  CLOVER = 26,
+  CLOVER = 25,
+  SPIRAL = 26,
   CURLY = 27,
   SCRIBBLE = 28,
   LOOP = 29,
-  GLOBE = 30,
-  ROCK = 31,
-  OFFSET = 32,
+  PHYLLO = 30,
+  GLOBE = 31,
+  FLOWER = 32,
+  ROCK = 33,
+  OFFSET = 34,
 }
 
 export enum HatchBooleanType {
