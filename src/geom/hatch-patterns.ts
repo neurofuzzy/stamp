@@ -625,12 +625,6 @@ export class CurlyHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         p.x += Math.sin(idx * Math.PI / 16 / this.scale) * hatchStep * 3.7;
         p.y -= Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 3.7;
-        p.x -= this.center.x;
-        p.y -= this.center.y;
-        p.x *= 1.7;
-        p.y *= 1.7;
-        p.x += this.center.x;
-        p.y += this.center.y;
       });
       if (i % 2 === 0) {
         pts.reverse();
@@ -647,17 +641,17 @@ export class CurlyHatchPattern extends HatchPattern {
 export class ScribbleHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    const hatchStep = this.scale * 10;
+    const hatchStep = this.scale * 5;
     const radius = Math.max(this.width, this.height) * 0.5;
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
-    const numSegments = Math.ceil(radius * 2 / hatchStep / 4);
+    const numSegments = Math.ceil(radius * 2 / hatchStep / 2);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep * 4, this.center.y - radius - hatchStep);
       const b = new Point(startX + i * hatchStep * 4, this.center.y + radius + hatchStep);
       const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 24)));
       pts.forEach((p, idx) => {
-        p.x += Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
-        p.x += Math.sin(idx * Math.PI / 64 / this.scale) * hatchStep;
+        p.x += Math.cos(idx * Math.PI / 8 / this.scale) * hatchStep * 2;
+        p.x += Math.sin(idx * Math.PI / 32 / this.scale) * hatchStep;
       });
       if (i % 2 === 0) {
         pts.reverse();
@@ -674,18 +668,18 @@ export class ScribbleHatchPattern extends HatchPattern {
 export class LoopHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    const hatchStep = this.scale * 10;
+    const hatchStep = this.scale * 5;
     const radius = Math.max(this.width, this.height) * 0.5;
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
-    const numSegments = Math.ceil(radius * 2 / hatchStep / 5);
+    const numSegments = Math.ceil(radius * 2 / hatchStep / 2);
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep * 5, this.center.y - radius - hatchStep);
       const b = new Point(startX + i * hatchStep * 5, this.center.y + radius + hatchStep);
       const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 24)));
       pts.forEach((p, idx) => {
-        p.x += Math.sin(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
-        p.x += Math.sin(idx * Math.PI / 64 / this.scale) * hatchStep;
-        p.y -= Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
+        p.x += Math.sin(idx * Math.PI / 8 / this.scale) * hatchStep * 2;
+        p.x += Math.sin(idx * Math.PI / 32 / this.scale) * hatchStep;
+        p.y -= Math.cos(idx * Math.PI / 8 / this.scale) * hatchStep * 2;
       });
       if (i % 2 === 0) {
         pts.reverse();
@@ -712,9 +706,6 @@ export class GlobeHatchPattern extends HatchPattern {
       const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 16)));
       // scratch pattern
       pts.forEach((p, idx) => {   
-        //p.x += Math.sin(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
-        //p.x += Math.sin(idx * Math.PI / 64 / this.scale) * hatchStep;
-        //p.y -= Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
         // convert to polar
         p.x -= this.center.x;
         p.y -= this.center.y;
@@ -722,8 +713,8 @@ export class GlobeHatchPattern extends HatchPattern {
         p.x += r * Math.cos(p.y * Math.PI / 32);
         p.y += r * Math.sin(p.y * Math.PI / 32);
         p.x += radius;
-        p.x *= 3;
-        p.y *= 4;
+        p.x *= 1.5;
+        p.y *= 2;
         p.x *= this.scale * 1.75;
         p.y *= this.scale * 1.75;
         p.x += this.center.x;
