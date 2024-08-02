@@ -42,7 +42,7 @@ Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-Sequence.fromStatement("repeat 27-29 AS HATCH")
+Sequence.fromStatement("repeat 27-30 AS HATCH")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -54,7 +54,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 1,
+    hatchScale: 0.5,
     hatchStrokeColor: "0x6633cc",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,
@@ -93,7 +93,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) {
-        drawHatchPattern(ctx, fillPattern, false);
+        drawHatchPattern(ctx, fillPattern, true);
       }
     }
   });

@@ -82,7 +82,7 @@ export function drawHatchPattern(
 ) {
   let segments = hatch.generate();
   
-  if (optimize) {
+  if (optimize && hatch.doOptimize) {
     segments = Optimize.paths(segments, true, true);
   }
 

@@ -8,6 +8,7 @@ export interface IHatchPattern {
   style: IStyle;
   generate(): Path[];
   clone(): IHatchPattern;
+  get doOptimize(): boolean;
 }
 
 export class HatchPattern implements IHatchPattern {
@@ -37,6 +38,9 @@ export class HatchPattern implements IHatchPattern {
   clone() {
     return new HatchPattern(this.center.clone(), this.width, this.height);
   }
+  get doOptimize(): boolean {
+    return false;
+  }
 }
 
 export class HatchFillShape implements IHatchPattern {
@@ -54,6 +58,9 @@ export class HatchFillShape implements IHatchPattern {
   }
   clone() {
     return new HatchFillShape(this.segments.map((s) => s.clone()));
+  }
+  get doOptimize(): boolean {
+    return false;
   }
 }
 
@@ -378,6 +385,9 @@ export class BrickHatchPattern extends HatchPattern {
     })
     return segments;
   }
+  get doOptimize(): boolean {
+    return true;
+  }
 }
 
 export class RailHatchPattern extends BrickHatchPattern {
@@ -508,6 +518,9 @@ export class TriGridHatchPattern extends HatchPattern {
     })
     return segments;
   }
+  get doOptimize(): boolean {
+    return true;
+  }
 }
 
 
@@ -612,6 +625,12 @@ export class CurlyHatchPattern extends HatchPattern {
       pts.forEach((p, idx) => {
         p.x += Math.sin(idx * Math.PI / 16 / this.scale) * hatchStep * 3.7;
         p.y -= Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 3.7;
+        p.x -= this.center.x;
+        p.y -= this.center.y;
+        p.x *= 1.7;
+        p.y *= 1.7;
+        p.x += this.center.x;
+        p.y += this.center.y;
       });
       if (i % 2 === 0) {
         pts.reverse();
@@ -680,6 +699,48 @@ export class LoopHatchPattern extends HatchPattern {
   }
 }
 
+export class GlobeHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = 2.5;
+    const radius = Math.max(this.width, this.height) * 0.5;
+    const startX = this.center.x - radius;
+    const numSegments = Math.ceil(radius * 2 / hatchStep / 2);
+    for (let i = 0; i < numSegments; i++) {
+      const a = new Point(startX + i * hatchStep, this.center.y - radius * 0.9);
+      const b = new Point(startX + i * hatchStep, this.center.y + radius * 0.9);
+      const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 16)));
+      // scratch pattern
+      pts.forEach((p, idx) => {   
+        //p.x += Math.sin(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
+        //p.x += Math.sin(idx * Math.PI / 64 / this.scale) * hatchStep;
+        //p.y -= Math.cos(idx * Math.PI / 16 / this.scale) * hatchStep * 2;
+        // convert to polar
+        p.x -= this.center.x;
+        p.y -= this.center.y;
+        const r = Math.sqrt(p.x * p.x + p.y * p.y);
+        p.x += r * Math.cos(p.y * Math.PI / 32);
+        p.y += r * Math.sin(p.y * Math.PI / 32);
+        p.x += radius;
+        p.x *= 3;
+        p.y *= 4;
+        p.x *= this.scale * 1.75;
+        p.y *= this.scale * 1.75;
+        p.x += this.center.x;
+        p.y += this.center.y;
+      });
+      if (i % 2 === 0) {
+        pts.reverse();
+      }
+      segments.push(new Path(pts));
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    return segments;
+  }
+}
+
 export class OffsetHatchPattern extends HatchPattern {
   get offsetStep(): number {
     return this.scale * 10;
@@ -719,8 +780,9 @@ export enum HatchPatternType {
   CURLY = 27,
   SCRIBBLE = 28,
   LOOP = 29,
-  ROCK = 30,
-  OFFSET = 31,
+  GLOBE = 30,
+  ROCK = 31,
+  OFFSET = 32,
 }
 
 export enum HatchBooleanType {
