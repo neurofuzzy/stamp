@@ -181,15 +181,15 @@ export class PhylloHatchPattern extends HatchPattern {
 export class FlowerHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    let hatchStep = this.scale * 25;
+    let hatchStep = this.scale * 15;
     const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
-    const numSegments = Math.ceil(radius * 2 / hatchStep);
+    const numSegments = Math.ceil(radius / hatchStep);
     let currentRadius = 0;
     let step = radius / numSegments;
     const div = 0.5;
     const pts:Point[] = [];
     const valuesAtAngle = [];
-    for (let j = 0; j < numSegments; j++) {
+    for (let j = 0; j < numSegments / 5; j++) {
       for (let i = 0; i <= 360; i+=div) {
         const lastValueAtAngle = valuesAtAngle[i] || 0;
         const angle = i * Math.PI / 180;
@@ -202,7 +202,12 @@ export class FlowerHatchPattern extends HatchPattern {
         pt.y += this.center.y;
         pts.push(pt);
         currentRadius += step / (360 / div);
-        step *= 1.0001;
+        if (j < numSegments - numSegments * 0.84) {
+          step *= 1.00005;
+        } else {
+          step *= 0.99;
+        }
+        
       }
     }
     let p = new Path(pts);

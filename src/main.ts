@@ -50,11 +50,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   const style: IStyle = {
-    strokeThickness: 0,
+    //strokeThickness: 0,
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 1,
+    hatchScale: 0.75,
     hatchStrokeColor: "0x6633cc",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,
@@ -65,7 +65,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const child = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
     .circle({
-      radius: 300,
+      radius: 200,
     })
 
 
