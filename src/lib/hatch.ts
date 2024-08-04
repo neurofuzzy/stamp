@@ -38,6 +38,7 @@ import {
   GlobeHatchPattern,
   FlowerHatchPattern,
   PhylloHatchPattern,
+  OrthoHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
@@ -177,6 +178,9 @@ export class Hatch {
         break;
       case HatchPatternType.GLOBE:
         hatchPattern = new GlobeHatchPattern(...args);
+        break;
+      case HatchPatternType.ORTHO:
+        hatchPattern = new OrthoHatchPattern(...args);
         break;
       case HatchPatternType.OFFSET:
         return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);

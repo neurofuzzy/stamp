@@ -1,5 +1,5 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { drawHatchPattern, drawHatchPatternDebug, drawShape } from '../src/lib/draw';
 import { IStyle, Ray } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Hatch } from '../src/lib/hatch';
@@ -42,7 +42,7 @@ Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-Sequence.fromStatement("repeat 31,10,11,26,27,28,29,30 AS HATCH")
+Sequence.fromStatement("repeat 33,10,11,26,27,28,29,30 AS HATCH")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {

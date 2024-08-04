@@ -859,6 +859,82 @@ export class GlobeHatchPattern extends HatchPattern {
       let p = new Path(pts);
       segments.push(p);
     }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
+    return segments;
+  }
+}
+
+export class OrthoHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 20;
+    const size = Math.max(this.width, this.height) + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY)) + hatchStep * 2;
+    const numSegments = Math.ceil(size * 2 / hatchStep);
+    const expandPoints = (pts:Point[], hatchStep, flip:boolean = false) => {
+      let i = pts.length;
+      while (i--) {
+        if (i % 2 === 0) {
+          // add point
+          const pt = pts[i].clone();
+          pt.y += hatchStep * 0.667;
+          pts.splice(i + 0, 0, pt);
+        }
+        if (i % 2 === 1) {
+          // add point
+          const pt = pts[i].clone();
+          pt.y += hatchStep * 0.667;
+          pts.splice(i + 1, 0, pt);
+        }
+      }
+      i = pts.length;
+      while (i--) {
+        if (i % 4 === 0) {
+          // add point
+          const pt = pts[i];
+          const ptB = pt.clone();
+          pt.x += hatchStep * 0.667;
+          const ptC = pt.clone();
+          ptB.y -= hatchStep * 0.333;
+          ptC.y -= hatchStep * 0.333;
+          pts.splice(i + 1, 0, ptC, ptB);
+        }
+        if (i % 4 === 2) {
+          // add point
+          const pt = pts[i];
+          const ptB = pt.clone();
+          pt.x += hatchStep * 0.667;
+          const ptC = pt.clone();
+          ptB.y += hatchStep * 0.333;
+          ptC.y += hatchStep * 0.333;
+          pts.splice(i + 1, 0, ptC, ptB);
+        }
+      }
+      if (flip) {
+        const baseY = pts[1].y;
+        pts.forEach((p) => {
+          p.x += hatchStep * 0.5;
+        });
+      }
+    };
+    for (let j = 0; j < numSegments; j++) {
+      const ptA = new Point(this.center.x - size * 0.5, this.center.y - size * 0.5 + j * hatchStep);
+      const ptB = new Point(this.center.x + size * 0.5, this.center.y - size * 0.5 + j * hatchStep);
+      const pts = GeomHelpers.subdividePointsByDistanceExact(ptA, ptB, hatchStep);
+      expandPoints(pts, hatchStep, j % 2 == 0);
+      let p = new Path(pts);
+      segments.push(p);
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    })
     segments.forEach((p) => {
       p.points.forEach((p) => {
         p.x += this.offsetX;
@@ -911,8 +987,9 @@ export enum HatchPatternType {
   PHYLLO = 30,
   GLOBE = 31,
   FLOWER = 32,
-  ROCK = 33,
-  OFFSET = 34,
+  ORTHO = 33,
+  ROCK = 34,
+  OFFSET = 35,
 }
 
 export enum HatchBooleanType {
