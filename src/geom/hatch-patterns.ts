@@ -21,14 +21,16 @@ export class HatchPattern implements IHatchPattern {
   protected width: number;
   protected height: number;
   protected scale: number;
+  protected overflow: number;
   protected offsetX: number;
   protected offsetY: number;
   style: IStyle = HatchPattern.defaultStyle;
-  constructor(center: Ray, width: number, height: number, scale: number = 1, offsetX: number = 0, offsetY: number = 0) {
+  constructor(center: Ray, width: number, height: number, scale: number = 1, overflow: number = 0, offsetX: number = 0, offsetY: number = 0) {
     this.center = center;
     this.width = width;
     this.height = height;
     this.scale = scale;
+    this.overflow = overflow;
     this.offsetX = offsetX;
     this.offsetY = offsetY;
   }
@@ -68,7 +70,7 @@ export class LineHatchPattern extends HatchPattern {
   generate(): Path[] {
     const hatchStep = this.scale * 10;
     const segments: Path[] = [];
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow;
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
@@ -91,7 +93,7 @@ export class CircleHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 20;
-    const radius = Math.max(this.width, this.height) * 0.5 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let j = 0; j < numSegments; j++) {
       const pts:Point[] = [];
@@ -119,7 +121,7 @@ export class SpiralHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 15;
-    const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const radius = Math.max(this.width, this.height) * 2 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     let currentRadius = 0;
     const step = radius / numSegments;
@@ -148,7 +150,7 @@ export class PhylloHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 15;
-    const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const radius = Math.max(this.width, this.height) * 2 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     let currentRadius = 0;
     const step = radius / numSegments;
@@ -178,11 +180,63 @@ export class PhylloHatchPattern extends HatchPattern {
   }
 }
 
+export class ShellHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    let hatchStep = this.scale * 55;
+    const radius = Math.max(this.width, this.height) * 2 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const numSegments = Math.ceil(radius / hatchStep);
+    let currentRadius = 0;
+    let step = radius / numSegments;
+    const div = 0.5;
+    const pts:Point[] = [];
+    const pts2:Point[] = [];
+    const valuesAtAngle = [];
+    for (let j = 0; j < numSegments / 4.7; j++) {
+      for (let i = 0; i <= 360; i+=div) {
+        const lastValueAtAngle = valuesAtAngle[i] || 0;
+        const angle = i * Math.PI / 180;
+        const pt = new Point(0, currentRadius);
+        pt.y += Math.sin(angle * (6 / this.scale + 0.5)) * (0 + currentRadius) / 4.5 * this.scale * (j % 2 - 0.5);
+        valuesAtAngle[i] = pt.y;
+        pt.y = Math.max(lastValueAtAngle, pt.y);
+        const pt2 = pt.clone();
+        GeomHelpers.rotatePoint(pt, angle);
+        GeomHelpers.rotatePoint(pt2, angle + Math.PI);
+        pt.x += this.center.x;
+        pt.y += this.center.y;
+        pt2.x += this.center.x;
+        pt2.y += this.center.y;
+        pts.push(pt);
+        pts2.push(pt2);
+        currentRadius += step / (360 / div);
+        if (j < numSegments - numSegments * 0.84) {
+          step *= 1.00005;
+        } else {
+          step *= 0.99;
+        }
+        
+      }
+    }
+    let p = new Path(pts);
+    let p2 = new Path(pts2);
+    segments.push(p);
+    segments.push(p2);
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
+    return segments;
+  }
+}
+
 export class FlowerHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     let hatchStep = this.scale * 15;
-    const radius = Math.max(this.width, this.height) * 2 + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const radius = Math.max(this.width, this.height) * 2 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const numSegments = Math.ceil(radius / hatchStep);
     let currentRadius = 0;
     let step = radius / numSegments;
@@ -226,7 +280,7 @@ export class CrossHatchPattern extends HatchPattern {
   generate(): Path[] {
     const hatchStep = this.scale * 10;
     const segments: Path[] = [];
-    let radius = Math.max(this.width, this.height) * 0.5;
+    let radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     const rotationOrigins = [this.center.clone(), this.center];
@@ -253,7 +307,7 @@ export class SawtoothHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
@@ -281,7 +335,7 @@ export class SinewaveHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
@@ -307,7 +361,7 @@ export class WaveHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startY = this.center.y - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
@@ -334,7 +388,7 @@ export class DashedHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
@@ -364,7 +418,7 @@ export class SlateHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
@@ -400,7 +454,7 @@ export class RockHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     for (let i = 0; i < numSegments; i++) {
@@ -442,7 +496,7 @@ export class BrickHatchPattern extends HatchPattern {
     // generate a series of paths that are evenly spaced apart
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const startY = this.center.y - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
@@ -479,7 +533,7 @@ export class HerringboneHatchPattern extends BrickHatchPattern {
     // generate a series of paths that are evenly spaced apart
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const startY = this.center.y - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
@@ -510,7 +564,7 @@ export class TriangularGridHatchPattern extends HatchPattern {
   generate(): Path[] {
     // generate a triangle grid, which has lines at 0, 120, 240 degrees
     const segments: Path[] = [];
-    const radius = 250;
+    const radius = 250 + this.overflow;
     const hatchStep = radius / 20;
     const tCenter = this.center.clone();
     for (let k = 0; k < 3; k++) {
@@ -549,7 +603,7 @@ export class TriGridHatchPattern extends HatchPattern {
   generate(): Path[] {
     // generate a triangle grid, which has lines at 0, 120, 240 degrees
     const segments: Path[] = [];
-    const radius = 200;
+    const radius = 200 + this.overflow;
     const hatchStep = radius / 20;
     const tCenter = this.center.clone();
     const numSegments = Math.ceil(radius * 2 / hatchStep);
@@ -720,7 +774,7 @@ export class ScribbleHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 5;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep / 2);
     for (let i = 0; i < numSegments; i++) {
@@ -747,7 +801,7 @@ export class LoopHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 5;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep / 2);
     for (let i = 0; i < numSegments; i++) {
@@ -774,38 +828,43 @@ export class LoopHatchPattern extends HatchPattern {
 export class GlobeHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    const hatchStep = 2.5;
-    const radius = Math.max(this.width, this.height) * 0.5;
-    const startX = this.center.x - radius;
-    const numSegments = Math.ceil(radius * 2 / hatchStep / 2);
-    for (let i = 0; i < numSegments; i++) {
-      const a = new Point(startX + i * hatchStep, this.center.y - radius * 0.9);
-      const b = new Point(startX + i * hatchStep, this.center.y + radius * 0.9);
-      const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.max(1, Math.floor(hatchStep / 16)));
-      // scratch pattern
-      pts.forEach((p, idx) => {   
-        // convert to polar
-        p.x -= this.center.x;
-        p.y -= this.center.y;
-        const r = Math.sqrt(p.x * p.x + p.y * p.y);
-        p.x += r * Math.cos(p.y * Math.PI / 32);
-        p.y += r * Math.sin(p.y * Math.PI / 32);
-        p.x += radius;
-        p.x *= 1.5;
-        p.y *= 2;
-        p.x *= this.scale * 1.75;
-        p.y *= this.scale * 1.75;
-        p.x += this.center.x;
-        p.y += this.center.y;
-      });
-      if (i % 2 === 0) {
-        pts.reverse();
+    const hatchStep = this.scale * 20;
+    const radius = Math.max(this.width, this.height) * 2 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const numSegments = Math.ceil(radius * 2 / hatchStep);
+    for (let j = 0; j < numSegments; j++) {
+      const pts:Point[] = [];
+      const currentRadius = j / numSegments * radius + radius / numSegments / 1.5;
+      for (let i = 0; i < 360; i+=4) {
+        const angle = i * Math.PI / 180;
+        const pt = new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius);
+        pt.x += j * hatchStep * 0.1 + radius * 0.35;
+        pt.y += j * hatchStep * 0.05 + radius * 0.3;
+        pts.push(pt);
       }
-      segments.push(new Path(pts));
+      pts.push(pts[0].clone());
+      let p = new Path(pts);
+      segments.push(p);
     }
-    segments.forEach((s) => {
-      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
-    })
+    for (let j = 0; j < numSegments; j++) {
+      const pts:Point[] = [];
+      const currentRadius = j / numSegments * radius + radius / numSegments / 1.5;
+      for (let i = 0; i < 360; i+=4) {
+        const angle = i * Math.PI / 180;
+        const pt = new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius);
+        pt.x -= j * hatchStep * 0.1 + radius * 0.2;
+        pt.y += j * hatchStep * 0.05 + radius * 0.4;
+        pts.push(pt);
+      }
+      pts.push(pts[0].clone());
+      let p = new Path(pts);
+      segments.push(p);
+    }
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
     return segments;
   }
 }

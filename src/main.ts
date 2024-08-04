@@ -42,7 +42,7 @@ Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-Sequence.fromStatement("repeat 32,10,11,26,27,28,29,30 AS HATCH")
+Sequence.fromStatement("repeat 31,10,11,26,27,28,29,30 AS HATCH")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -50,22 +50,23 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   const style: IStyle = {
-    //strokeThickness: 0,
+    strokeThickness: 0,
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 0.75,
+    hatchScale: 2,
     hatchStrokeColor: "0x6633cc",
-    hatchStrokeThickness: 2,
+    hatchStrokeThickness: 4,
     hatchOffsetX: 0,
     hatchOffsetY: 0,
+    hatchOverflow: 0,
   }
 
   // compound leaf
   const child = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
     .circle({
-      radius: 200,
+      radius: 280,
     })
 
 

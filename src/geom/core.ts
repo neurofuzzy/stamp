@@ -42,6 +42,7 @@ export interface IStyle {
   hatchAngle?: number | string;
   hatchInset?: number | string;
   hatchBooleanType?: number | string;
+  hatchOverflow?: number | string;
   hatchOffsetX?: number | string;
   hatchOffsetY?: number | string;
 }
