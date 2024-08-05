@@ -54,7 +54,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 1,
+    hatchScale: 0.75,
     hatchStrokeColor: "0x8822cc",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,

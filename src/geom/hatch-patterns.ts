@@ -726,7 +726,7 @@ export class CloverHatchPattern extends TriGridHatchPattern {
   constructor(...args: any[]) {
     // @ts-ignore
     super(...args);
-    this.scale = 0.5;
+    this.scale *= 0.5;
   }
   shouldSkipSegment(x: number, y: number) {
     return (x % 3 * y % 3) % 3 !== 2;
@@ -773,7 +773,7 @@ export class HexagonHatchPattern extends TriGridHatchPattern {
   constructor(...args: any[]) {
     // @ts-ignore
     super(...args);
-    this.scale = 0.75;
+    this.scale *= 0.75;
   }
   shouldSkipSegment(x: number, y: number) {
     return x % 3 - y % 3 === 0 || (x % 3 + y % 3) % 2 !== 0;
@@ -1080,34 +1080,34 @@ export enum HatchPatternType {
   BRICK = 4,
   HERRINGBONE = 5,
   DASHED = 6,
-  TRIANGLE = 7,
-  QBERT = 8,
-  SAWTOOTH = 9,
-  SINEWAVE = 10,
-  WAVE = 11,
-  SLATE = 12,
-  TRIWEAVE = 13,
-  CHEVRON = 14,
-  ALTWEAVE = 15,
-  PINWHEEL = 16,
-  HEX = 17,
-  ORIGAMI = 18,
-  LATTICE = 19,
-  TERRACE = 20,
-  HEXAGON = 21,
-  MOLECULE = 22,
-  BRAID = 23,
-  RAIL = 24,
-  CLOVER = 25,
-  SPIRAL = 26,
-  CURLY = 27,
-  SCRIBBLE = 28,
-  LOOP = 29,
+  SLATE = 7,
+  TRIANGLE = 8,
+  QBERT = 9,
+  SAWTOOTH = 10,
+  SINEWAVE = 11,
+  WAVE = 12,
+  SPIRAL = 13,
+  SCRIBBLE = 14,
+  LOOP = 15,
+  SMOOTHORTHO = 16,
+  CURLY = 17,
+  TRIWEAVE = 18,
+  ALTWEAVE = 19,
+  PINWHEEL = 20,
+  HEX = 21,
+  ORIGAMI = 22,
+  LATTICE = 23,
+  TERRACE = 24,
+  HEXAGON = 25,
+  MOLECULE = 26,
+  BRAID = 27,
+  CHEVRON = 28,
+  CLOVER = 29,
   PHYLLO = 30,
   SHELL = 31,
   GLOBE = 32,
-  ORTHO = 33,
-  SMOOTHORTHO = 34,
+  RAIL = 33,
+  ORTHO = 34,
   GREEK = 35,
   FLOWER = 36,
   ROCK = 37,
