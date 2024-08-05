@@ -65,9 +65,10 @@ export class Hatch {
     const noverflow = $(shape.style.hatchOverflow) || 0;
     const noffsetX = $(shape.style.hatchOffsetX) || 0;
     const noffsetY = $(shape.style.hatchOffsetY) || 0;
+    const nspherify = shape.style.hatchSpherify || false;
     const ninset = $(shape.style.hatchInset) || 0;
     const bc = shape.boundingCircle();
-    const args: [Ray, number, number, number, number, number, number] = [
+    const args: [Ray, number, number, number, number, number, number, boolean] = [
       new Ray(bc.x, bc.y, (nangle * Math.PI) / 180),
       bc.radius * 2,
       bc.radius * 2,
@@ -75,6 +76,7 @@ export class Hatch {
       noverflow,
       noffsetX,
       noffsetY,
+      nspherify,
     ];
     let hatchPattern: IHatchPattern;
 

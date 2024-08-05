@@ -17,8 +17,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
-const pageWidth = 8.5 * 96;
-const pageHeight = 8.5 * 96;
+const pageWidth = 4.5 * 96;
+const pageHeight = 6.5 * 96;
 const ratio = 2;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
@@ -54,21 +54,21 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 0.75,
+    hatchScale: 0.5,
     hatchStrokeColor: "0x8822cc",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,
     hatchOffsetY: 0,
     hatchOverflow: 0,
+    hatchSpherify: true,
   }
 
   // compound leaf
   const child = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
     .circle({
-      radius: 300,
+      radius: 160,
     })
-
 
   const parent = new CircleGridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
@@ -77,8 +77,6 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     numPerRing: 6,
     spacing: 220,
   });
-
-
   
   parent.children().forEach(child => {
     if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {

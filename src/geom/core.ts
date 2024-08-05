@@ -45,6 +45,7 @@ export interface IStyle {
   hatchOverflow?: number | string;
   hatchOffsetX?: number | string;
   hatchOffsetY?: number | string;
+  hatchSpherify?: boolean;
 }
 
 export class Point {

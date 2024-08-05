@@ -1,6 +1,7 @@
 import * as arbit from "arbit";
 import { GeomHelpers } from "./helpers";
 import { IStyle, Point, Ray, Path } from "./core";
+import { PathModifiers } from "./path-modifiers";
 
 const prng = arbit(29374);
 
@@ -24,8 +25,9 @@ export class HatchPattern implements IHatchPattern {
   protected overflow: number;
   protected offsetX: number;
   protected offsetY: number;
+  protected spherify: boolean;
   style: IStyle = HatchPattern.defaultStyle;
-  constructor(center: Ray, width: number, height: number, scale: number = 1, overflow: number = 0, offsetX: number = 0, offsetY: number = 0) {
+  constructor(center: Ray, width: number, height: number, scale: number = 1, overflow: number = 0, offsetX: number = 0, offsetY: number = 0, spherify = false) {
     this.center = center;
     this.width = width;
     this.height = height;
@@ -33,6 +35,7 @@ export class HatchPattern implements IHatchPattern {
     this.overflow = overflow;
     this.offsetX = offsetX;
     this.offsetY = offsetY;
+    this.spherify = spherify;
   }
   generate():Path[] {
     return [];
@@ -895,19 +898,11 @@ export class GreekHatchPattern extends HatchPattern {
       let p = new Path(pts);
       segments.push(p);
     }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, size);
+    }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
-    });
-    segments.forEach((p) => {
-      p.points.forEach((p) => {
-        p.x -= this.center.x;
-        p.y -= this.center.y;
-        let dist = Math.max(0.5, 1.5 - Math.sqrt(p.x * p.x + p.y * p.y) / size);
-        p.x *= dist;
-        p.y *= dist;
-        p.x += this.center.x;
-        p.y += this.center.y;
-      });
     });
     segments.forEach((p) => {
       p.points.forEach((p) => {
