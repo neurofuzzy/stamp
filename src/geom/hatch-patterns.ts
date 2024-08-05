@@ -79,11 +79,14 @@ export class LineHatchPattern extends HatchPattern {
     for (let i = 0; i < numSegments; i++) {
       const a = new Point(startX + i * hatchStep, this.center.y - radius);
       const b = new Point(startX + i * hatchStep, this.center.y + radius);
-      if (i % 2 === 0) {
-        segments.push(new Path([a, b]));
-      } else {
-        segments.push(new Path([b, a]));
+      const pts = GeomHelpers.subdividePoints(a, b, numSegments);
+      if (i % 2 === 1) {
+        pts.reverse();
       }
+      segments.push(new Path(pts));
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2.02);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -103,8 +106,7 @@ export class CircleHatchPattern extends HatchPattern {
       const currentRadius = j / numSegments * radius + radius / numSegments / 1.5;
       for (let i = 0; i < 360; i+=4) {
         const angle = i * Math.PI / 180;
-        pts.push(new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius));
-        
+        pts.push(new Point(this.center.x + Math.cos(angle) * currentRadius, this.center.y + Math.sin(angle) * currentRadius));       
       }
       pts.push(pts[0].clone());
       let p = new Path(pts);
@@ -116,6 +118,9 @@ export class CircleHatchPattern extends HatchPattern {
         p.y += this.offsetY;
       });
     });
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
+    }
     return segments;
   }
 }
@@ -145,6 +150,9 @@ export class SpiralHatchPattern extends HatchPattern {
         p.y += this.offsetY;
       });
     });
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 0.5);
+    }
     return segments;
   }
 }
@@ -179,6 +187,9 @@ export class PhylloHatchPattern extends HatchPattern {
         p.y += this.offsetY;
       });
     });
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 0.5);
+    }
     return segments;
   }
 }
@@ -186,7 +197,7 @@ export class PhylloHatchPattern extends HatchPattern {
 export class ShellHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    let hatchStep = this.scale * 55;
+    let hatchStep = this.scale * 25;
     const radius = Math.max(this.width, this.height) * 2 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const numSegments = Math.ceil(radius / hatchStep);
     let currentRadius = 0;
@@ -195,7 +206,7 @@ export class ShellHatchPattern extends HatchPattern {
     const pts:Point[] = [];
     const pts2:Point[] = [];
     const valuesAtAngle = [];
-    for (let j = 0; j < numSegments / 4.7; j++) {
+    for (let j = 0; j < numSegments / 3; j++) {
       for (let i = 0; i <= 360; i+=div) {
         const lastValueAtAngle = valuesAtAngle[i] || 0;
         const angle = i * Math.PI / 180;
@@ -213,12 +224,7 @@ export class ShellHatchPattern extends HatchPattern {
         pts.push(pt);
         pts2.push(pt2);
         currentRadius += step / (360 / div);
-        if (j < numSegments - numSegments * 0.84) {
-          step *= 1.00005;
-        } else {
-          step *= 0.99;
-        }
-        
+        step *= 1.00005;
       }
     }
     let p = new Path(pts);
@@ -231,6 +237,9 @@ export class ShellHatchPattern extends HatchPattern {
         p.y += this.offsetY;
       });
     });
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 0.46);
+    }
     return segments;
   }
 }
@@ -264,7 +273,6 @@ export class FlowerHatchPattern extends HatchPattern {
         } else {
           step *= 0.99;
         }
-        
       }
     }
     let p = new Path(pts);
@@ -283,7 +291,7 @@ export class CrossHatchPattern extends HatchPattern {
   generate(): Path[] {
     const hatchStep = this.scale * 10;
     const segments: Path[] = [];
-    let radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const radius = Math.max(this.width, this.height) * 0.5 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep);
     const rotationOrigins = [this.center.clone(), this.center];
@@ -292,15 +300,18 @@ export class CrossHatchPattern extends HatchPattern {
       for (let i = 0; i < numSegments; i++) {
         const a = new Point(startX + i * hatchStep, this.center.y - radius);
         const b = new Point(startX + i * hatchStep, this.center.y + radius);
-        if (i % 2 === 0) {
-          segments.push(new Path([a, b]));
-        } else {
-          segments.push(new Path([b, a]));
+        const pts = GeomHelpers.subdividePoints(a, b, numSegments);
+        if (i % 2 === 1) {
+          pts.reverse();
         }
+        segments.push(new Path(pts));
       }
       segments.forEach((s) => {
         s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(rotationOrigins[j], p));
       });
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     return segments;
   }
@@ -326,6 +337,9 @@ export class SawtoothHatchPattern extends HatchPattern {
         pts.reverse();
       }
       segments.push(new Path(pts));
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -353,6 +367,9 @@ export class SinewaveHatchPattern extends HatchPattern {
       }
       segments.push(new Path(pts));
     }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
+    }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
     })
@@ -379,6 +396,9 @@ export class WaveHatchPattern extends HatchPattern {
         pts.reverse();
       }
       segments.push(new Path(pts));
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -409,6 +429,9 @@ export class DashedHatchPattern extends HatchPattern {
           }
         }
       });
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -445,6 +468,9 @@ export class SlateHatchPattern extends HatchPattern {
           }
         }
       });
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -484,6 +510,9 @@ export class RockHatchPattern extends HatchPattern {
         }
       });
     }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
+    }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
     })
@@ -514,6 +543,9 @@ export class BrickHatchPattern extends HatchPattern {
           segments.push(new Path([a,b,c]));
         }
       }
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -555,6 +587,9 @@ export class HerringboneHatchPattern extends BrickHatchPattern {
         }
       }
     }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
+    }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
     })
@@ -584,12 +619,16 @@ export class TriangularGridHatchPattern extends HatchPattern {
       for (let y = 0; y < numSegments; y++) {
         const a = new Point(startX, startY + y * hatchStep);
         const b = new Point(startX + radius * 2, startY + y * hatchStep);
-        tSegments.push(new Path([a, b]));
+        const pts = GeomHelpers.subdividePointsByDistance(a, b, Math.ceil(hatchStep * 0.5));
+        tSegments.push(new Path(pts));
       }
       tSegments.forEach((s) => {
         s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(tCenter, p));
       });
       segments.push(...tSegments);
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 0.75);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -651,6 +690,9 @@ export class TriGridHatchPattern extends HatchPattern {
         p.y += this.center.y;
       });
     })
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 0.7);
+    }
     return segments;
   }
   get doOptimize(): boolean {
@@ -750,7 +792,7 @@ export class CurlyHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 10;
-    const radius = Math.max(this.width, this.height) * 0.5;
+    const radius = Math.max(this.width, this.height) * 0.75;
     const startX = this.center.x - Math.round(radius / hatchStep) * hatchStep;
     const numSegments = Math.ceil(radius * 2 / hatchStep / 4);
     for (let i = 0; i < numSegments; i++) {
@@ -766,9 +808,12 @@ export class CurlyHatchPattern extends HatchPattern {
       }
       segments.push(new Path(pts));
     }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 1.3);
+    }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
-    })
+    });
     return segments;
   }
 }
@@ -792,6 +837,9 @@ export class ScribbleHatchPattern extends HatchPattern {
         pts.reverse();
       }
       segments.push(new Path(pts));
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -820,6 +868,9 @@ export class LoopHatchPattern extends HatchPattern {
         pts.reverse();
       }
       segments.push(new Path(pts));
+    }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
     }
     segments.forEach((s) => {
       s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
@@ -871,6 +922,9 @@ export class GlobeHatchPattern extends HatchPattern {
         p.y += this.offsetY;
       });
     });
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 0.5);
+    }
     return segments;
   }
 }
@@ -878,7 +932,7 @@ export class GlobeHatchPattern extends HatchPattern {
 export class GreekHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    const hatchStep = this.scale * 40;
+    const hatchStep = this.scale * 20;
     const size = Math.max(this.width, this.height) + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY)) + hatchStep * 2;
     const numSegments = Math.ceil(size * 2 / hatchStep);
     const rts = [0,0,0,90,90,-90,-90,0,-90,0,0,-90,0,0,90,0,90,90,-90];
@@ -982,6 +1036,9 @@ export class OrthoHatchPattern extends HatchPattern {
         p.y += this.offsetY;
       });
     });
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, size);
+    }
     return segments;
   }
 }
@@ -1038,12 +1095,13 @@ export enum HatchPatternType {
   LOOP = 29,
   PHYLLO = 30,
   GLOBE = 31,
-  FLOWER = 32,
-  ORTHO = 33,
-  SMOOTHORTHO = 34,
-  GREEK = 35,
-  ROCK = 36,
-  OFFSET = 37,
+  ORTHO = 32,
+  SMOOTHORTHO = 33,
+  GREEK = 34,
+  SHELL = 35,
+  FLOWER = 36,
+  ROCK = 37,
+  OFFSET = 38,
 }
 
 export enum HatchBooleanType {

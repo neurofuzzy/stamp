@@ -41,6 +41,7 @@ import {
   OrthoHatchPattern,
   SmoothOrthoHatchPattern,
   GreekHatchPattern,
+  ShellHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
@@ -191,6 +192,9 @@ export class Hatch {
         break;
       case HatchPatternType.GREEK:
         hatchPattern = new GreekHatchPattern(...args);
+        break;
+      case HatchPatternType.SHELL:
+        hatchPattern = new ShellHatchPattern(...args);
         break;
       case HatchPatternType.OFFSET:
         return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);

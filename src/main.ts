@@ -17,8 +17,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
-const pageWidth = 4.5 * 96;
-const pageHeight = 6.5 * 96;
+const pageWidth = 12.5 * 96;
+const pageHeight = 8.5 * 96;
 const ratio = 2;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
@@ -42,7 +42,7 @@ Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-Sequence.fromStatement("repeat 35,10,11,26,27,28,29,30 AS HATCH")
+Sequence.fromStatement("repeat 1-35 AS HATCH")
 
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -54,7 +54,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: 45,
-    hatchScale: 0.5,
+    hatchScale: 1,
     hatchStrokeColor: "0x8822cc",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,
@@ -67,15 +67,16 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const child = new Stamp(new Ray(0, 0))
     .defaultStyle(style)
     .circle({
-      radius: 160,
+      radius: 70,
     })
 
-  const parent = new CircleGridStampLayout(new Ray(w / 2, h / 2, 0), {
+  const parent = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
     seedSequence: Sequence.fromStatement("REPEAT 1-25"),
-    rings: 1,
-    numPerRing: 6,
-    spacing: 220,
+    columns: 7,
+    rows: 5,
+    rowSpacing: 150,
+    columnSpacing: 150,
   });
   
   parent.children().forEach(child => {
