@@ -723,6 +723,11 @@ export class PinwheelHatchPattern extends TriGridHatchPattern {
 
 
 export class CloverHatchPattern extends TriGridHatchPattern {
+  constructor(...args: any[]) {
+    // @ts-ignore
+    super(...args);
+    this.scale = 0.5;
+  }
   shouldSkipSegment(x: number, y: number) {
     return (x % 3 * y % 3) % 3 !== 2;
   }
@@ -765,6 +770,11 @@ export class TerraceHatchPattern extends TriGridHatchPattern {
 }
 
 export class HexagonHatchPattern extends TriGridHatchPattern {
+  constructor(...args: any[]) {
+    // @ts-ignore
+    super(...args);
+    this.scale = 0.75;
+  }
   shouldSkipSegment(x: number, y: number) {
     return x % 3 - y % 3 === 0 || (x % 3 + y % 3) % 2 !== 0;
   }
