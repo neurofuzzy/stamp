@@ -872,13 +872,60 @@ export class GlobeHatchPattern extends HatchPattern {
   }
 }
 
+export class GreekHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 40;
+    const size = Math.max(this.width, this.height) + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY)) + hatchStep * 2;
+    const numSegments = Math.ceil(size * 2 / hatchStep);
+    const rts = [0,0,0,90,90,-90,-90,0,-90,0,0,-90,0,0,90,0,90,90,-90];
+    for (let j = 0; j < numSegments; j++) {
+      let lastPt = new Point(this.center.x - j * hatchStep, this.center.y - size * 0.75 + j * hatchStep);
+      let lastAng = 0;
+      const pts = [];
+      for (let i = 0; i < size / hatchStep * 24; i++) {
+        const pt = new Point(hatchStep * 0.25, 0);
+        GeomHelpers.rotatePoint(pt, (lastAng + rts[i % rts.length]) * Math.PI / 180);
+        pt.x += lastPt.x;
+        pt.y += lastPt.y;
+        pts.push(pt);
+        lastPt = pt;
+        lastAng += rts[i % rts.length];
+      }
+      let p = new Path(pts);
+      segments.push(p);
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) => GeomHelpers.rotatePointAboutOrigin(this.center, p));
+    });
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x -= this.center.x;
+        p.y -= this.center.y;
+        let dist = Math.max(0.5, 1.5 - Math.sqrt(p.x * p.x + p.y * p.y) / size);
+        p.x *= dist;
+        p.y *= dist;
+        p.x += this.center.x;
+        p.y += this.center.y;
+      });
+    });
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
+    return segments;
+  }
+}
+
 export class OrthoHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
     const hatchStep = this.scale * 20;
     const size = Math.max(this.width, this.height) + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY)) + hatchStep * 2;
     const numSegments = Math.ceil(size * 2 / hatchStep);
-    const expandPoints = (pts:Point[], hatchStep, flip:boolean = false) => {
+    const expandPoints = (pts:Point[], hatchStep = 10, flip:boolean = false) => {
       let i = pts.length;
       while (i--) {
         if (i % 2 === 0) {
@@ -918,7 +965,6 @@ export class OrthoHatchPattern extends HatchPattern {
         }
       }
       if (flip) {
-        const baseY = pts[1].y;
         pts.forEach((p) => {
           p.x += hatchStep * 0.5;
         });
@@ -944,6 +990,17 @@ export class OrthoHatchPattern extends HatchPattern {
     return segments;
   }
 }
+
+export class SmoothOrthoHatchPattern extends OrthoHatchPattern {
+  generate(): Path[] {
+      const paths = super.generate();
+      paths.forEach((p) => {
+        p.points = GeomHelpers.smoothLine(p.points, 3, 1);
+      });
+      return paths;
+  }
+}
+
 
 export class OffsetHatchPattern extends HatchPattern {
   get offsetStep(): number {
@@ -988,8 +1045,10 @@ export enum HatchPatternType {
   GLOBE = 31,
   FLOWER = 32,
   ORTHO = 33,
-  ROCK = 34,
-  OFFSET = 35,
+  SMOOTHORTHO = 34,
+  GREEK = 35,
+  ROCK = 36,
+  OFFSET = 37,
 }
 
 export enum HatchBooleanType {

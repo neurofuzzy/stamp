@@ -218,6 +218,77 @@ export class GeomHelpers {
     return newRays
   }
 
+  static smoothLine(pts:Point[], iterations:number, minDist = 5, closed = false, d1 = 0.25, d2 = 0.75) {
+
+    let inn = pts.concat();
+    let out = [];
+    let prev = inn.concat();
+
+    for (let j = 0; j < iterations; j++) {
+
+      out = [];
+
+      if (prev.length && !closed) {
+        out.push(prev[0])
+      }
+
+      let len = prev.length - 1;
+      if (closed) len++;
+
+      for (let i = 0; i < len; i++) {
+
+        let p1 = prev[i];
+        let p2 = prev[i + 1] || prev[0];
+
+        if (i > 1 && i < len - 2) {
+          let p0 = prev[i - 1];
+          let p3 = prev[i + 2];
+          if (p0 && p1 && p2 && p3) {
+            if (p0.x == p1.x && p1.x == p2.x && p2.x == p3.x) {
+              out.push(p1.clone());
+              continue;
+            }
+            if (p0.y == p1.y && p1.y == p2.y && p2.y == p3.y) {
+              out.push(p1.clone());
+              continue;
+            }
+          }
+        }
+
+        if (!p2) continue;
+
+        if (GeomHelpers.distanceBetweenPoints(p1, p2) > minDist * 2) {
+
+          let mx = d2 * p1.x + d1 * p2.x;
+          let my = d2 * p1.y + d1 * p2.y;
+          let nx = d1 * p1.x + d2 * p2.x;
+          let ny = d1 * p1.y + d2 * p2.y;
+
+          out.push(new Point(mx, my));
+          out.push(new Point(nx, ny));
+
+        } else if (!closed) {
+          out.push(p2.clone());
+        } else {
+          out.push(GeomHelpers.averagePoints([p1, p2]));
+        }
+
+      }
+
+      prev = out;
+
+    }
+
+    if (closed && out.length) {
+      out.push(out[0]);
+    } else {
+      out.push(inn[inn.length - 1]);
+    }
+
+    return out;
+
+  }
+
   static normalizeRayDirections(rays: Ray[], isReversed = false) {
     const r: Ray[] = rays.slice();
     if (r.length < 3) {
