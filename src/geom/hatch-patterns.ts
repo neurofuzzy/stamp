@@ -197,7 +197,7 @@ export class PhylloHatchPattern extends HatchPattern {
 export class ShellHatchPattern extends HatchPattern {
   generate(): Path[] {
     const segments: Path[] = [];
-    let hatchStep = this.scale * 25;
+    let hatchStep = this.scale * 20;
     const radius = Math.max(this.width, this.height) * 2 + this.overflow + Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
     const numSegments = Math.ceil(radius / hatchStep);
     let currentRadius = 0;
