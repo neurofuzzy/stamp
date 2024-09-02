@@ -7,14 +7,17 @@ import '../src/style.css';
 import { LinkedCell, LinkedGrid } from '../src/lib/linkedgrid';
 import { Optimize } from '../src/lib/optimize';
 
+const scale = 30;
+const nx = 1;
+const ny = 3;
 const gw = 7;
 const gh = 7;
 const midW = Math.floor(gw / 2);
 const midH = Math.floor(gh / 2); 
 const maxDist = gw * gh / 2;
 
-Sequence.seed = 123;
-Sequence.fromStatement("random 1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4 AS MV");
+Sequence.seed = 1;
+Sequence.fromStatement("random 1,2,3,4 AS MV");
 
 
 function createTree (grid: LinkedGrid<any>) {
@@ -37,12 +40,14 @@ function createTree (grid: LinkedGrid<any>) {
     let next = null;
     let i = 0;
 
-    for (let n = 0; n < 4; n++) {
-      while (!next && i < 4) {
-        next = cell.move(Sequence.resolve("MV()"), 1);
-        if (!next){
-          continue;
-        }
+    for (let n = 0; n < 2; n++) {
+      while (!next && i < 2) {
+        let j = 0;
+        do {
+          next = cell.move(Sequence.resolve("MV()"), 1);
+          j++;
+        } while ((!next || next.values[1]) && j < 1);
+        if (!next) continue;
         if (next.values[2] !== "x" && !next.values[1]) {
           break;
         }
@@ -51,11 +56,13 @@ function createTree (grid: LinkedGrid<any>) {
       }
       if (next) {
         next.setValue(0, cell);
-        next.setValue(1, cell.values[1] + 1);
+        next.setValue(1, (cell.values[1] ?? 0) + 1);
+        if (cell.values[0]) {
+          cell.values[2] = 1;
+        }
         growCells.push(next);
       }
     }
-
 
     growCells.sort((a, b) => a.values[1] - b.values[1] ? 1 : -1);
     if (growCells.length) {
@@ -65,6 +72,18 @@ function createTree (grid: LinkedGrid<any>) {
   }
 
   grow(grid.cell(midW, midH) ?? undefined);
+
+  const empties = grid.cells.filter(c => !c.values[1]);
+  empties.forEach(c => {
+    for (let i = 1; i <= 4; i++) {
+      let c2 = c.move(i, 1);
+      if (c2 && !c2.values[2]) {
+        c.setValue(0, c2);
+        c.setValue(1, c2.values[1] + 1);
+        return;
+      }
+    }
+  });
 
   console.log(grid.print(1));
 
@@ -93,9 +112,6 @@ ctx.fillStyle = 'white';
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   const segs: Segment[] = [];
-  const scale = 40;
-  const nx = 3;
-  const ny = 3;
   const ox = w / 2 - (gw * scale * nx) / 2;
   const oy = h / 2 - (gh * scale * ny) / 2;
 
@@ -142,7 +158,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     drawShape(ctx, shape, 0);
   });
   paths.forEach((p) => {
-    drawPath(ctx, p, 0);
+    //drawPath(ctx, p, 0);
   });
 
 }
