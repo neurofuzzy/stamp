@@ -12,13 +12,12 @@ const nx = 1;
 const ny = 1;
 const gw = 12;
 const gh = 21;
-const midW = Math.floor(gw / 2);
-const midH = Math.floor(gh / 2); 
 const maxDist = 4;//gw + gh;
-const maxIter = 400;
+const maxIter = 100;
 
-Sequence.seed = 10;
+Sequence.seed = 1;
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
+Sequence.fromStatement("random 0,1,2,3 AS SORT");
 
 function trapped (c:LinkedCell<any>) {
   const up = c.move(Direction.UP, 1);
@@ -35,10 +34,7 @@ function createTree (grid: LinkedGrid<any>) {
 
   grid.cells.forEach(cell => cell.values[0] = 0);
 
-  let dist = 1;
-  grid.cell(midW, midH)?.setValue(1, dist);
-  
-  const growCells: LinkedCell<any>[] = [];
+  let growCells: LinkedCell<any>[] = [];
 
   const grow = (cell?: LinkedCell<any>) => {
 
@@ -46,32 +42,32 @@ function createTree (grid: LinkedGrid<any>) {
       return;
     }
 
-    if (cell.values[1] >= maxDist) return;
+    if (cell.values[1] >= maxDist) {
+      return;
+    }
 
     let next = null;
     let i = 0;
 
     for (let n = 0; n < 2; n++) {
       while (!next && i < 2) {
-        let j = 0;
-        do {
-          next = cell.move(Sequence.resolve("MV()"), 1);
-          j++;
-        } while ((!next || next.values[1]) && j < 1);
+        next = cell.move(Sequence.resolve("MV()"), 1);
         if (!next) continue;
-        if (next.values[2] !== "x" && !next.values[1]) {
+        if (next.values[1] === undefined && !next.values[0]) {
           break;
         }
         next = null;
         i++;
       }
-      if (next) {
+      if (next && !next.values[3]) {
         next.setValue(0, cell);
-       next.setValue(1, (cell.values[1] ?? 0) + 1);
+        cell.values[3] = next;
+        next.setValue(1, (cell.values[1] ?? 0) + 1);
         if (cell.values[0]) {
           cell.values[2] = 1;
         }
         growCells.push(next);
+        next = null;
       }
     }
 
@@ -79,19 +75,13 @@ function createTree (grid: LinkedGrid<any>) {
 
   }
 
-  // grow in three distinct chunks
-  grow(grid.cell(midW, midH) ?? undefined);
-
-  while (growCells.length) {
-    grow(growCells.shift() ?? undefined);
-  }
-
   let iter = 0;
 
   while(grid.cells.filter(c => !c.values[1]).length && iter < maxIter) {
     const empties = grid.cells.filter(c => !c.values[1] && !trapped(c));
     // shuffle
-    empties.sort(() => Sequence.resolve("MV()") - 2 > 0 ? 1 : -1);
+    empties.sort(() => Sequence.resolve("SORT()") - 2 > 0 ? 1 : -1);
+    growCells = [];
     grow(empties[0] ?? undefined);
     while (growCells.length) {
       grow(growCells.shift() ?? undefined);
@@ -99,13 +89,13 @@ function createTree (grid: LinkedGrid<any>) {
     iter++;
   };
 
-  const empties = grid.cells.filter(c => !c.values[1]);
+  const empties = grid.cells.filter(c => !c.values[1] && !c.values[3]);
   empties.forEach(c => {
     for (let i = 1; i <= 4; i++) {
       let c2 = c.move(i, 1);
-      if (c2 && !c2.values[2]) {
-        //c.setValue(0, c2);
-        //c.setValue(1, c2.values[1] + 1);
+      if (c2 && !c2.values[2] && !c2.values[3]) {
+        c.setValue(0, c2);
+        c.setValue(1, c2.values[1] + 1);
         return;
       }
     }
