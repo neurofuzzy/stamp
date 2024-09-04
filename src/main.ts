@@ -10,12 +10,12 @@ import { Optimize } from '../src/lib/optimize';
 const scale = 20;
 const nx = 1;
 const ny = 1;
-const gw = 32;
-const gh = 32;
-const maxDist = 6;//gw + gh;
+const gw = 24;
+const gh = 24;
+const maxDist = 3;//gw + gh;
 const maxIter = 100;
 
-Sequence.seed = 5;
+Sequence.seed = 1;
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
 Sequence.fromStatement("random 0,1,2,3 AS SORT");
 
@@ -50,7 +50,7 @@ function createTree (grid: LinkedGrid<any>) {
     let next = null;
     let i = 0;
 
-    for (let n = 0; n < 4; n++) {
+    for (let n = 0; n < 5; n++) {
       while (!next && i < 2) {
         next = cell.move(Sequence.resolve("MV()"), 1);
         if (!next) continue;
