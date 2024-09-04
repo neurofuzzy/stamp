@@ -7,15 +7,15 @@ import '../src/style.css';
 import { LinkedCell, LinkedGrid, Direction } from '../src/lib/linkedgrid';
 import { Optimize } from '../src/lib/optimize';
 
-const scale = 30;
+const scale = 20;
 const nx = 1;
 const ny = 1;
-const gw = 12;
-const gh = 21;
-const maxDist = 4;//gw + gh;
+const gw = 32;
+const gh = 32;
+const maxDist = 6;//gw + gh;
 const maxIter = 100;
 
-Sequence.seed = 1;
+Sequence.seed = 5;
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
 Sequence.fromStatement("random 0,1,2,3 AS SORT");
 
@@ -30,6 +30,7 @@ function trapped (c:LinkedCell<any>) {
   const rtOk = rt && rt.values[1] === undefined;
   return !(upOk || dnOk || ltOk || rtOk);
 }
+
 function createTree (grid: LinkedGrid<any>) {
 
   grid.cells.forEach(cell => cell.values[0] = 0);
@@ -49,7 +50,7 @@ function createTree (grid: LinkedGrid<any>) {
     let next = null;
     let i = 0;
 
-    for (let n = 0; n < 2; n++) {
+    for (let n = 0; n < 4; n++) {
       while (!next && i < 2) {
         next = cell.move(Sequence.resolve("MV()"), 1);
         if (!next) continue;
@@ -170,7 +171,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const paths = Optimize.segments(segs);
   
   let shapes = ClipperHelpers.offsetPathsToShape(paths, 6, 1, true, true);
+
+  // random hex colors
+  Sequence.fromStatement("shuffle 0x006699,0x663399,0x996600,0x669900,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL");
   shapes.forEach(shape => {
+    shape.style.fillColor = Sequence.resolve("COL()");
+    shape.style.strokeThickness = 0;
     drawShape(ctx, shape, 0);
   });
   paths.forEach((p) => {
