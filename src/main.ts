@@ -9,16 +9,41 @@ import { Optimize } from '../src/lib/optimize';
 import { Hatch } from './lib/hatch';
 import { HatchPattern, HatchPatternType } from './geom/hatch-patterns';
 
-const scale = 80;
+document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+  <div>
+    <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
+  </div>
+`;
+
+const canvas = document.getElementById('canvas') as HTMLCanvasElement
+const pageWidth = 4.5 * 96;
+const pageHeight = 6.5 * 96;
+const ratio = 2;
+canvas.width = pageWidth * ratio;
+canvas.height = pageHeight * ratio;
+canvas.style.width = pageWidth + 'px';
+canvas.style.height = pageHeight + 'px';
+const ctx = canvas.getContext('2d')!
+ctx.scale(ratio, ratio)
+const w = canvas.width / ratio;
+const h = canvas.height / ratio;
+
+ctx.fillStyle = 'white';
+
+// --
+
+const scale = 30;
+const hatchScale = 0.4;
 const nx = 1;
-const ny = 1;
+const ny = 2;
+const nspacing = 30;
 const gw = 7;
 const gh = 7;
 const maxDist = 3;//gw + gh;
 const maxBranch = 3;//gw + gh;
 const maxSearch = 2;//gw + gh;
 const maxIter = gw * gh;
-const lineThickness = 28;
+const lineThickness = 10;
 
 Sequence.seed = 3;
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
@@ -111,37 +136,17 @@ function createTree (grid: LinkedGrid<any>) {
 
 }
 
-
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
-  </div>
-`;
-
-const canvas = document.getElementById('canvas') as HTMLCanvasElement
-const ratio = 2;
-canvas.width = 900 * ratio
-canvas.height = 900 * ratio
-canvas.style.width = '900px'
-canvas.style.height = '900px'
-const ctx = canvas.getContext('2d')!
-ctx.scale(ratio, ratio);
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
-
-ctx.fillStyle = 'white';
-
 const draw = (ctx: CanvasRenderingContext2D) => {
 
   const segs: Segment[] = [];
-  const ox = w / 2 - (gw * scale * nx) / 2;
-  const oy = h / 2 - (gh * scale * ny) / 2;
+  const ox = w / 2 - ((gw - 1) * scale * nx) / 2 - nspacing * (nx - 1);
+  const oy = h / 2 - ((gh - 1) * scale * ny) / 2 - nspacing * (ny - 1);
 
   for (let yy = 0; yy < ny; yy++) {
     for (let xx = 0; xx < nx; xx++) {
 
-      let oxx = xx * scale * gw;
-      let oyy = yy * scale * gh;
+      let oxx = xx * scale * gw + nspacing * xx;
+      let oyy = yy * scale * gh + nspacing * yy;
 
       let grid: LinkedGrid<any> = new LinkedGrid(gw, gh);
 
@@ -186,8 +191,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeColor: Sequence.resolve("COL"),
       strokeThickness: 2,
       hatchStrokeThickness: 2,
-      hatchScale: 0.8,
-      hatchInset: 20,
+      hatchScale: hatchScale,
       hatchPattern: HatchPatternType.OFFSETLOOP,
     }
     drawShape(ctx, shape, 0);
