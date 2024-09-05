@@ -1,21 +1,26 @@
 import * as C2S from 'canvas2svg';
-import { drawPath, drawShape } from '../src/lib/draw';
+import { drawHatchPattern, drawPath, drawShape } from '../src/lib/draw';
 import { Point, Segment } from '../src/geom/core';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
 import '../src/style.css';
 import { LinkedCell, LinkedGrid, Direction } from '../src/lib/linkedgrid';
 import { Optimize } from '../src/lib/optimize';
+import { Hatch } from './lib/hatch';
+import { HatchPattern, HatchPatternType } from './geom/hatch-patterns';
 
-const scale = 20;
+const scale = 80;
 const nx = 1;
 const ny = 1;
-const gw = 24;
-const gh = 24;
+const gw = 7;
+const gh = 7;
 const maxDist = 3;//gw + gh;
-const maxIter = 100;
+const maxBranch = 3;//gw + gh;
+const maxSearch = 2;//gw + gh;
+const maxIter = gw * gh;
+const lineThickness = 28;
 
-Sequence.seed = 1;
+Sequence.seed = 3;
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
 Sequence.fromStatement("random 0,1,2,3 AS SORT");
 
@@ -50,8 +55,8 @@ function createTree (grid: LinkedGrid<any>) {
     let next = null;
     let i = 0;
 
-    for (let n = 0; n < 5; n++) {
-      while (!next && i < 2) {
+    for (let n = 0; n < maxBranch; n++) {
+      while (!next && i < maxSearch) {
         next = cell.move(Sequence.resolve("MV()"), 1);
         if (!next) continue;
         if (next.values[1] === undefined && !next.values[0]) {
@@ -170,17 +175,34 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const paths = Optimize.segments(segs);
   
-  let shapes = ClipperHelpers.offsetPathsToShape(paths, 6, 1, true, true);
+  let shapes = ClipperHelpers.offsetPathsToShape(paths, lineThickness, 1, true, true);
 
   // random hex colors
-  Sequence.fromStatement("shuffle 0x006699,0x663399,0x996600,0x669900,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL");
+  Sequence.fromStatement("shuffle 0x006699,0x663399,0x996600,0x698600,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL");
   shapes.forEach(shape => {
-    shape.style.fillColor = Sequence.resolve("COL()");
-    shape.style.strokeThickness = 0;
+    shape.style = {
+      fillAlpha: 0,
+      hatchStrokeColor: Sequence.resolve("COL()"),
+      strokeColor: Sequence.resolve("COL"),
+      strokeThickness: 2,
+      hatchStrokeThickness: 2,
+      hatchScale: 0.8,
+      hatchInset: 20,
+      hatchPattern: HatchPatternType.OFFSETLOOP,
+    }
     drawShape(ctx, shape, 0);
   });
+  
   paths.forEach((p) => {
     //drawPath(ctx, p, 0);
+  });
+  shapes.forEach(shape => {
+    if (shape.style.hatchPattern) {
+      const fillPattern = Hatch.applyHatchToShape(shape);
+      if (fillPattern) {
+        drawHatchPattern(ctx, fillPattern, true);
+      }
+    }
   });
 
 }

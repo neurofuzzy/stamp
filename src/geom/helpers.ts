@@ -3,6 +3,8 @@ import { Point, Ray, Path, BoundingBox, IShape, BoundingCircle, Segment } from "
 
 export class GeomHelpers {
 
+  static EPSILON = 0.001;
+
   static pointsAreEqual(p1: Point, p2: Point, threshold: number = 0.0001) {
     return GeomHelpers.distanceBetweenPoints(p1, p2) < threshold;
   }

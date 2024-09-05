@@ -198,6 +198,8 @@ export class Hatch {
         break;
       case HatchPatternType.OFFSET:
         return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);
+      case HatchPatternType.OFFSETLOOP:
+        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), false, true);
       default:
         return null;
     }
@@ -282,7 +284,7 @@ export class Hatch {
     return null;
   }
 
-  static offsetHatchFromShape(shape: IShape, hatchPattern: OffsetHatchPattern, optimize: boolean = true): HatchFillShape | null  {
+  static offsetHatchFromShape(shape: IShape, hatchPattern: OffsetHatchPattern, optimize: boolean = true, loopPaths: boolean = false): HatchFillShape | null  {
     let ninset = hatchPattern.offsetStep;
     const shapePaths = ClipperHelpers.shapeToClipperPaths(shape);
     const fills: HatchFillShape[] = [];
@@ -333,6 +335,67 @@ export class Hatch {
       .reduce((a, b) => a.concat(b), []);
     const fillShape = new HatchFillShape(allSegments);
     fillShape.style = shape.style;
+    if (loopPaths) {
+      if (fillShape) {
+        const paths = fillShape.paths;
+        if (paths.length > 1) {
+          let numPts = paths[0].points.length;
+          let allSameLength = true;
+          for (let i = 1; i < paths.length; i++) {
+            if (paths[i].points.length !== numPts) {
+              allSameLength = false;
+              break;
+            }
+          }
+          if (allSameLength) {
+            const firstSegmentIsHorizontal = Math.abs(paths[0].points[0].y - paths[0].points[1].y) < GeomHelpers.EPSILON;
+            const firstSegmentIsVertical = Math.abs(paths[0].points[0].x - paths[0].points[1].x) < GeomHelpers.EPSILON;
+            if (firstSegmentIsHorizontal) {
+              const offset = paths[1].points[0].y - paths[0].points[0].y;
+              paths.forEach((path, idx) => {
+                if (path.points.length > 2) {
+                  let lastPoint = path.points.pop();
+                  let nextToLastPoint = path.points[path.points.length - 1];
+                  if (lastPoint) {
+                    lastPoint = lastPoint.clone();
+                    path.points.push(lastPoint);
+                    if (nextToLastPoint.y > lastPoint.y) {
+                      lastPoint.y -= offset;
+                    } else {
+                      lastPoint.y += offset;
+                    }
+                    if (idx > 0) {
+                      path.points.shift();
+                    }
+                  }
+                }
+              });
+            } else if (firstSegmentIsVertical) {
+              const offset = paths[1].points[0].x - paths[0].points[0].x;
+              paths.forEach((path, idx) => {
+                if (path.points.length > 2) {
+                  let lastPoint = path.points.pop();
+                  let nextToLastPoint = path.points[path.points.length - 1];
+                  if (lastPoint) {
+                    lastPoint = lastPoint.clone();
+                    path.points.push(lastPoint);
+                    if (nextToLastPoint.x > lastPoint.x) {
+                      lastPoint.x -= offset;
+                    } else {
+                      lastPoint.x += offset;
+                    }
+                    if (idx > 0) {
+                      path.points.shift();
+                    }
+                  }
+                }
+              });
+            }
+            fillShape.paths = [new Path(paths.map((p) => p.points).reduce((a, b) => a.concat(b), []))];
+          }
+        }
+      }
+    }
     return fillShape;
   }
 }

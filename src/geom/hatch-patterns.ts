@@ -64,6 +64,12 @@ export class HatchFillShape implements IHatchPattern {
   clone() {
     return new HatchFillShape(this.segments.map((s) => s.clone()));
   }
+  get paths() {
+    return this.segments;
+  }
+  set paths(paths: Path[]) {
+    this.segments = paths;
+  }
   get doOptimize(): boolean {
     return false;
   }
@@ -1112,6 +1118,7 @@ export enum HatchPatternType {
   FLOWER = 36,
   ROCK = 37,
   OFFSET = 38,
+  OFFSETLOOP = 39,
 }
 
 export enum HatchBooleanType {
