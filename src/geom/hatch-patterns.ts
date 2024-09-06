@@ -1072,7 +1072,7 @@ export class SmoothOrthoHatchPattern extends OrthoHatchPattern {
 
 export class OffsetHatchPattern extends HatchPattern {
   get offsetStep(): number {
-    return this.scale * 10;
+    return this.scale <= 1 ? this.scale * 10 : this.scale;
   }
   generate(): Path[] {
     return []; // note: not implemented, placeholder

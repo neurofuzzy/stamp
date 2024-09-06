@@ -32,22 +32,39 @@ ctx.fillStyle = 'white';
 
 // --
 
-const scale = 30;
-const hatchScale = 0.4;
+const scale = 44;
+const hatchScale = "HS()";//20 / 5.5;//20 / 4.5;//20 / 3.5;//3.08;//4.45;//5.75;
 const nx = 1;
-const ny = 2;
+const ny = 1;
 const nspacing = 30;
-const gw = 7;
-const gh = 7;
-const maxDist = 3;//gw + gh;
-const maxBranch = 3;//gw + gh;
-const maxSearch = 2;//gw + gh;
+const gw = 8;
+const gh = 12;
+const maxDist = 100;//gw + gh;
+const maxBranch = "BRANCH()";//gw + gh;
+const maxSearch = "SEARCH()";//gw + gh;
 const maxIter = gw * gh;
-const lineThickness = 10;
+const lineThickness = 16;
+const strokeThickness = 2;
 
 Sequence.seed = 3;
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
 Sequence.fromStatement("random 0,1,2,3 AS SORT");
+Sequence.fromStatement(`shuffle ${lineThickness / 2.5},${lineThickness / 3.5},${lineThickness / 4.5},${lineThickness / 5.5} AS HS`);
+// random hex colors
+Sequence.fromStatement("shuffle 0x006699,0x663399,0x996600,0x698600,0x006633,0x663300,0x993366,0x557799,0x667055 AS COLOR");
+Sequence.fromStatement("shuffle 0xffffff,0xffffff AS COL");
+Sequence.fromStatement("shuffle 3,4,5 AS SEARCH");
+Sequence.fromStatement("shuffle 3,4,5 AS BRANCH");
+Sequence.fromStatement("shuffle 3,4,5 AS DIST");
+
+const $ = (arg: unknown) =>
+  typeof arg === "string"
+    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
+      ? parseInt(arg.replace("#", "0x"), 16)
+      : Sequence.resolve(arg)
+    : typeof arg === "number"
+    ? arg
+    : 0;
 
 function trapped (c:LinkedCell<any>) {
   const up = c.move(Direction.UP, 1);
@@ -73,15 +90,18 @@ function createTree (grid: LinkedGrid<any>) {
       return;
     }
 
-    if (cell.values[1] >= maxDist) {
+    if (cell.values[1] >= $(maxDist)) {
       return;
     }
 
     let next = null;
     let i = 0;
 
-    for (let n = 0; n < maxBranch; n++) {
-      while (!next && i < maxSearch) {
+    const branch = $(maxBranch);
+    const search = $(maxSearch);
+
+    for (let n = 0; n < branch; n++) {
+      while (!next && i < search) {
         next = cell.move(Sequence.resolve("MV()"), 1);
         if (!next) continue;
         if (next.values[1] === undefined && !next.values[0]) {
@@ -182,15 +202,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   
   let shapes = ClipperHelpers.offsetPathsToShape(paths, lineThickness, 1, true, true);
 
-  // random hex colors
-  Sequence.fromStatement("shuffle 0x006699,0x663399,0x996600,0x698600,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL");
   shapes.forEach(shape => {
     shape.style = {
       fillAlpha: 0,
       hatchStrokeColor: Sequence.resolve("COL()"),
       strokeColor: Sequence.resolve("COL"),
-      strokeThickness: 2,
-      hatchStrokeThickness: 2,
+      strokeThickness: strokeThickness,
+      hatchStrokeThickness: strokeThickness,
       hatchScale: hatchScale,
       hatchPattern: HatchPatternType.OFFSETLOOP,
     }
