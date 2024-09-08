@@ -66,7 +66,7 @@ Sequence.seed = 36;
 Sequence.seed = 38;
 Sequence.seed = 40;
 
-const seedValues = [23];
+const seedValues = [22];
 
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
 Sequence.fromStatement("random 0,1,2,3 AS SORT");
@@ -262,11 +262,6 @@ const assignColorsUsingFourColorMapTheorem = (grid: LinkedGrid<any>) => {
       });
     }
   }
-  return {
-    shapeRoots,
-    shapeCells,
-    shapeNeighborShapes,
-  };
 };
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -289,7 +284,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
       createTree(grid);
       console.log(grid.print(1));
-      const { shapeCells } = assignColorsUsingFourColorMapTheorem(grid);
+      assignColorsUsingFourColorMapTheorem(grid);
       console.log(grid.print(5));
 
       for (let y = 0; y < grid.height; y++) {
@@ -329,19 +324,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         miterEnds,
       );
 
-      paths.forEach((path) => {
-        let pt = path.points[0];
-        let coord = new Point(pt.x / scale - ox - oxx, pt.y / scale - oy - oyy);
-        console.log(coord);
-      });
+      console.log(paths.length, shapes.length);
 
-      let colors = ["0x990099", "0x009999", "0x999900", "0x222222"];
+      let colors = ["#990099", "#009999", "#999900", "#222222"];
 
       shapes.forEach((shape, idx) => {
+        const pt = shape.rays[0];
+        let coord = new Point(
+          Math.round((pt.x - ox - oxx) / scale),
+          Math.round((pt.y - oy - oyy) / scale),
+        );
+        const cell = grid.cell(coord.x, coord.y);
+        const colorIdx = cell ? cell.values[5] : 1;
         shape.style = {
           fillAlpha: 1,
-          fillColor: Sequence.resolve("COL()"),
-          strokeColor: Sequence.resolve("COL"),
+          fillColor: colors[colorIdx - 1],
+          strokeColor: colors[colorIdx - 1],
           strokeThickness: strokeThickness,
           // hatchStrokeColor: Sequence.resolve("COL"),
           // hatchStrokeThickness: strokeThickness,
