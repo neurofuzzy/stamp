@@ -66,7 +66,7 @@ Sequence.seed = 36;
 Sequence.seed = 38;
 Sequence.seed = 40;
 
-const seedValues = [22];
+const seedValues = [26];
 
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
 Sequence.fromStatement("random 0,1,2,3 AS SORT");
@@ -74,14 +74,20 @@ Sequence.fromStatement(
   `shuffle ${lineThickness / 3.5},${lineThickness / 4.5},${lineThickness / 5.5},${lineThickness / 6.5},${lineThickness / 8.5} AS HS`,
 );
 // random hex colors
-// Sequence.fromStatement(
-//   "shuffle 0x882222,0x223388,0x006699,0x663399,0x996600,0x597600,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL",
-// );
+Sequence.fromStatement(
+  "shuffle 0x882222,0x223388,0x006699,0x663399,0x996600,0x597600,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL",
+);
 // Sequence.fromStatement("shuffle 0x999999,0x999999 AS COL");
-Sequence.fromStatement("repeat 0x990099,0x009999,0x999900,0x222222 AS COL");
+//Sequence.fromStatement("repeat 0x990099,0x009999,0x999900,0x222222 AS COL");
 Sequence.fromStatement("shuffle 2,3,4 AS SEARCH");
 Sequence.fromStatement("shuffle 2,3,4 AS BRANCH");
 Sequence.fromStatement("shuffle 3,4,5 AS DIST");
+
+let colorSet = new Set<number>();
+for (let i = 0; i < 100; i++) {
+  colorSet.add(Sequence.resolve("COL()"));
+}
+const allColors = [...colorSet];
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -180,8 +186,11 @@ function createTree(grid: LinkedGrid<any>) {
   });
 }
 
-const assignColorsUsingFourColorMapTheorem = (grid: LinkedGrid<any>) => {
-  Sequence.fromStatement("random 1-4 AS RANDCOLORMAPCOLOR");
+const assignColorsUsingColorMapTheorem = (
+  grid: LinkedGrid<any>,
+  totalColors: number = 4,
+) => {
+  Sequence.fromStatement(`random 1-${totalColors} AS RANDCOLORMAPCOLOR`);
   // the root of each shape is the cell with value 0
   const shapeRoots: LinkedCell<any>[] = grid.cells.filter((c) => !c.values[1]);
   const shapeCells: LinkedCell<any>[][] = [];
@@ -257,10 +266,16 @@ const assignColorsUsingFourColorMapTheorem = (grid: LinkedGrid<any>) => {
         });
       } else {
         // otherwise, assign the color with the lowest index
-        let possibleColors = [1, 2, 3, 4].filter(
-          (c) => !usedColors.includes(c),
+        let possibleColors = [];
+        for (let i = 1; i <= totalColors; i++) {
+          if (!usedColors.includes(i)) {
+            possibleColors.push(i);
+          }
+        }
+        possibleColors = possibleColors.filter((c) => !usedColors.includes(c));
+        possibleColors.sort(
+          () => Sequence.resolve("RANDCOLORMAPCOLOR()") - totalColors / 2,
         );
-        possibleColors.sort(() => Sequence.resolve("RANDCOLORMAPCOLOR()") - 3);
         let newColor = possibleColors[0];
         if (newColor === undefined) {
           ok = false;
@@ -275,6 +290,7 @@ const assignColorsUsingFourColorMapTheorem = (grid: LinkedGrid<any>) => {
     if (ok) {
       break;
     }
+    console.log("retrying color mapping...");
   }
 };
 
@@ -297,9 +313,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       let grid: LinkedGrid<any> = new LinkedGrid(gw, gh);
 
       createTree(grid);
-      console.log(grid.print(1));
-      assignColorsUsingFourColorMapTheorem(grid);
-      console.log(grid.print(5));
+      // console.log(grid.print(1));
+      assignColorsUsingColorMapTheorem(grid, allColors.length);
+      // console.log(grid.print(5));
 
       for (let y = 0; y < grid.height; y++) {
         for (let x = 0; x < grid.width; x++) {
@@ -338,9 +354,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         miterEnds,
       );
 
-      let colors = ["#990099", "#009999", "#999900", "#222222"];
-
-      shapes.forEach((shape, idx) => {
+      shapes.forEach((shape) => {
         const pt = shape.rays[0];
         let coord = new Point(
           Math.round((pt.x - ox - oxx) / scale),
@@ -350,8 +364,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         const colorIdx = cell ? cell.values[5] : 1;
         shape.style = {
           fillAlpha: 1,
-          fillColor: colors[colorIdx - 1],
-          strokeColor: colors[colorIdx - 1],
+          fillColor: allColors[colorIdx - 1],
+          strokeColor: allColors[colorIdx - 1],
           strokeThickness: strokeThickness,
           // hatchStrokeColor: Sequence.resolve("COL"),
           // hatchStrokeThickness: strokeThickness,
