@@ -40,8 +40,8 @@ const hatchScale = "HS()"; //20 / 5.5;//20 / 4.5;//20 / 3.5;//3.08;//4.45;//5.75
 const nx = 1;
 const ny = 1;
 const nspacing = 40;
-const gw = 10;
-const gh = 10;
+const gw = 20;
+const gh = 20;
 const maxDist = 2; //gw + gh;
 const maxBranch = 2; //"BRANCH()"; //gw + gh;
 const maxSearch = 5; //"SEARCH()"; //gw + gh;
@@ -181,11 +181,11 @@ function createTree(grid: LinkedGrid<any>) {
 }
 
 const assignColorsUsingFourColorMapTheorem = (grid: LinkedGrid<any>) => {
+  Sequence.fromStatement("random 1-4 AS RANDCOLORMAPCOLOR");
   // the root of each shape is the cell with value 0
   const shapeRoots: LinkedCell<any>[] = grid.cells.filter((c) => !c.values[1]);
   const shapeCells: LinkedCell<any>[][] = [];
   const shapeNeighborShapes: number[][] = [];
-  console.log("total shapes", shapeRoots.length);
   // for each shape, find all cells that belong to it
   const findChildren = (cell: LinkedCell<any>) => {
     // return all neighbors where value at index 0 = cell
@@ -230,36 +230,50 @@ const assignColorsUsingFourColorMapTheorem = (grid: LinkedGrid<any>) => {
   }
   // given shapeRoots as the list of shapes, and shapeNeighborShapes as a list of lists of neighbors
   // use the Four Color Map Theorem to assign a color index between 1 and 4 inclusive to each shape
-  for (let i = 0; i < shapeRoots.length; i++) {
-    const root = shapeRoots[i];
-    const neighbors = shapeNeighborShapes[i];
-    const usedColors: number[] = [];
-    // for each neighbor, get the color and add it to the usedColors list
-    neighbors.forEach((n) => {
-      if (n) {
-        const neighbor = shapeRoots[n];
-        if (neighbor && neighbor.values[5]) {
-          usedColors.push(neighbor.values[5]);
+  const maxTries = 10;
+  let tries = 0;
+  while (tries < maxTries) {
+    tries++;
+    let ok = true;
+    for (let i = 0; i < shapeRoots.length; i++) {
+      const root = shapeRoots[i];
+      const neighbors = shapeNeighborShapes[i];
+      const usedColors: number[] = [];
+      // for each neighbor, get the color and add it to the usedColors list
+      neighbors.forEach((n) => {
+        if (n) {
+          const neighbor = shapeRoots[n];
+          if (neighbor && neighbor.values[5]) {
+            usedColors.push(neighbor.values[5]);
+          }
         }
-      }
-    });
-    console.log(usedColors);
-    // if there are no used colors, assign a color
-    if (usedColors.length === 0) {
-      root.setValue(5, 1);
-      shapeCells[i].forEach((c) => {
-        c.setValue(5, 1);
       });
-    } else {
-      // otherwise, assign the color with the lowest index
-      let newColor = 1;
-      while (usedColors.includes(newColor)) {
-        newColor++;
+      // if there are no used colors, assign a color
+      if (usedColors.length === 0) {
+        const color = Sequence.resolve("RANDCOLORMAPCOLOR()");
+        root.setValue(5, color);
+        shapeCells[i].forEach((c) => {
+          c.setValue(5, color);
+        });
+      } else {
+        // otherwise, assign the color with the lowest index
+        let possibleColors = [1, 2, 3, 4].filter(
+          (c) => !usedColors.includes(c),
+        );
+        possibleColors.sort(() => Sequence.resolve("RANDCOLORMAPCOLOR()") - 3);
+        let newColor = possibleColors[0];
+        if (newColor === undefined) {
+          ok = false;
+          break;
+        }
+        root.setValue(5, newColor);
+        shapeCells[i].forEach((c) => {
+          c.setValue(5, newColor);
+        });
       }
-      root.setValue(5, newColor);
-      shapeCells[i].forEach((c) => {
-        c.setValue(5, newColor);
-      });
+    }
+    if (ok) {
+      break;
     }
   }
 };
@@ -323,8 +337,6 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         miterJoins,
         miterEnds,
       );
-
-      console.log(paths.length, shapes.length);
 
       let colors = ["#990099", "#009999", "#999900", "#222222"];
 
