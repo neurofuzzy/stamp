@@ -1,9 +1,9 @@
 import * as arbit from "arbit";
 
 class SequenceReference {
-  seq: Sequence
-  useCurrent: boolean
-  expressions: string[]
+  seq: Sequence;
+  useCurrent: boolean;
+  expressions: string[];
   constructor(seq: Sequence, useCurrent: boolean, expressions: string[] = []) {
     this.seq = seq;
     this.useCurrent = useCurrent;
@@ -12,7 +12,6 @@ class SequenceReference {
 }
 
 export class Sequence {
-
   static readonly ONCE = "once";
   static readonly REVERSE = "reverse";
   static readonly REPEAT = "repeat";
@@ -33,7 +32,7 @@ export class Sequence {
   static readonly POW = "pow";
   static readonly ismaxIterations = /\(\d+\)/g;
   static seed = 0;
-  static sequences: { [key:string]: Sequence } = {};
+  static sequences: { [key: string]: Sequence } = {};
   static __prng: { (): number } | null = null;
   static random = () => {
     if (!Sequence.__prng === null) {
@@ -41,8 +40,11 @@ export class Sequence {
     } else {
       return Sequence.__prng?.();
     }
-  }
-  static resetAll = (seed: number = NaN, skipSequeces: (Sequence | null)[] = []) => {
+  };
+  static resetAll = (
+    seed: number = NaN,
+    skipSequeces: (Sequence | null)[] = [],
+  ) => {
     Sequence.__prng = arbit(!isNaN(seed) ? seed : Sequence.seed);
     for (let alias in Sequence.sequences) {
       if (skipSequeces.indexOf(Sequence.sequences[alias]) !== -1) {
@@ -54,21 +56,53 @@ export class Sequence {
         Sequence.sequences[alias].reset();
       }
     }
-  }
+  };
   static reset = (alias: string) => {
     if (Sequence.sequences[alias]) {
       Sequence.sequences[alias].reset();
     }
-  }
+  };
   static updateSeed = (alias: string, seed: number) => {
     if (Sequence.sequences[alias]) {
       Sequence.sequences[alias].updateSeed(seed);
     }
-  }
+  };
+  static updateSeedAll = (seed: number) => {
+    for (let alias in Sequence.sequences) {
+      Sequence.sequences[alias].updateSeed(seed);
+    }
+  };
 
-  static readonly reserved: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY, Sequence.AS];
-  static readonly types: string[] = [Sequence.ONCE, Sequence.REVERSE, Sequence.REPEAT, Sequence.YOYO, Sequence.SHUFFLE, Sequence.RANDOM, Sequence.BINARY];
-  static readonly accumulators: string[] = [Sequence.REPLACE, Sequence.ADD, Sequence.SUBTRACT, Sequence.MULTIPLY, Sequence.DIVIDE, Sequence.LOG, Sequence.LOG2, Sequence.LOG10, Sequence.POW];
+  static readonly reserved: string[] = [
+    Sequence.ONCE,
+    Sequence.REVERSE,
+    Sequence.REPEAT,
+    Sequence.YOYO,
+    Sequence.SHUFFLE,
+    Sequence.RANDOM,
+    Sequence.BINARY,
+    Sequence.AS,
+  ];
+  static readonly types: string[] = [
+    Sequence.ONCE,
+    Sequence.REVERSE,
+    Sequence.REPEAT,
+    Sequence.YOYO,
+    Sequence.SHUFFLE,
+    Sequence.RANDOM,
+    Sequence.BINARY,
+  ];
+  static readonly accumulators: string[] = [
+    Sequence.REPLACE,
+    Sequence.ADD,
+    Sequence.SUBTRACT,
+    Sequence.MULTIPLY,
+    Sequence.DIVIDE,
+    Sequence.LOG,
+    Sequence.LOG2,
+    Sequence.LOG10,
+    Sequence.POW,
+  ];
 
   _prevValue: number | Sequence;
   _currentValue: number | Sequence;
@@ -85,8 +119,15 @@ export class Sequence {
   _prng: any;
   started: boolean;
   done: boolean;
-  
-  constructor(values: Array<number | Sequence>, pickerFunction: Function, maxIterations: number, accumulationType: string, seed?: number, binaryLength?: number) {
+
+  constructor(
+    values: Array<number | Sequence>,
+    pickerFunction: Function,
+    maxIterations: number,
+    accumulationType: string,
+    seed?: number,
+    binaryLength?: number,
+  ) {
     this._prevValue = NaN;
     /** @type {number | Sequence} */
     this._currentValue = NaN;
@@ -129,7 +170,9 @@ export class Sequence {
       if (!forceRefNext && this._currentValue.seq.started) {
         out = this._currentValue.seq.current();
       } else {
-        out = this._currentValue.useCurrent ? this._currentValue.seq.current() : this._currentValue.seq.next();
+        out = this._currentValue.useCurrent
+          ? this._currentValue.seq.current()
+          : this._currentValue.seq.next();
       }
       if (this._currentValue.expressions.length) {
         out = eval(`${out} ${this._currentValue.expressions.join(" ")}`);
@@ -158,11 +201,17 @@ export class Sequence {
           }
           return this._prevValue / out;
         case Sequence.LOG:
-          return Math.log(Math.max(Math.abs(1 + this._seed + this._iterations * out), 1));
+          return Math.log(
+            Math.max(Math.abs(1 + this._seed + this._iterations * out), 1),
+          );
         case Sequence.LOG2:
-          return Math.log2(Math.max(Math.abs(1 + this._seed + this._iterations * out), 1));
+          return Math.log2(
+            Math.max(Math.abs(1 + this._seed + this._iterations * out), 1),
+          );
         case Sequence.LOG10:
-          return Math.log10(Math.max(Math.abs(1 + this._seed + this._iterations * out), 1));
+          return Math.log10(
+            Math.max(Math.abs(1 + this._seed + this._iterations * out), 1),
+          );
         case Sequence.POW:
           const out2 = 1 + out * 0.001;
           return Math.pow(out2, this._iterations) - out2;
@@ -179,14 +228,22 @@ export class Sequence {
     return this.current(true);
   }
 
-  static fromStatement(stmt: string, seed?: number, binaryLength: number = 1): Sequence | null {
+  static fromStatement(
+    stmt: string,
+    seed?: number,
+    binaryLength: number = 1,
+  ): Sequence | null {
     if (!stmt) {
       return null;
     }
 
     stmt = stmt.toLowerCase();
 
-    if (stmt.indexOf(",") === -1 && stmt.indexOf("(") !== -1 && stmt.indexOf(" (") === -1) {
+    if (
+      stmt.indexOf(",") === -1 &&
+      stmt.indexOf("(") !== -1 &&
+      stmt.indexOf(" (") === -1
+    ) {
       stmt = stmt.split("(").join(" (");
     }
 
@@ -225,10 +282,12 @@ export class Sequence {
           const exprs = val.split(isOperatorExpr);
           val = exprs.shift() as string;
           if (Sequence.sequences[val.split("(")[0]]) {
-            values.push(new SequenceReference(
-              Sequence.sequences[val.split("(")[0]], 
-              val.indexOf("(") === -1,
-              exprs),
+            values.push(
+              new SequenceReference(
+                Sequence.sequences[val.split("(")[0]],
+                val.indexOf("(") === -1,
+                exprs,
+              ),
             );
           }
         } else if (val.indexOf("[") !== -1 && val.indexOf("]") !== -1) {
@@ -257,11 +316,15 @@ export class Sequence {
         const rangeExp = valuesExp.split("-");
         const factor = Math.max(
           Math.pow(10, rangeExp[0].split(".")[1].length),
-          Math.pow(10, rangeExp[1].split(".")[1].length)
+          Math.pow(10, rangeExp[1].split(".")[1].length),
         );
         const rangeMin = parseFloat(rangeExp[0]);
         const rangeMax = parseFloat(rangeExp[1]);
-        for (let i = Math.floor(rangeMin * factor); i <= Math.floor(rangeMax * factor); i++) {
+        for (
+          let i = Math.floor(rangeMin * factor);
+          i <= Math.floor(rangeMax * factor);
+          i++
+        ) {
           values.push(i / factor);
         }
       }
@@ -295,13 +358,27 @@ export class Sequence {
 
     let accumulationType = Sequence.REPLACE;
 
-    if (tokens.length >= accumIndex && Sequence.accumulators.indexOf(tokens[accumIndex]) !== -1) {
+    if (
+      tokens.length >= accumIndex &&
+      Sequence.accumulators.indexOf(tokens[accumIndex]) !== -1
+    ) {
       accumulationType = tokens[accumIndex];
     }
 
-    const seq = new Sequence(values, picker, iterations, accumulationType, seed, binaryLength);
+    const seq = new Sequence(
+      values,
+      picker,
+      iterations,
+      accumulationType,
+      seed,
+      binaryLength,
+    );
 
-    if (tokens.length > 2 && tokens[tokens.length - 2] == Sequence.AS && tokens[tokens.length - 1].length > 0) {
+    if (
+      tokens.length > 2 &&
+      tokens[tokens.length - 2] == Sequence.AS &&
+      tokens[tokens.length - 1].length > 0
+    ) {
       alias = tokens[tokens.length - 1];
     } else {
       alias = stmt.split(" ").join("_");
@@ -427,13 +504,17 @@ export class Sequence {
       }
     }
   }
-  
+
   static _pickerBinary(seq: Sequence) {
     if (seq.done) {
       return;
     }
     if (seq._firstPick) {
-      const pickIdx = seq._iterations.toString(2).padStart(seq._binaryLength, "0").split("").map(Number);
+      const pickIdx = seq._iterations
+        .toString(2)
+        .padStart(seq._binaryLength, "0")
+        .split("")
+        .map(Number);
       seq._values = pickIdx.map((idx) => seq._originalValues[idx]);
       seq._usedValues = [];
       seq._firstPick = false;
@@ -448,7 +529,7 @@ export class Sequence {
       seq._currentValue = value;
       seq._usedValues.push(seq._currentValue);
     }
-    
+
     if (!seq._values.length) {
       seq._iterations++;
       seq._firstPick = true;
@@ -460,7 +541,9 @@ export class Sequence {
 
   static resolve(inputExpr: string, atDepth: number = 0): number {
     const isOperatorExpr = / ([+-/*%//]) /g;
-    const exprs = inputExpr.split(isOperatorExpr).map((e) => e.toLowerCase().trim());
+    const exprs = inputExpr
+      .split(isOperatorExpr)
+      .map((e) => e.toLowerCase().trim());
 
     const res = exprs.map((expr) => {
       const isOperator = /([+-/*%//])/g;
