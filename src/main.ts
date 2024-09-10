@@ -18,10 +18,10 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 4.5 * 96;
-const pageHeight = 4.5 * 96;
+const pageWidth = 8.5 * 96;
+const pageHeight = 8.5 * 96;
 const ratio = 2;
-const zoom = 2;
+const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -35,19 +35,19 @@ ctx.fillStyle = "white";
 
 // --
 
-const scale = 20;
+const scale = 44;
 const hatchScale = "HS()"; //20 / 5.5;//20 / 4.5;//20 / 3.5;//3.08;//4.45;//5.75;
 const nx = 1;
 const ny = 1;
 const nspacing = 40;
-const gw = 20;
-const gh = 20;
+const gw = 16;
+const gh = 16;
 const maxDist = 2; //gw + gh;
 const maxBranch = 2; //"BRANCH()"; //gw + gh;
 const maxSearch = 5; //"SEARCH()"; //gw + gh;
 const maxIter = gw * gh;
-const lineThickness = 8;
-const strokeThickness = 1;
+const lineThickness = 16;
+const strokeThickness = 0;
 const miterJoins = true;
 const miterEnds = true;
 
@@ -66,7 +66,7 @@ Sequence.seed = 36;
 Sequence.seed = 38;
 Sequence.seed = 40;
 
-const seedValues = [26];
+//const seedValues = [23];
 
 Sequence.fromStatement("random 1,2,3,4,4,3,2,1 AS MV");
 Sequence.fromStatement("random 0,1,2,3 AS SORT");
@@ -74,11 +74,44 @@ Sequence.fromStatement(
   `shuffle ${lineThickness / 3.5},${lineThickness / 4.5},${lineThickness / 5.5},${lineThickness / 6.5},${lineThickness / 8.5} AS HS`,
 );
 // random hex colors
-Sequence.fromStatement(
-  "shuffle 0x882222,0x223388,0x006699,0x663399,0x996600,0x597600,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL",
-);
+// Sequence.fromStatement(
+//   "shuffle 0x882222,0x223388,0x006699,0x663399,0x996600,0x597600,0x006633,0x663300,0x993366,0x557799,0x667055 AS COL",
+// );
+// Sequence.fromStatement(
+//   "shuffle 0x006699,0x663399,0x996600,0x006633,0x993366 AS COL",
+// );
+//Sequence.fromStatement("shuffle 0x185184,0x336699,0x4780af,0x70a3d0 AS COL");
+//Sequence.fromStatement("shuffle 0x187451,0x338966,0x479f80,0x70c0a3 AS COL");
+//Sequence.fromStatement("shuffle 0x844118,0x995633,0xaf7047,0xd09370 AS COL");
+//Sequence.fromStatement("shuffle 0x000000,0x222222,0x404040,0x666666 AS COL");
+//Sequence.fromStatement("shuffle 0x385972,0x3f7a8c,0x5f9aa6,0x7aa5b4 AS COL");
+//Sequence.fromStatement("shuffle 0x093174,0x0a4b8c,0x1a6b9a,0x2a8ca5 AS COL");
+//Sequence.fromStatement("shuffle 0xc9372a,0x9c3b3f,0x723f5f,0x3f5f7a AS COL");
+// hue adjusted version of the above
+//Sequence.fromStatement("shuffle 0x9a7e3f,0x7e3f5f,0x3f5f7a,0x5f7a9a AS COL");
+// Sequence.fromStatement(
+//   "shuffle 0x7e9a3f,0x3f5f7a,0x8e4f6f,0x5f7a9a,0x9a7e3f,0x787878 AS COL",
+// );
 // Sequence.fromStatement("shuffle 0x999999,0x999999 AS COL");
 //Sequence.fromStatement("repeat 0x990099,0x009999,0x999900,0x222222 AS COL");
+
+//Sequence.fromStatement("shuffle 0x6d4f28,0x8a5a2b,0x4f3a2e,0x9e7b5c AS COL");
+//Sequence.fromStatement("shuffle 0x7d3f3f,0x5c2d2d,0x9a6f4f,0x4f3a30 AS COL");
+// Sequence.fromStatement(
+//   "shuffle 0x7d3f3f,0x5c2d2d,0x9a6f4f,0x4f3a30,0x003f5c,0x005b8a,0x004b77 AS COL",
+// );
+//Sequence.fromStatement("shuffle 0x4a89dc,0x6d8e7b,0xf4a261,0x9e768f AS COL");
+//Sequence.fromStatement("shuffle 0x2a4d69,0x6f3f5c,0xe07b39,0x8d5a8e AS COL");
+//Sequence.fromStatement("shuffle 0x5a2a2a,0x8b4f4f,0xd46a4a,0x9d6b6b AS COL");
+//Sequence.fromStatement("shuffle 0x2e3a2b,0x4a5d41,0x6b8e23,0x7f9a6f AS COL");
+//Sequence.fromStatement("shuffle 0x2f3a40,0x4a5d6b,0x6a7b8c,0x8c9aa1 AS COL");
+// Sequence.fromStatement(
+//   "shuffle 0x8b5e3c,0xd6a95d,0x9b5b5f,0x3c6c62,0x8c8c5a AS COL",
+// );
+Sequence.fromStatement(
+  "shuffle 0x5c3a2b,0xa67e3b,0x7f3b3b,0x2d4a46,0x6b6b3a AS COL",
+);
+
 Sequence.fromStatement("shuffle 2,3,4 AS SEARCH");
 Sequence.fromStatement("shuffle 2,3,4 AS BRANCH");
 Sequence.fromStatement("shuffle 3,4,5 AS DIST");
@@ -88,6 +121,8 @@ for (let i = 0; i < 100; i++) {
   colorSet.add(Sequence.resolve("COL()"));
 }
 const allColors = [...colorSet];
+
+Sequence.fromStatement(`random 1-${allColors.length} AS RANDCOLORMAPCOLOR`);
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -190,7 +225,6 @@ const assignColorsUsingColorMapTheorem = (
   grid: LinkedGrid<any>,
   totalColors: number = 4,
 ) => {
-  Sequence.fromStatement(`random 1-${totalColors} AS RANDCOLORMAPCOLOR`);
   // the root of each shape is the cell with value 0
   const shapeRoots: LinkedCell<any>[] = grid.cells.filter((c) => !c.values[1]);
   const shapeCells: LinkedCell<any>[][] = [];
@@ -306,8 +340,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       let oxx = xx * scale * (gw - 1) + nspacing * xx;
       let oyy = yy * scale * (gh - 1) + nspacing * yy;
 
-      Sequence.resetAll();
-      Sequence.updateSeedAll(seedValues[n % seedValues.length]);
+      //Sequence.resetAll();
+      //Sequence.updateSeedAll(seedValues[n % seedValues.length]);
       n++;
 
       let grid: LinkedGrid<any> = new LinkedGrid(gw, gh);
@@ -365,11 +399,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         shape.style = {
           fillAlpha: 1,
           fillColor: allColors[colorIdx - 1],
-          strokeColor: allColors[colorIdx - 1],
-          strokeThickness: strokeThickness,
-          // hatchStrokeColor: Sequence.resolve("COL"),
-          // hatchStrokeThickness: strokeThickness,
-          // hatchScale: lineThickness / 2.5,
+          strokeColor: "#000000",
+          strokeThickness: 0,
+          // hatchStrokeColor: "#000000",
+          // hatchStrokeThickness: 1,
+          // hatchScale: lineThickness / (colorIdx + 3.5),
           // hatchPattern: HatchPatternType.OFFSETLOOP,
         };
         drawShape(ctx, shape, 0);
@@ -377,10 +411,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
       shapes.forEach((shape) => {
         if (shape.style.hatchPattern) {
-          //const fillPattern = Hatch.applyHatchToShape(shape);
-          //if (fillPattern) {
-          // drawHatchPattern(ctx, fillPattern, true);
-          //}
+          const fillPattern = Hatch.applyHatchToShape(shape);
+          if (fillPattern) {
+            drawHatchPattern(ctx, fillPattern, true);
+          }
         }
       });
     }
