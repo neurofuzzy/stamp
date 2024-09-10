@@ -108,9 +108,38 @@ Sequence.fromStatement(
 // Sequence.fromStatement(
 //   "shuffle 0x8b5e3c,0xd6a95d,0x9b5b5f,0x3c6c62,0x8c8c5a AS COL",
 // );
+
+// spice blends
 Sequence.fromStatement(
   "shuffle 0x5c3a2b,0xa67e3b,0x7f3b3b,0x2d4a46,0x6b6b3a AS COL",
 );
+
+// Autumn Forest
+// Sequence.fromStatement("shuffle 0x4a5d23,0xd46a4a,0x8e735b,0x2d2d2d AS COL");
+
+// Autumn Forest (Dark)
+// Sequence.fromStatement("shuffle 0x2b3a1e,0x6a3b1e,0x5c4f43,0x1a1a1a AS COL");
+
+// Desert Sunset (Dark)
+// Sequence.fromStatement("shuffle 0x8b6f4f,0xa65b00,0x8c5a2a,0x4b2d2a AS COL");
+
+// Ocean Depths (Dark)
+// Sequence.fromStatement("shuffle 0x002f4c,0x004a60,0x8b4e4b,0x8c6b5f AS COL");
+
+// Urban Night (Dark)
+// Sequence.fromStatement("shuffle 0x001a33,0x333333,0x0099cc,0xcca800 AS COL");
+
+// Tropical Rainforest (Dark)
+// Sequence.fromStatement("shuffle 0x003c1f,0x006666,0xc64b2c,0x3b2b1f AS COL");
+
+// Vintage Wine Cellar (Dark)
+// Sequence.fromStatement("shuffle 0x3a0e0e,0x4a3d1d,0x6b4d3b,0x8b6b5a AS COL");
+
+// Urban Jungle (Dark)
+// Sequence.fromStatement("shuffle 0x5a5a5a,0x3a5b3b,0x4c3d2f,0x6e4c4a AS COL");
+
+// Mediterranean Coast (Dark)
+// Sequence.fromStatement("shuffle 0x00264d,0xc25e43,0x6a6a2f,0xd6c7a8 AS COL");
 
 Sequence.fromStatement("shuffle 2,3,4 AS SEARCH");
 Sequence.fromStatement("shuffle 2,3,4 AS BRANCH");
