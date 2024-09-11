@@ -9,7 +9,7 @@ import { Optimize } from "../src/lib/optimize";
 import { Hatch } from "./lib/hatch";
 import { HatchPatternType } from "./geom/hatch-patterns";
 
-const backgroundColor = "white";
+const backgroundColor = "black";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
@@ -35,7 +35,7 @@ ctx.fillStyle = "white";
 
 // --
 
-const scale = 44;
+const scale = 32;
 const hatchScale = "HS()"; //20 / 5.5;//20 / 4.5;//20 / 3.5;//3.08;//4.45;//5.75;
 const nx = 1;
 const ny = 1;
@@ -46,7 +46,7 @@ const maxDist = 2; //gw + gh;
 const maxBranch = 2; //"BRANCH()"; //gw + gh;
 const maxSearch = 5; //"SEARCH()"; //gw + gh;
 const maxIter = gw * gh;
-const lineThickness = 16;
+const lineThickness = 12;
 const strokeThickness = 0;
 const miterJoins = true;
 const miterEnds = true;
@@ -110,9 +110,9 @@ Sequence.fromStatement(
 // );
 
 // spice blends
-Sequence.fromStatement(
-  "shuffle 0x5c3a2b,0xa67e3b,0x7f3b3b,0x2d4a46,0x6b6b3a AS COL",
-);
+// Sequence.fromStatement(
+//   "shuffle 0x5c3a2b,0xa67e3b,0x7f3b3b,0x2d4a46,0x6b6b3a AS COL",
+// );
 
 // Autumn Forest
 // Sequence.fromStatement("shuffle 0x4a5d23,0xd46a4a,0x8e735b,0x2d2d2d AS COL");
@@ -140,6 +140,27 @@ Sequence.fromStatement(
 
 // Mediterranean Coast (Dark)
 // Sequence.fromStatement("shuffle 0x00264d,0xc25e43,0x6a6a2f,0xd6c7a8 AS COL");
+
+// Galactic Nebula (Dark)
+// Sequence.fromStatement("shuffle 0x1d2d44,0x3b0a45,0x7d3f6d,0x5c5c5c AS COL");
+
+// Ancient Ruins
+// Sequence.fromStatement("shuffle 0x6c6b6a,0x8d6e63,0x5b3a3a,0x4a5d3a AS COL");
+
+// Tropical Dawn
+// Sequence.fromStatement("shuffle 0xf72f8c,0x3b6b9a,0x1a1a2e,0x4c4c4c AS COL");
+
+// Vintage Circus
+// Sequence.fromStatement("shuffle 0xd03c31,0xd7b02c,0x003b6f,0x6a4c4c AS COL");
+
+// Forest Canopy
+// Sequence.fromStatement("shuffle 0x2f4f4f,0x4a6f4a,0x6b8e23,0x3e4e41 AS COL");
+
+// Sunset Over the Savanna
+// Sequence.fromStatement("shuffle 0xf5ba3b,0xf47c29,0x8c4d33,0x4a5d6b AS COL");
+
+// Steampunk Machine
+Sequence.fromStatement("shuffle 0xb08d57,0x7d7f7d,0x6e4b3c,0x3b3b3b AS COL");
 
 Sequence.fromStatement("shuffle 2,3,4 AS SEARCH");
 Sequence.fromStatement("shuffle 2,3,4 AS BRANCH");
