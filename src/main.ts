@@ -160,7 +160,17 @@ Sequence.fromStatement(
 // Sequence.fromStatement("shuffle 0xf5ba3b,0xf47c29,0x8c4d33,0x4a5d6b AS COL");
 
 // Steampunk Machine
-Sequence.fromStatement("shuffle 0xb08d57,0x7d7f7d,0x6e4b3c,0x3b3b3b AS COL");
+//Sequence.fromStatement("shuffle 0xb08d57,0x7d7f7d,0x6e4b3c,0x3b3b3b AS COL");
+
+// // Shibui
+// Sequence.fromStatement(
+//   "shuffle 0x4C5C68, 0x728C83, 0xA09E8C, 0x836C5B, 0xD1BE91, 0x9D8575, 0x4A5560, 0x71767B AS COL",
+// );
+
+// terracotta
+Sequence.fromStatement(
+  "shuffle 0x8A4F39, 0x70402D, 0x623627, 0x7F4935, 0x6A3D2A, 0x593223, 0x7C4A3A, 0x5E3B2D AS COL",
+);
 
 Sequence.fromStatement("shuffle 2,3,4 AS SEARCH");
 Sequence.fromStatement("shuffle 2,3,4 AS BRANCH");
