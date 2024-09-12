@@ -168,8 +168,50 @@ Sequence.fromStatement(
 // );
 
 // terracotta
+// Sequence.fromStatement(
+//   "shuffle 0x4b2e2a,0x6a3e2a,0x2b2b2b,0x4f3c36,0x3b1e1e AS COL",
+// );
+
+// cool cavern
+// Sequence.fromStatement("shuffle 0x395f65,0x005667,0x007881,0x2e3a40 AS COL");
+
+// italian villa
+//Sequence.fromStatement("shuffle 0x6e3f3b,0x9a5d3c,0x8d4a3e,0xc29c7b AS COL");
+
+// ceramic glaze
+// Sequence.fromStatement(
+//   "shuffle 0x2b4a49,0x5b7a5b,0x8b5b4e,0x6e3d3a,0x4a5f6d,0x5a3f4f AS COL",
+// );
+
+// grains
+// Sequence.fromStatement(
+//   "shuffle 0x56764c,0x91a897,0x96996d,0x7e8b6b,0x4d4f41,0x6c6a57 AS COL",
+// );
+
+// brutalist
+// Sequence.fromStatement(
+//   "shuffle 0x3a4a4a,0x5c6c6c,0x7a8a8a,0x8e9e9e,0x2e2e2e,0x7f8c8d AS COL",
+// );
+
+// devo
+// Sequence.fromStatement(
+//   "shuffle 0xe43f3f,0xffc107,0x00bcd4,0x4caf50,0x9e9e9e,0x616161 AS COL",
+// );
+//
+
+// zappa
+// Sequence.fromStatement(
+//   "shuffle 0xff6f61,0x3b0a45,0x7d4f7f,0xf5a623,0x1b5e20,0x9e9e9e AS COL",
+// );
+
+// rush
+// Sequence.fromStatement(
+//   "shuffle 0x2a2d34,0x7c3b3b,0x3e7f8c,0x9e9d24,0x4f4f4f,0xc0c0c0 AS COL",
+// );
+
+// edo period
 Sequence.fromStatement(
-  "shuffle 0x8A4F39, 0x70402D, 0x623627, 0x7F4935, 0x6A3D2A, 0x593223, 0x7C4A3A, 0x5E3B2D AS COL",
+  "shuffle 0x6e3f2b,0x9c6d4d,0x9a8a7d,0x3a6f73,0x4a5c4c,0xd0b8a4 AS COL",
 );
 
 Sequence.fromStatement("shuffle 2,3,4 AS SEARCH");
