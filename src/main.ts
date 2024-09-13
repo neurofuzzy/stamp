@@ -37,11 +37,11 @@ ctx.fillStyle = "white";
 
 const scale = 32;
 const hatchScale = "HS()"; //20 / 5.5;//20 / 4.5;//20 / 3.5;//3.08;//4.45;//5.75;
-const nx = 1;
-const ny = 1;
-const nspacing = 40;
-const gw = 16;
-const gh = 16;
+const nx = 2;
+const ny = 2;
+const nspacing = 60;
+const gw = 8;
+const gh = 8;
 const maxDist = 2; //gw + gh;
 const maxBranch = 2; //"BRANCH()"; //gw + gh;
 const maxSearch = 5; //"SEARCH()"; //gw + gh;
@@ -205,14 +205,19 @@ Sequence.fromStatement(
 // );
 
 // rush
-// Sequence.fromStatement(
-//   "shuffle 0x2a2d34,0x7c3b3b,0x3e7f8c,0x9e9d24,0x4f4f4f,0xc0c0c0 AS COL",
-// );
+Sequence.fromStatement(
+  "repeat 0x2a2d34,0x7c3b3b,0x3e7f8c,0x9e9d24,0x4f4f4f,0xc0c0c0 AS COL",
+);
 
 // edo period
-Sequence.fromStatement(
-  "shuffle 0x6e3f2b,0x9c6d4d,0x9a8a7d,0x3a6f73,0x4a5c4c,0xd0b8a4 AS COL",
-);
+// Sequence.fromStatement(
+//   "shuffle 0x6e3f2b,0x9c6d4d,0x9a8a7d,0x3a6f73,0x4a5c4c,0xd0b8a4 AS COL",
+// );
+
+// ancient china
+// Sequence.fromStatement(
+//   "shuffle 0x7a4b4f,0xa67853,0x4d6a5a,0x8d3f3f,0x8d7b5c,0xe0c1a4 AS COL",
+// );
 
 Sequence.fromStatement("shuffle 2,3,4 AS SEARCH");
 Sequence.fromStatement("shuffle 2,3,4 AS BRANCH");
@@ -431,7 +436,6 @@ const assignColorsUsingColorMapTheorem = (
 };
 
 const draw = (ctx: CanvasRenderingContext2D) => {
-  const segs: Segment[] = [];
   const ox = w / 2 - ((gw - 1) * scale * nx + nspacing * (nx - 1)) / 2;
   const oy = h / 2 - ((gh - 1) * scale * ny + nspacing * (ny - 1)) / 2;
 
@@ -447,6 +451,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       n++;
 
       let grid: LinkedGrid<any> = new LinkedGrid(gw, gh);
+      const segs: Segment[] = [];
 
       createTree(grid);
       // console.log(grid.print(1));
@@ -497,7 +502,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
           Math.round((pt.y - oy - oyy) / scale),
         );
         const cell = grid.cell(coord.x, coord.y);
-        const colorIdx = cell ? cell.values[5] : 1;
+        let colorIdx = cell ? cell.values[5] : 1;
+
         shape.style = {
           fillAlpha: 1,
           fillColor: allColors[colorIdx - 1],
