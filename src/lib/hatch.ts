@@ -55,11 +55,14 @@ const $ = (arg: unknown) =>
       ? parseInt(arg.replace("#", "0x"), 16)
       : Sequence.resolve(arg)
     : typeof arg === "number"
-    ? arg
-    : 0;
+      ? arg
+      : 0;
 
 export class Hatch {
-  static applyHatchToShape(shape: IShape, optimize: boolean = true): HatchFillShape | null {
+  static applyHatchToShape(
+    shape: IShape,
+    optimize: boolean = true,
+  ): HatchFillShape | null {
     const npattern = $(shape.style.hatchPattern) || 0;
     const nangle = $(shape.style.hatchAngle) || 0;
     const nscale = $(shape.style.hatchScale) || 1;
@@ -69,16 +72,17 @@ export class Hatch {
     const nspherify = shape.style.hatchSpherify || false;
     const ninset = $(shape.style.hatchInset) || 0;
     const bc = shape.boundingCircle();
-    const args: [Ray, number, number, number, number, number, number, boolean] = [
-      new Ray(bc.x, bc.y, (nangle * Math.PI) / 180),
-      bc.radius * 2,
-      bc.radius * 2,
-      nscale,
-      noverflow,
-      noffsetX,
-      noffsetY,
-      nspherify,
-    ];
+    const args: [Ray, number, number, number, number, number, number, boolean] =
+      [
+        new Ray(bc.x, bc.y, (nangle * Math.PI) / 180),
+        bc.radius * 2,
+        bc.radius * 2,
+        nscale,
+        noverflow,
+        noffsetX,
+        noffsetY,
+        nspherify,
+      ];
     let hatchPattern: IHatchPattern;
 
     switch (npattern) {
@@ -197,9 +201,18 @@ export class Hatch {
         hatchPattern = new ShellHatchPattern(...args);
         break;
       case HatchPatternType.OFFSET:
-        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), optimize);
+        return Hatch.offsetHatchFromShape(
+          shape,
+          new OffsetHatchPattern(...args),
+          optimize,
+        );
       case HatchPatternType.OFFSETLOOP:
-        return Hatch.offsetHatchFromShape(shape, new OffsetHatchPattern(...args), false, true);
+        return Hatch.offsetHatchFromShape(
+          shape,
+          new OffsetHatchPattern(...args),
+          false,
+          true,
+        );
       default:
         return null;
     }
@@ -259,22 +272,27 @@ export class Hatch {
       });
       if (offsetResult) {
         const hatchResult = ClipperHelpers.clipper.clipToPolyTree({
-          clipType: shape.style.hatchBooleanType === HatchBooleanType.DIFFERENCE ? clipperLib.ClipType.Difference : clipperLib.ClipType.Intersection,
+          clipType:
+            shape.style.hatchBooleanType === HatchBooleanType.DIFFERENCE
+              ? clipperLib.ClipType.Difference
+              : clipperLib.ClipType.Intersection,
           subjectInputs: [ClipperHelpers.shapeToClipperPaths(shape)],
-          clipInputs: [{
-            data: ClipperHelpers.clipper.polyTreeToPaths(offsetResult),
-          }],
+          clipInputs: [
+            {
+              data: ClipperHelpers.clipper.polyTreeToPaths(offsetResult),
+            },
+          ],
           subjectFillType: clipperLib.PolyFillType.EvenOdd,
         });
         const polys = ClipperHelpers.polyTreeToPolygons(hatchResult);
-        polys.forEach(p => {
+        polys.forEach((p) => {
           p.style = Object.assign({}, shape.style);
           p.style.hatchPattern = 0;
         });
         const poly = new Polygon();
-        polys.forEach(p => {
+        polys.forEach((p) => {
           poly.addChild(p);
-        })
+        });
         poly.style = Object.assign({}, shape.style);
         return poly;
       } else {
@@ -284,7 +302,12 @@ export class Hatch {
     return null;
   }
 
-  static offsetHatchFromShape(shape: IShape, hatchPattern: OffsetHatchPattern, optimize: boolean = true, loopPaths: boolean = false): HatchFillShape | null  {
+  static offsetHatchFromShape(
+    shape: IShape,
+    hatchPattern: OffsetHatchPattern,
+    optimize: boolean = true,
+    loopPaths: boolean = false,
+  ): HatchFillShape | null {
     let ninset = hatchPattern.offsetStep;
     const shapePaths = ClipperHelpers.shapeToClipperPaths(shape);
     const fills: HatchFillShape[] = [];
@@ -304,7 +327,10 @@ export class Hatch {
           },
         ],
       });
-      if (!offsetResult || (offsetResult.childs.length === 0 && offsetResult.contour.length === 0)) {
+      if (
+        !offsetResult ||
+        (offsetResult.childs.length === 0 && offsetResult.contour.length === 0)
+      ) {
         break;
       }
       if (offsetResult) {
@@ -348,8 +374,57 @@ export class Hatch {
             }
           }
           if (allSameLength) {
-            const firstSegmentIsHorizontal = Math.abs(paths[0].points[0].y - paths[0].points[1].y) < GeomHelpers.EPSILON;
-            const firstSegmentIsVertical = Math.abs(paths[0].points[0].x - paths[0].points[1].x) < GeomHelpers.EPSILON;
+            let firstSegmentIsHorizontal =
+              Math.abs(paths[0].points[0].y - paths[0].points[1].y) <
+              GeomHelpers.EPSILON;
+            let firstSegmentIsVertical =
+              Math.abs(paths[0].points[0].x - paths[0].points[1].x) <
+              GeomHelpers.EPSILON;
+            if (!firstSegmentIsHorizontal && !firstSegmentIsVertical) {
+              let shiftAmount = 0;
+              let prevSegmentIsHorizontal = false;
+              let prevSegmentIsVertical = false;
+              for (let j = 1; j < numPts - 1; j++) {
+                prevSegmentIsHorizontal = firstSegmentIsHorizontal;
+                prevSegmentIsVertical = firstSegmentIsVertical;
+                firstSegmentIsHorizontal =
+                  Math.abs(paths[0].points[j].y - paths[0].points[j + 1].y) <
+                  GeomHelpers.EPSILON;
+                firstSegmentIsVertical =
+                  Math.abs(paths[0].points[j].x - paths[0].points[j + 1].x) <
+                  GeomHelpers.EPSILON;
+                if (
+                  (prevSegmentIsVertical && firstSegmentIsHorizontal) ||
+                  (prevSegmentIsHorizontal && firstSegmentIsVertical)
+                ) {
+                  shiftAmount = j;
+                  break;
+                }
+              }
+              if (shiftAmount > 0) {
+                paths.forEach((path, idx) => {
+                  //path.points.push(path.points[0].clone());
+                  for (let j = 0; j < shiftAmount; j++) {
+                    let pt = path.points.shift();
+                    if (pt) path.points.push(pt);
+                  }
+                  path.points.push(path.points[0].clone());
+                  // remove duplicate adjacent points
+                  for (let j = 0; j < path.points.length - 1; j++) {
+                    if (
+                      GeomHelpers.pointsAreEqual(
+                        path.points[j],
+                        path.points[j + 1],
+                      )
+                    ) {
+                      path.points.splice(j + 1, 1);
+                      j--;
+                      console.log("removed duplicate adjacent points");
+                    }
+                  }
+                });
+              }
+            }
             if (firstSegmentIsHorizontal) {
               const offset = paths[1].points[0].y - paths[0].points[0].y;
               paths.forEach((path, idx) => {
@@ -391,7 +466,11 @@ export class Hatch {
                 }
               });
             }
-            fillShape.paths = [new Path(paths.map((p) => p.points).reduce((a, b) => a.concat(b), []))];
+            fillShape.paths = [
+              new Path(
+                paths.map((p) => p.points).reduce((a, b) => a.concat(b), []),
+              ),
+            ];
           }
         }
       }
