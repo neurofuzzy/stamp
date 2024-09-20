@@ -69,7 +69,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       style: {
         fillColor: "0x000000",
         hatchPattern: HatchPatternType.WINDING,
-        hatchScale: 0.75,
+        hatchScale: 1,
         hatchStrokeColor: "0x999999",
         strokeColor: "0x999999",
       },

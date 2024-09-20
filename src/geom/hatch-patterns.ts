@@ -204,14 +204,23 @@ export class WindingHatchPattern extends HatchPattern {
     }
     const segments: Path[] = [];
     const shapeSegs = this.shape.toSegments();
-    const center = GeomHelpers.averagePoints(shapeSegs.map((s) => s.a));
+    const shapePoints = shapeSegs.map((s) => s.a);
+    const center = GeomHelpers.averagePoints(shapePoints);
+    // for each point in shapePoints, move the center away from it, but factor by the distance to the center
+    const originalCenter = center.clone();
+    shapePoints.forEach((p) => {
+      const dist = GeomHelpers.distanceBetweenPoints(originalCenter, p);
+      center.x += ((originalCenter.x - p.x) / dist / dist) * 10;
+      center.y += ((originalCenter.y - p.y) / dist / dist) * 10;
+    });
     const numSegments = shapeSegs.length;
-    const hatchStep = this.scale * 10;
+    const radius = this.shape.boundingCircle().radius;
+    const hatchStep = radius / (4 * this.scale);
     const pts: Point[] = [];
     for (let j = 0; j < hatchStep; j++) {
       const step = j / hatchStep;
       for (let i = 0; i < numSegments; i++) {
-        const a = shapeSegs[i].a.clone();
+        const a = shapePoints[i].clone();
         const ease = ((1 / hatchStep) * i) / numSegments;
         pts.push(
           GeomHelpers.lerpPoints(a, center, step + ease - 0.05 / this.scale),
