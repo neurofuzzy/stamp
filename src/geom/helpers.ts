@@ -1,8 +1,15 @@
 import { makeCircle } from "../lib/smallest-enclosing-circle";
-import { Point, Ray, Path, BoundingBox, IShape, BoundingCircle, Segment } from "./core";
+import {
+  Point,
+  Ray,
+  Path,
+  BoundingBox,
+  IShape,
+  BoundingCircle,
+  Segment,
+} from "./core";
 
 export class GeomHelpers {
-
   static EPSILON = 0.001;
 
   static pointsAreEqual(p1: Point, p2: Point, threshold: number = 0.0001) {
@@ -16,8 +23,8 @@ export class GeomHelpers {
   }
 
   static distanceBetweenPointsSquared(p1: Point, p2: Point) {
-    const dx = p2.x - p1.x
-    const dy = p2.y - p1.y
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
     return dx * dx + dy * dy;
   }
 
@@ -53,6 +60,10 @@ export class GeomHelpers {
     return a + (b - a) * t;
   }
 
+  static lerpPoints(a: Point, b: Point, t: number) {
+    return new Point(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+  }
+
   static lerpAngle(a: number, b: number, t: number) {
     return a + (b - a) * t;
   }
@@ -62,11 +73,11 @@ export class GeomHelpers {
   }
 
   static degreesToRadians(degrees: number) {
-    return degrees * Math.PI / 180;
+    return (degrees * Math.PI) / 180;
   }
 
   static radiansToDegrees(radians: number) {
-    return radians * 180 / Math.PI;
+    return (radians * 180) / Math.PI;
   }
 
   static rotatePoint(pt: Point, rad: number) {
@@ -86,7 +97,7 @@ export class GeomHelpers {
 
   static rotatePointAbountPoint(origin: Point, point: Point, angle: number) {
     if (angle === Math.round(angle)) {
-      angle = angle * Math.PI / 180;
+      angle = (angle * Math.PI) / 180;
     }
     const x = point.x - origin.x;
     const y = point.y - origin.y;
@@ -97,11 +108,21 @@ export class GeomHelpers {
   static rotatePointAboutOrigin(origin: Ray, point: Point) {
     const x = point.x - origin.x;
     const y = point.y - origin.y;
-    point.x = x * Math.cos(origin.direction) - y * Math.sin(origin.direction) + origin.x;
-    point.y = x * Math.sin(origin.direction) + y * Math.cos(origin.direction) + origin.y;
+    point.x =
+      x * Math.cos(origin.direction) -
+      y * Math.sin(origin.direction) +
+      origin.x;
+    point.y =
+      x * Math.sin(origin.direction) +
+      y * Math.cos(origin.direction) +
+      origin.y;
   }
 
-  static scalePointsRelativeToCenter(points: { x: number, y: number }[], center: { x: number, y: number }, scale: number) {
+  static scalePointsRelativeToCenter(
+    points: { x: number; y: number }[],
+    center: { x: number; y: number },
+    scale: number,
+  ) {
     points.forEach((pt) => {
       pt.x -= center.x;
       pt.y -= center.y;
@@ -109,7 +130,7 @@ export class GeomHelpers {
       pt.y *= scale;
       pt.x += center.x;
       pt.y += center.y;
-    }); 
+    });
   }
 
   static averagePoints(points: Point[]) {
@@ -131,20 +152,30 @@ export class GeomHelpers {
     const points = [];
     for (let i = 0; i <= divisions; i++) {
       const pt = new Point(
-        start.x + (end.x - start.x) * i / divisions,
-        start.y + (end.y - start.y) * i / divisions
+        start.x + ((end.x - start.x) * i) / divisions,
+        start.y + ((end.y - start.y) * i) / divisions,
       );
       points.push(pt);
     }
-    return points
+    return points;
   }
 
-  static subdividePointsByDistance(start: Point, end: Point, distance: number): Point[] {
-    const divisions = Math.round(GeomHelpers.distanceBetweenPoints(start, end) / distance);
+  static subdividePointsByDistance(
+    start: Point,
+    end: Point,
+    distance: number,
+  ): Point[] {
+    const divisions = Math.round(
+      GeomHelpers.distanceBetweenPoints(start, end) / distance,
+    );
     return GeomHelpers.subdividePoints(start, end, divisions);
   }
 
-  static subdividePointsByDistanceExact(start: Point, end: Point, dist: number): Point[] {
+  static subdividePointsByDistanceExact(
+    start: Point,
+    end: Point,
+    dist: number,
+  ): Point[] {
     const points = [];
     const len = GeomHelpers.distanceBetweenPoints(start, end);
     const ang = GeomHelpers.angleBetweenPoints(start, end);
@@ -156,7 +187,7 @@ export class GeomHelpers {
       }
       const pt = new Point(
         start.x + Math.cos(ang) * runningDist,
-        start.y + Math.sin(ang) * runningDist
+        start.y + Math.sin(ang) * runningDist,
       );
       runningDist += dist;
       points.push(pt);
@@ -167,27 +198,39 @@ export class GeomHelpers {
   static rotateRayAboutOrigin(origin: Ray, ray: Ray) {
     const x = ray.x - origin.x;
     const y = ray.y - origin.y;
-    ray.x = x * Math.cos(origin.direction) - y * Math.sin(origin.direction) + origin.x;
-    ray.y = x * Math.sin(origin.direction) + y * Math.cos(origin.direction) + origin.y;
+    ray.x =
+      x * Math.cos(origin.direction) -
+      y * Math.sin(origin.direction) +
+      origin.x;
+    ray.y =
+      x * Math.sin(origin.direction) +
+      y * Math.cos(origin.direction) +
+      origin.y;
     ray.direction += origin.direction;
   }
 
-  static subdivideRays(start: Ray, end: Ray, divisions: number, flipRays = false): Ray[] {
+  static subdivideRays(
+    start: Ray,
+    end: Ray,
+    divisions: number,
+    flipRays = false,
+  ): Ray[] {
     if (divisions === 0) {
       return [start, end];
     }
     const rays = [];
     for (let i = 0; i <= divisions; i++) {
       const ray = new Ray(
-        start.x + (end.x - start.x) * i / divisions,
-        start.y + (end.y - start.y) * i / divisions
+        start.x + ((end.x - start.x) * i) / divisions,
+        start.y + ((end.y - start.y) * i) / divisions,
       );
       if (i === 0) {
         ray.direction = start.direction;
       } else if (i === divisions) {
         ray.direction = end.direction;
       } else {
-        ray.direction = GeomHelpers.angleBetweenPoints(rays[i - 1], ray) - Math.PI / 2;
+        ray.direction =
+          GeomHelpers.angleBetweenPoints(rays[i - 1], ray) - Math.PI / 2;
       }
       rays.push(ray);
     }
@@ -196,49 +239,63 @@ export class GeomHelpers {
         rays[i].direction += Math.PI;
       }
     }
-    return rays
+    return rays;
   }
 
-  static subdivideRaysByDistance(start: Ray, end: Ray, distance: number): Ray[] {
-    const divisions = Math.round(GeomHelpers.distanceBetweenPoints(start, end) / distance);
+  static subdivideRaysByDistance(
+    start: Ray,
+    end: Ray,
+    distance: number,
+  ): Ray[] {
+    const divisions = Math.round(
+      GeomHelpers.distanceBetweenPoints(start, end) / distance,
+    );
     return GeomHelpers.subdivideRays(start, end, divisions);
   }
 
   static subdivideRaySet(rays: Ray[], divisions: number) {
     const newRays = [];
     for (let i = 0; i < rays.length - 1; i++) {
-      newRays.push(...GeomHelpers.subdivideRays(rays[i], rays[i + 1], divisions));
+      newRays.push(
+        ...GeomHelpers.subdivideRays(rays[i], rays[i + 1], divisions),
+      );
     }
-    return newRays
+    return newRays;
   }
 
   static subdivideRaySetByDistance(rays: Ray[], distance: number) {
     const newRays = [];
     for (let i = 0; i < rays.length - 1; i++) {
-      newRays.push(...GeomHelpers.subdivideRaysByDistance(rays[i], rays[i + 1], distance));
+      newRays.push(
+        ...GeomHelpers.subdivideRaysByDistance(rays[i], rays[i + 1], distance),
+      );
     }
-    return newRays
+    return newRays;
   }
 
-  static smoothLine(pts:Point[], iterations:number, minDist = 5, closed = false, d1 = 0.25, d2 = 0.75) {
-
+  static smoothLine(
+    pts: Point[],
+    iterations: number,
+    minDist = 5,
+    closed = false,
+    d1 = 0.25,
+    d2 = 0.75,
+  ) {
     let inn = pts.concat();
     let out = [];
     let prev = inn.concat();
 
     for (let j = 0; j < iterations; j++) {
-
       out = [];
 
       if (prev.length && !closed) {
-        out.push(prev[0])
+        out.push(prev[0]);
       }
 
       let len = prev.length - 1;
       if (closed) len++;
 
       for (let i = 0; i < len; i++) {
-
         let p1 = prev[i];
         let p2 = prev[i + 1] || prev[0];
 
@@ -260,7 +317,6 @@ export class GeomHelpers {
         if (!p2) continue;
 
         if (GeomHelpers.distanceBetweenPoints(p1, p2) > minDist * 2) {
-
           let mx = d2 * p1.x + d1 * p2.x;
           let my = d2 * p1.y + d1 * p2.y;
           let nx = d1 * p1.x + d2 * p2.x;
@@ -268,17 +324,14 @@ export class GeomHelpers {
 
           out.push(new Point(mx, my));
           out.push(new Point(nx, ny));
-
         } else if (!closed) {
           out.push(p2.clone());
         } else {
           out.push(GeomHelpers.averagePoints([p1, p2]));
         }
-
       }
 
       prev = out;
-
     }
 
     if (closed && out.length) {
@@ -288,7 +341,6 @@ export class GeomHelpers {
     }
 
     return out;
-
   }
 
   static normalizeRayDirections(rays: Ray[], isReversed = false) {
@@ -306,8 +358,8 @@ export class GeomHelpers {
     for (let i = 1; i < r.length - 1; i++) {
       r[i].direction = GeomHelpers.normalizeAngle(
         GeomHelpers.angleBetweenPoints(r[i - 1], r[i]) +
-        GeomHelpers.angleBetweenABC(r[i - 1], r[i], r[i + 1]) +
-        (isReversed ? Math.PI * 0.5 : 0 - Math.PI * 0.5)
+          GeomHelpers.angleBetweenABC(r[i - 1], r[i], r[i + 1]) +
+          (isReversed ? Math.PI * 0.5 : 0 - Math.PI * 0.5),
       );
     }
     if (isClosed) {
@@ -320,37 +372,44 @@ export class GeomHelpers {
     for (let i = 0; i < rays.length - 1; i++) {
       sum += GeomHelpers.angleBetweenPoints(rays[i], rays[i + 1]);
     }
-    return sum < 0
+    return sum < 0;
   }
 
   static boundingBoxIsWithinBoundingBox(
     boundingBox: BoundingBox,
     outerBoundingBox: BoundingBox,
-    tolerance = 0
+    tolerance = 0,
   ) {
     return (
       boundingBox.x + tolerance >= outerBoundingBox.x &&
       boundingBox.y + tolerance >= outerBoundingBox.y &&
-      boundingBox.x + boundingBox.width - tolerance <= outerBoundingBox.x + outerBoundingBox.width &&
-      boundingBox.y + boundingBox.height - tolerance <= outerBoundingBox.y + outerBoundingBox.height
+      boundingBox.x + boundingBox.width - tolerance <=
+        outerBoundingBox.x + outerBoundingBox.width &&
+      boundingBox.y + boundingBox.height - tolerance <=
+        outerBoundingBox.y + outerBoundingBox.height
     );
   }
 
   static shapeWithinBoundingBox(
     shape: IShape,
     outerBoundingBox: BoundingBox,
-    tolerance = 0
+    tolerance = 0,
   ) {
     return GeomHelpers.boundingBoxIsWithinBoundingBox(
       shape.boundingBox(),
       outerBoundingBox,
-      tolerance
+      tolerance,
     );
   }
 
   // Based on http://stackoverflow.com/a/12037737
 
-  static circleCircleTangents(ptA: Point, rA: number, ptB: Point, rB: number): Point[] {
+  static circleCircleTangents(
+    ptA: Point,
+    rA: number,
+    ptB: Point,
+    rB: number,
+  ): Point[] {
     var dx = ptB.x - ptA.x;
     var dy = ptB.y - ptA.y;
     var dist = Math.sqrt(dx * dx + dy * dy);
@@ -377,7 +436,7 @@ export class GeomHelpers {
       new Point(
         ptB.x + rB * Math.cos(angle1 - angle2),
         ptB.y + rB * Math.sin(angle1 - angle2),
-      )
+      ),
     ];
   }
 
@@ -393,7 +452,10 @@ export class GeomHelpers {
         j++;
         let ptC = pts[j];
         let ptD = pts[j - 1];
-        if (GeomHelpers.pointsAreEqual(ptA, ptD, threshold) && GeomHelpers.pointsAreEqual(ptB, ptC, threshold)) {
+        if (
+          GeomHelpers.pointsAreEqual(ptA, ptD, threshold) &&
+          GeomHelpers.pointsAreEqual(ptB, ptC, threshold)
+        ) {
           pts.splice(i, 1);
           break;
         }
@@ -436,10 +498,17 @@ export class GeomHelpers {
   }
 
   static distancePointSegment(pt: Point, seg: Segment): number {
-    return GeomHelpers.distanceBetweenPoints(pt, GeomHelpers.closestPtPointSegment(pt, seg));
+    return GeomHelpers.distanceBetweenPoints(
+      pt,
+      GeomHelpers.closestPtPointSegment(pt, seg),
+    );
   }
 
-  static segmentSegmentIntersect(segA: Segment, segB: Segment, ignoreTouching = false): Point | null {
+  static segmentSegmentIntersect(
+    segA: Segment,
+    segB: Segment,
+    ignoreTouching = false,
+  ): Point | null {
     const x1 = segA.a.x;
     const y1 = segA.a.y;
     const x2 = segA.b.x;
@@ -454,18 +523,26 @@ export class GeomHelpers {
     const s2_x = x4 - x3;
     const s2_y = y4 - y3;
 
-    const s = (-s1_y * (x1 - x3) + s1_x * (y1 - y3)) / (-s2_x * s1_y + s1_x * s2_y);
-    const t = (s2_x * (y1 - y3) - s2_y * (x1 - x3)) / (-s2_x * s1_y + s1_x * s2_y);
+    const s =
+      (-s1_y * (x1 - x3) + s1_x * (y1 - y3)) / (-s2_x * s1_y + s1_x * s2_y);
+    const t =
+      (s2_x * (y1 - y3) - s2_y * (x1 - x3)) / (-s2_x * s1_y + s1_x * s2_y);
 
     if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
       const atX = x1 + t * s1_x;
       const atY = y1 + t * s1_y;
       let intPt = new Point(atX, atY);
       if (ignoreTouching) {
-        if (GeomHelpers.pointsAreEqual(intPt, segB.a) || GeomHelpers.pointsAreEqual(intPt, segB.b)) {
+        if (
+          GeomHelpers.pointsAreEqual(intPt, segB.a) ||
+          GeomHelpers.pointsAreEqual(intPt, segB.b)
+        ) {
           return null;
         }
-        if (GeomHelpers.pointsAreEqual(intPt, segA.a) || GeomHelpers.pointsAreEqual(intPt, segA.b)) {
+        if (
+          GeomHelpers.pointsAreEqual(intPt, segA.a) ||
+          GeomHelpers.pointsAreEqual(intPt, segA.b)
+        ) {
           return null;
         }
       }
@@ -475,13 +552,22 @@ export class GeomHelpers {
     return null;
   }
 
-  static segmentSegmentsIntersections(segA: Segment, segs: Segment[], ignoreTouching = false, removeDuplicates = false) {
-    let intersections: { pt: Point, dist: number }[] = [];
+  static segmentSegmentsIntersections(
+    segA: Segment,
+    segs: Segment[],
+    ignoreTouching = false,
+    removeDuplicates = false,
+  ) {
+    let intersections: { pt: Point; dist: number }[] = [];
     segs.forEach((seg) => {
       if (seg == segA) {
         return;
       }
-      let intPt = GeomHelpers.segmentSegmentIntersect(segA, seg, ignoreTouching);
+      let intPt = GeomHelpers.segmentSegmentIntersect(
+        segA,
+        seg,
+        ignoreTouching,
+      );
       if (intPt) {
         let exists = false;
         if (removeDuplicates) {
@@ -493,7 +579,10 @@ export class GeomHelpers {
           }
         }
         if (!exists) {
-          const intersection = { pt: intPt, dist: GeomHelpers.distanceBetweenPoints(segA.a, intPt) };
+          const intersection = {
+            pt: intPt,
+            dist: GeomHelpers.distanceBetweenPoints(segA.a, intPt),
+          };
           intersections.push(intersection);
         }
       }
@@ -501,13 +590,23 @@ export class GeomHelpers {
     return intersections;
   }
 
-  static segmentsAreEqual(segA: Segment, segB: Segment, threshold = 0.0001, noReverseSegCheck = false): boolean {
+  static segmentsAreEqual(
+    segA: Segment,
+    segB: Segment,
+    threshold = 0.0001,
+    noReverseSegCheck = false,
+  ): boolean {
     if (noReverseSegCheck) {
-      return GeomHelpers.pointsAreEqual(segA.a, segB.a, threshold) && GeomHelpers.pointsAreEqual(segA.b, segB.b, threshold);
+      return (
+        GeomHelpers.pointsAreEqual(segA.a, segB.a, threshold) &&
+        GeomHelpers.pointsAreEqual(segA.b, segB.b, threshold)
+      );
     } else {
       return (
-        GeomHelpers.pointsAreEqual(segA.a, segB.b, threshold) && GeomHelpers.pointsAreEqual(segA.b, segB.a, threshold) ||
-        GeomHelpers.pointsAreEqual(segA.a, segB.a, threshold) && GeomHelpers.pointsAreEqual(segA.b, segB.b, threshold)
+        (GeomHelpers.pointsAreEqual(segA.a, segB.b, threshold) &&
+          GeomHelpers.pointsAreEqual(segA.b, segB.a, threshold)) ||
+        (GeomHelpers.pointsAreEqual(segA.a, segB.a, threshold) &&
+          GeomHelpers.pointsAreEqual(segA.b, segB.b, threshold))
       );
     }
   }
@@ -527,7 +626,11 @@ export class GeomHelpers {
   static optimizePath(path: Path, threshold = 0.0001): Path[] {
     let i = path.points.length;
     let pts = path.points.concat();
-    let isClosed = GeomHelpers.pointsAreEqual(pts[0], pts[pts.length - 1], threshold);
+    let isClosed = GeomHelpers.pointsAreEqual(
+      pts[0],
+      pts[pts.length - 1],
+      threshold,
+    );
     let newPts: Point[] = [];
     let segs = [];
     if (isClosed) {
@@ -544,8 +647,10 @@ export class GeomHelpers {
         let ptC = pts[j];
         let ptD = pts[j - 1];
         if (
-          (GeomHelpers.pointsAreEqual(ptA, ptD, threshold) && GeomHelpers.pointsAreEqual(ptB, ptC, threshold)) ||
-          (GeomHelpers.pointsAreEqual(ptA, ptC, threshold) && GeomHelpers.pointsAreEqual(ptB, ptD, threshold))
+          (GeomHelpers.pointsAreEqual(ptA, ptD, threshold) &&
+            GeomHelpers.pointsAreEqual(ptB, ptC, threshold)) ||
+          (GeomHelpers.pointsAreEqual(ptA, ptC, threshold) &&
+            GeomHelpers.pointsAreEqual(ptB, ptD, threshold))
         ) {
           duplicate = true;
           if (newPts.length > 1) {
@@ -561,11 +666,7 @@ export class GeomHelpers {
       }
     }
     if (newPts.length > 1) {
-      if (
-        newPts.length > 2 && 
-        isClosed && 
-        segs.length === 0
-      ) {
+      if (newPts.length > 2 && isClosed && segs.length === 0) {
         newPts.push(newPts[0].clone());
       }
       segs.push(new Path(newPts));
@@ -573,7 +674,7 @@ export class GeomHelpers {
     return segs;
   }
 
-  static boundingCircleFromPaths (paths: Path[]):BoundingCircle | null {
+  static boundingCircleFromPaths(paths: Path[]): BoundingCircle | null {
     let pts: Point[] = [];
     for (let i = 0; i < paths.length; i++) {
       pts = pts.concat(paths[i].points);
@@ -589,7 +690,10 @@ export class GeomHelpers {
     const b = shape.boundingBox();
 
     let startPtA = new Point(b.x - 99000.9, b.y - 1110000.1);
-    let startPtB = new Point(b.x + b.width + 1110000.1, b.y + b.height + 99000.9);
+    let startPtB = new Point(
+      b.x + b.width + 1110000.1,
+      b.y + b.height + 99000.9,
+    );
     let segA = new Segment(startPtA, pt);
     let segB = new Segment(startPtB, pt);
 
@@ -614,9 +718,17 @@ export class GeomHelpers {
     return ptsA.length % 2 !== 0 && ptsB.length % 2 !== 0;
   }
 
-  static raycast(ptA: Point, ptB: Point, segs: Segment[], ignoreTouching = true): { pt: Point, dist: number }[] {
-
-    let hitPts = GeomHelpers.segmentSegmentsIntersections(new Segment(ptA, ptB), segs, ignoreTouching);
+  static raycast(
+    ptA: Point,
+    ptB: Point,
+    segs: Segment[],
+    ignoreTouching = true,
+  ): { pt: Point; dist: number }[] {
+    let hitPts = GeomHelpers.segmentSegmentsIntersections(
+      new Segment(ptA, ptB),
+      segs,
+      ignoreTouching,
+    );
 
     hitPts.sort((a, b) => {
       const distA = a.dist;
@@ -640,17 +752,14 @@ export class GeomHelpers {
     }
 
     return [];
-
   }
 
-  static cropSegsToShape (segs: Segment[], shape: IShape): Segment[] {
-
+  static cropSegsToShape(segs: Segment[], shape: IShape): Segment[] {
     const outSegs = segs.concat();
 
     let i = outSegs.length;
 
     while (i--) {
-
       let seg = outSegs[i];
       let aok = GeomHelpers.pointWithinPolygon(seg.a, shape);
       let bok = GeomHelpers.pointWithinPolygon(seg.b, shape);
@@ -661,7 +770,12 @@ export class GeomHelpers {
 
       const borderSegs = shape.toSegments();
 
-      let intPts = GeomHelpers.segmentSegmentsIntersections(seg, borderSegs, false, false);
+      let intPts = GeomHelpers.segmentSegmentsIntersections(
+        seg,
+        borderSegs,
+        false,
+        false,
+      );
 
       if (!aok && !bok) {
         if (intPts && intPts.length > 1) {
@@ -690,21 +804,17 @@ export class GeomHelpers {
           continue;
         }
       }
-
     }
 
     return outSegs;
-
   }
 
-  static cutShapeFromSegs (segs: Segment[], shape: IShape): Segment[] {
-
+  static cutShapeFromSegs(segs: Segment[], shape: IShape): Segment[] {
     let outSegs = segs.concat();
     let i = outSegs.length;
     let shapeSegs = shape.toSegments();
 
     while (i--) {
-
       let seg = outSegs[i];
       let aok = GeomHelpers.pointWithinPolygon(seg.a, shape);
       let bok = GeomHelpers.pointWithinPolygon(seg.b, shape);
@@ -714,11 +824,15 @@ export class GeomHelpers {
         continue;
       }
 
-      let intPts = GeomHelpers.segmentSegmentsIntersections(seg, shapeSegs, false, false);
+      let intPts = GeomHelpers.segmentSegmentsIntersections(
+        seg,
+        shapeSegs,
+        false,
+        false,
+      );
 
       if (!aok && !bok) {
         if (intPts && intPts.length > 1) {
-
           let segA = new Segment(seg.a, intPts[0].pt);
           let segB = new Segment(intPts[intPts.length - 1].pt, seg.b);
           outSegs.splice(i, 1, segA, segB);
@@ -744,11 +858,8 @@ export class GeomHelpers {
           continue;
         }
       }
-
     }
 
     return outSegs;
-
   }
-
 }

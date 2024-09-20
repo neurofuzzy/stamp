@@ -1,6 +1,6 @@
 import * as arbit from "arbit";
 import { GeomHelpers } from "./helpers";
-import { IStyle, Point, Ray, Path } from "./core";
+import { IStyle, Point, Ray, Path, IShape } from "./core";
 import { PathModifiers } from "./path-modifiers";
 
 const prng = arbit(29374);
@@ -10,6 +10,7 @@ export interface IHatchPattern {
   generate(): Path[];
   clone(): IHatchPattern;
   get doOptimize(): boolean;
+  setShape(shape: IShape): void;
 }
 
 export class HatchPattern implements IHatchPattern {
@@ -26,6 +27,7 @@ export class HatchPattern implements IHatchPattern {
   protected offsetX: number;
   protected offsetY: number;
   protected spherify: boolean;
+  protected shape: IShape | null;
   style: IStyle = HatchPattern.defaultStyle;
   constructor(
     center: Ray,
@@ -45,6 +47,7 @@ export class HatchPattern implements IHatchPattern {
     this.offsetX = offsetX;
     this.offsetY = offsetY;
     this.spherify = spherify;
+    this.shape = null;
   }
   generate(): Path[] {
     return [];
@@ -54,6 +57,9 @@ export class HatchPattern implements IHatchPattern {
   }
   get doOptimize(): boolean {
     return false;
+  }
+  setShape(shape: IShape): void {
+    this.shape = shape;
   }
 }
 
@@ -187,6 +193,39 @@ export class SpiralHatchPattern extends HatchPattern {
     if (this.spherify) {
       PathModifiers.spherify(segments, this.center, radius * 0.5);
     }
+    return segments;
+  }
+}
+
+export class WindingHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    if (!this.shape) {
+      return [];
+    }
+    const segments: Path[] = [];
+    const shapeSegs = this.shape.toSegments();
+    const center = GeomHelpers.averagePoints(shapeSegs.map((s) => s.a));
+    const numSegments = shapeSegs.length;
+    const hatchStep = this.scale * 10;
+    const pts: Point[] = [];
+    for (let j = 0; j < hatchStep; j++) {
+      const step = j / hatchStep;
+      for (let i = 0; i < numSegments; i++) {
+        const a = shapeSegs[i].a.clone();
+        const ease = ((1 / hatchStep) * i) / numSegments;
+        pts.push(
+          GeomHelpers.lerpPoints(a, center, step + ease - 0.05 / this.scale),
+        );
+      }
+    }
+    let p = new Path(pts);
+    segments.push(p);
+    segments.forEach((p) => {
+      p.points.forEach((p) => {
+        p.x += this.offsetX;
+        p.y += this.offsetY;
+      });
+    });
     return segments;
   }
 }
@@ -1353,6 +1392,7 @@ export enum HatchPatternType {
   ROCK = 37,
   OFFSET = 38,
   OFFSETLOOP = 39,
+  WINDING = 40,
 }
 
 export enum HatchBooleanType {

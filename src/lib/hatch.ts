@@ -42,6 +42,7 @@ import {
   SmoothOrthoHatchPattern,
   GreekHatchPattern,
   ShellHatchPattern,
+  WindingHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
 import { ClipperHelpers } from "./clipper-helpers";
@@ -213,6 +214,10 @@ export class Hatch {
           false,
           true,
         );
+      case HatchPatternType.WINDING:
+        hatchPattern = new WindingHatchPattern(...args);
+        hatchPattern.shape = shape;
+        break;
       default:
         return null;
     }
