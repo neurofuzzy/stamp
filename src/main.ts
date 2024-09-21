@@ -68,6 +68,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetX: "210 - 20 * ROFFSET()",
       style: {
         fillColor: "0x000000",
+        fillAlpha: 0,
         hatchPattern: HatchPatternType.WINDING,
         hatchScale: 1,
         hatchStrokeColor: "0x999999",

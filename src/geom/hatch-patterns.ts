@@ -223,7 +223,7 @@ export class WindingHatchPattern extends HatchPattern {
         const a = shapePoints[i].clone();
         const ease = ((1 / hatchStep) * i) / numSegments;
         pts.push(
-          GeomHelpers.lerpPoints(a, center, step + ease - 0.05 / this.scale),
+          GeomHelpers.lerpPoints(a, center, step + ease - 0.1 / this.scale),
         );
       }
     }
