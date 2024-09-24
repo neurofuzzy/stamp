@@ -110,10 +110,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // 1, 29, 48, 61, 72, 77, 127
   //const seeds = Sequence.fromStatement("repeat 1, 29, 48, 127, 72, 61");
   // -108
-  // 1,2,11,18,29,34, 5,35
+  // 1,2,11,18,29,34, 5,35,-24
   // 2,12,15,22,29,30,73
   // 1,5,15,28,29,52
-  const seeds = Sequence.fromStatement("repeat 1,2,11,18,29,34");
+  const seeds = Sequence.fromStatement("repeat 1,2,11,18,29,-24");
   //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
