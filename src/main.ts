@@ -1,13 +1,15 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawShape } from "../src/lib/draw";
-import { Ray, ShapeAlignment } from "../src/geom/core";
+import { drawPath, drawShape } from "../src/lib/draw";
+import { Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
-import { Hatch } from "../src/lib/hatch";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { HatchBooleanType, HatchPatternType } from "../src/geom/hatch-patterns";
+import { GridStampLayout } from "../src/lib/stamp-layout";
+import { GeomHelpers } from "../src/geom/helpers";
+import { GeomUtils } from "../src/geom/util";
+import { Rectangle } from "./geom/shapes";
 
 const backgroundColor = "black";
 
@@ -21,7 +23,7 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 5 * 96;
 const pageHeight = 7 * 96;
 const ratio = 2;
-const zoom = 2;
+const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -36,65 +38,112 @@ ctx.fillStyle = "white";
 Sequence.seed = 1;
 
 // 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[79];
+const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
-Sequence.fromStatement(colorSeq, 122);
+Sequence.fromStatement(colorSeq, 125);
 
-Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 1.9 add AS RSCALE");
-Sequence.fromStatement("repeat 1.03 multiply AS ROFFSET");
-Sequence.fromStatement("repeat 100 AS BERRY");
+Sequence.seed = 2;
+Sequence.seed = 500;
+Sequence.seed = 503;
+Sequence.seed = 506;
+Sequence.seed = 518;
+Sequence.seed = 18;
+Sequence.seed = 17;
+Sequence.seed = 199;
+Sequence.seed = 198;
+Sequence.seed = 197;
+Sequence.seed = 193;
+Sequence.seed = 312;
+//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,-144,72,-72 AS RANGLE");
+//Sequence.fromStatement("shuffle -120,-120,60,60,-60,-60,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -60,-60,60,0,180,0,-60,-60,60,0,180,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,72,72,180,0,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -90,-90,90,-90,0,-90,-90,90,0,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,72,72,72,72,72 AS RANGLE");
+//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
+// golden angle = 13
+//Sequence.fromStatement("shuffle -72, -72, -72, -72, -72, 72, 72, -108 AS IA");
+//Sequence.fromStatement("shuffle -144, -72, -72, -72, -72, 72, 72, -108 AS IA");
+Sequence.fromStatement("shuffle -108,-72, -72, 72, 72, -144 AS IA");
+//Sequence.fromStatement("shuffle -108,-72, -72, 72, 72, -108 AS IA");
+Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, IA() AS RANGLE");
+
+//Sequence.fromStatement("shuffle -72, -72, -72, -72, 72 AS IA");
+//Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, -72, IA() AS RANGLE");
+
+Sequence.fromStatement("shuffle 90,90 AS RLEN");
+
+Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP");
+Sequence.fromStatement("repeat 10,10 AS BERRY");
+Sequence.fromStatement("repeat 18,18,18,-18 AS LANGLE");
+
+const len = 90;
+const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
-  const tree = new Stamp(new Ray(w / 2, h / 2, 0))
+  const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
+    .noBoolean()
+    .rotate(18)
     .defaultStyle({
-      // fillColor: "COLOR()",
-      strokeThickness: 2.5,
-      fillColor: "0x000000",
-      fillAlpha: 1,
+      strokeThickness: 0,
+      fillColor: "cyan",
     })
-    .rotate(137.508)
-    .leafShape({
-      radius: "220 - RSCALE()",
-      outlineThickness: 10,
-      divisions: 42,
-      splitAngle: 40,
-      splitAngle2: 70,
-      serration: 0,
-      angle: 270,
-      align: ShapeAlignment.TOP,
-      offsetX: "210 - 20 * ROFFSET()",
-      style: {
-        fillColor: "0x000000",
-        fillAlpha: 0,
-        hatchPattern: HatchPatternType.WINDING,
-        hatchScale: 1,
-        hatchStrokeColor: "0x999999",
-        strokeColor: "0x999999",
-      },
+    .forward("RLEN()")
+    .circle({
+      radius: 2,
+      divisions: 3,
+      skip: 1,
     })
-    .repeatLast(2, 59);
+    .rotate("RANGLE()")
+    .repeatLast(3, 480);
 
-  Sequence.resetAll();
+  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
+  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
+  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
+  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
+  //const seeds = Sequence.fromStatement("repeat 11,13,16,22,23,110");
+  //const seeds = Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30");
+  // 108
+  // 1, 29, 48, 61, 72, 77, 127
+  //const seeds = Sequence.fromStatement("repeat 1, 29, 48, 127, 72, 61");
+  // -108
+  // 1,2,11,18,29,34, 5,35
+  // 2,12,15,22,29,30,73
+  // 1,5,15,28,29,52
+  const seeds = Sequence.fromStatement("repeat 2,12,15,22,29,30,73");
+  //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
 
-  tree.children().forEach((child) => {
-    if (
-      child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE ||
-      child.style.hatchBooleanType === HatchBooleanType.INTERSECT
-    ) {
-      const shape = Hatch.subtractHatchFromShape(child);
-      if (shape) drawShape(ctx, shape);
-    } else {
-      drawShape(ctx, child);
+  const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    stamp: lattice,
+    seedSequence: seeds,
+    rows: 3,
+    columns: 2,
+    rowSpacing: 200,
+    columnSpacing: 200,
+  });
+
+  let pathSets = grid.children().map((x) => {
+    let path = x.path();
+    let c = GeomHelpers.boundingCircleFromPaths(path);
+    if (c) {
+      let scale = 80 / c.radius;
+      return x.path(scale);
     }
-    if (child.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(child, false);
-      if (fillPattern) {
-        drawHatchPattern(ctx, fillPattern, true);
-      }
-    }
+    return path;
+  });
+
+  pathSets.forEach((paths) => {
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 0.5, 4);
+    shapes.forEach((shape) => {
+      //drawShape(ctx, shape, 0);
+      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
+    });
+    paths.forEach((path) => {
+      drawPath(ctx, path, 0);
+    });
   });
 };
 
