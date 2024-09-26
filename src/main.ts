@@ -20,7 +20,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 8 * 96;
+const pageWidth = 16 * 96;
 const pageHeight = 8 * 96;
 const ratio = 2;
 const zoom = 1;
@@ -48,7 +48,8 @@ Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, IA() AS RANGLE");
 
 Sequence.fromStatement("shuffle 90,90 AS RLEN");
 
-const seeds = Sequence.fromStatement("repeat 40-800");
+// 26,30,37,58,69,70,102,112,131
+const seeds = Sequence.fromStatement("repeat 26,30,37,58,69,70,112,131");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -69,27 +70,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate("RANGLE()")
     .repeatLast(3, 4080);
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
-  //const seeds = Sequence.fromStatement("repeat 11,13,16,22,23,110");
-  //const seeds = Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30");
-  // 108
-  // 1, 29, 48, 61, 72, 77, 127
-  //const seeds = Sequence.fromStatement("repeat 1, 29, 48, 127, 72, 61");
-  // -108
-  // 1,2,11,18,29,34, 5,35,-24
-  // 2,12,15,22,29,30,73
-  // 4,6,7,14,26,51,52,54
-
-  //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
-
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
     seedSequence: seeds,
     rows: 2,
-    columns: 2,
+    columns: 4,
     rowSpacing: 350,
     columnSpacing: 350,
   });
