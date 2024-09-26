@@ -20,8 +20,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 8 * 96;
-const pageHeight = 8 * 96;
+const pageWidth = 11 * 96;
+const pageHeight = 7 * 96;
 const ratio = 2;
 const zoom = 1;
 canvas.width = pageWidth * ratio;
@@ -42,13 +42,45 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 125);
 
-Sequence.fromStatement("shuffle 72,72,72,72,72,72,72,72,72,72,-36 AS IB");
-Sequence.fromStatement("shuffle 72, 72, -72, IB() AS IA");
+Sequence.seed = 2;
+Sequence.seed = 500;
+Sequence.seed = 503;
+Sequence.seed = 506;
+Sequence.seed = 518;
+Sequence.seed = 18;
+Sequence.seed = 17;
+Sequence.seed = 199;
+Sequence.seed = 198;
+Sequence.seed = 197;
+Sequence.seed = 193;
+Sequence.seed = 312;
+//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,-144,72,-72 AS RANGLE");
+//Sequence.fromStatement("shuffle -120,-120,60,60,-60,-60,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -60,-60,60,0,180,0,-60,-60,60,0,180,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,72,72,180,0,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -90,-90,90,-90,0,-90,-90,90,0,0 AS RANGLE");
+//Sequence.fromStatement("shuffle -72,-72,72,72,72,72,72 AS RANGLE");
+//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
+// golden angle = 13
+//Sequence.fromStatement("shuffle -72, -72, -72, -72, -72, 72, 72, -108 AS IA");
+//Sequence.fromStatement("shuffle -144, -72, -72, -72, -72, 72, 72, -108 AS IA");
+//Sequence.fromStatement("shuffle -108,-72, -72, 72, 72, -144 AS IA");
+Sequence.fromStatement("shuffle 72,-36 AS IB");
+Sequence.fromStatement("shuffle 72, 72, 72, -36, IB() AS IA");
 Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, IA() AS RANGLE");
+
+//Sequence.fromStatement("shuffle -72, -72, -72, -72, 72 AS IA");
+//Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, -72, IA() AS RANGLE");
 
 Sequence.fromStatement("shuffle 90,90 AS RLEN");
 
-const seeds = Sequence.fromStatement("repeat 40-800");
+Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP");
+Sequence.fromStatement("repeat 10,10 AS BERRY");
+Sequence.fromStatement("repeat 18,18,18,-18 AS LANGLE");
+
+const len = 90;
+const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -67,7 +99,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       skip: 1,
     })
     .rotate("RANGLE()")
-    .repeatLast(3, 4080);
+    .repeatLast(3, 980);
 
   //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
   //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
@@ -82,23 +114,23 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // 1,2,11,18,29,34, 5,35,-24
   // 2,12,15,22,29,30,73
   // 4,6,7,14,26,51,52,54
-
+  const seeds = Sequence.fromStatement("repeat 1-15");
   //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
     seedSequence: seeds,
-    rows: 2,
-    columns: 2,
-    rowSpacing: 350,
-    columnSpacing: 350,
+    rows: 3,
+    columns: 5,
+    rowSpacing: 200,
+    columnSpacing: 200,
   });
 
   let pathSets = grid.children().map((x) => {
     let path = x.path();
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
-      let scale = 140 / c.radius;
+      let scale = 80 / c.radius;
       return x.path(scale);
     }
     return path;
