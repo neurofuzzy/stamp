@@ -20,10 +20,10 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 5 * 96;
-const pageHeight = 5 * 96;
+const pageWidth = 16 * 96;
+const pageHeight = 8 * 96;
 const ratio = 2;
-const zoom = 2;
+const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -49,7 +49,7 @@ Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, IA() AS RANGLE");
 Sequence.fromStatement("shuffle 90,90 AS RLEN");
 
 // 26,30,37,58,69,70,102,112,131
-const seeds = Sequence.fromStatement("repeat 26,70,112,131");
+const seeds = Sequence.fromStatement("repeat 26,30,37,58,69,70,112,131");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -73,9 +73,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
     seedSequence: seeds,
-    rows: 1,
-    columns: 1,
-    rowSpacing: 300,
+    rows: 2,
+    columns: 4,
+    rowSpacing: 350,
     columnSpacing: 350,
   });
 
@@ -83,25 +83,20 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     let path = x.path();
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
-      let scale = 225 / c.radius;
+      let scale = 140 / c.radius;
       return x.path(scale);
     }
     return path;
   });
 
   pathSets.forEach((paths) => {
-    let oldPaths = paths;
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 3, 4);
+    let shapes = ClipperHelpers.offsetPathsToShape(paths, 0.5, 4);
     shapes.forEach((shape) => {
-      shape.style = {
-        strokeThickness: 0,
-      };
-      drawShape(ctx, shape, 0);
+      //drawShape(ctx, shape, 0);
       console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
     });
-
     paths.forEach((path) => {
-      //drawPath(ctx, path, 0);
+      drawPath(ctx, path, 0);
     });
   });
 };
