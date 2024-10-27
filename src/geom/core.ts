@@ -9,7 +9,7 @@ export enum ShapeAlignment {
   RIGHT = 5,
   BOTTOM_LEFT = 6,
   BOTTOM = 7,
-  BOTTOM_RIGHT = 8
+  BOTTOM_RIGHT = 8,
 }
 
 export interface IShape {
@@ -65,7 +65,7 @@ export class Point {
     return new Ray(this.x, this.y, direction);
   }
   fromString(s: string) {
-    const [x, y] = s.slice(1, -1).split(',').map(Number);
+    const [x, y] = s.slice(1, -1).split(",").map(Number);
     this.x = x;
     this.y = y;
     return this;
@@ -85,7 +85,7 @@ export class Ray extends Point {
     return `(${this.x}, ${this.y}, ${this.direction})`;
   }
   fromString(s: string) {
-    const [x, y, direction] = s.slice(1, -1).split(',').map(Number);
+    const [x, y, direction] = s.slice(1, -1).split(",").map(Number);
     this.x = x;
     this.y = y;
     this.direction = direction;
@@ -110,7 +110,7 @@ export class Segment {
     return `[${this.a.toString()},${this.b.toString()}]`;
   }
   fromString(s: string) {
-    const [a, b] = s.slice(1, -1).split(',');
+    const [a, b] = s.slice(1, -1).split(",");
     this.a.fromString(a);
     this.b.fromString(b);
     return this;
@@ -133,12 +133,7 @@ export class Path {
       if (pt.x > maxX) maxX = pt.x;
       if (pt.y > maxY) maxY = pt.y;
     });
-    return new BoundingBox(
-      minX,
-      minY,
-      maxX - minX,
-      maxY - minY
-    );
+    return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
   }
   boundingCircle(): BoundingCircle {
     let c = makeCircle(this.points);
@@ -151,8 +146,14 @@ export class Path {
       totalX += pt.x;
       totalY += pt.y;
     });
-    const center = new Point(totalX / this.points.length, totalY / this.points.length);
+    const center = new Point(
+      totalX / this.points.length,
+      totalY / this.points.length,
+    );
     return new BoundingCircle(center.x, center.y, 0);
+  }
+  toPoints() {
+    return this.points.concat();
   }
   toSegments() {
     const segments: Segment[] = [];
@@ -165,15 +166,39 @@ export class Path {
     return new Path(this.points.map((p) => p.clone()));
   }
   toString() {
-    return `[${this.points.map((p) => p.toString()).join(', ')}]`;
+    return `[${this.points.map((p) => p.toString()).join(", ")}]`;
   }
   fromString(s: string) {
-    const points = s.slice(1, -1).split(', ').map((s) => {
-      const [x, y] = s.split(',').map(Number);
-      return new Point(x, y);
-    });
+    const points = s
+      .slice(1, -1)
+      .split(", ")
+      .map((s) => {
+        const [x, y] = s.split(",").map(Number);
+        return new Point(x, y);
+      });
     this.points = points;
     return this;
+  }
+}
+
+export class ParametricPath extends Path {
+  pointsFunction: (t: number) => Point;
+  segs: number;
+  constructor(pointsFunction: (t: number) => Point, segs = 12) {
+    super([]);
+    this.pointsFunction = pointsFunction;
+    this.segs = segs;
+    const pts = this.points;
+    const step = 1 / this.segs;
+    let i = 0;
+    while (i <= 1.0001) {
+      const pt = this.pointsFunction(i);
+      if (pt) pts.push(pt);
+      i += step;
+    }
+  }
+  clone() {
+    return new ParametricPath(this.pointsFunction, this.segs);
   }
 }
 

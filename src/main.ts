@@ -1,15 +1,10 @@
 import * as C2S from "canvas2svg";
-import { drawPath, drawShape } from "../src/lib/draw";
-import { Ray } from "../src/geom/core";
+import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
+import { ParametricPath, Path, Point } from "../src/geom/core";
+import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
-import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
-import colors from "nice-color-palettes";
-import { GridStampLayout } from "../src/lib/stamp-layout";
-import { GeomHelpers } from "../src/geom/helpers";
-import { GeomUtils } from "../src/geom/util";
-import { Rectangle } from "./geom/shapes";
 
 const backgroundColor = "black";
 
@@ -20,8 +15,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 5 * 96;
-const pageHeight = 5 * 96;
+const pageWidth = 4.5 * 96;
+const pageHeight = 6.5 * 96;
 const ratio = 2;
 const zoom = 2;
 canvas.width = pageWidth * ratio;
@@ -33,95 +28,106 @@ ctx.scale(ratio, ratio);
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-ctx.fillStyle = "white";
+ctx.fillStyle = "black";
 
-Sequence.seed = 1;
+let stepNum = 0;
+let iter = 919918726;
+const step = 0.1;
+const size = 60;
+const freq = 6;
+const amp = 3;
+const bands = 32;
+const blendSteps = 2;
+const segs = 512;
+const scale = 0.45;
+const minBand = 2;
+const logPadding = 0.7;
 
-// 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[83];
-const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
-Sequence.fromStatement(colorSeq, 125);
+let animate = false;
 
-Sequence.fromStatement("shuffle 72,72,72,72,72,72,72,72,72,72,-36 AS IB");
-Sequence.fromStatement("shuffle 72, 72, -72, IB() AS IA");
-Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, IA() AS RANGLE");
+const func = (perc: number) => {
+  //const s = stepNum; // ring
+  const s = stepNum + perc; // spiral
+  const twist = s / 50;
+  let pt = new Point(0, 0);
+  pt.x = 0;
+  pt.y = Math.log2(s + logPadding) * size; // spiral
+  pt.x -= Math.sin(perc * Math.PI * 3 * freq) * s * amp;
+  pt.y += Math.cos(perc * Math.PI * 3 * freq) * s * amp;
 
-Sequence.fromStatement("shuffle 90,90 AS RLEN");
+  GeomHelpers.rotatePoint(pt, perc * Math.PI * 2 + twist);
+  return pt;
+};
 
-// 26,30,37,58,69,70,102,112,131
-const seeds = Sequence.fromStatement("repeat 26,70,112,131");
+//SVG.debugMode = true;
+
+function getPaths() {
+  Sequence.fromStatement("random 0-10 AS XX", 288);
+
+  let polygons: Path[] = [];
+  let step = 4;
+  let r = step * 10;
+
+  let bones = [];
+
+  for (let x = 0; x < bands; x++) {
+    const poly = new ParametricPath(func, segs);
+    stepNum = x;
+    let pts: Point[] = poly.toPoints();
+    pts.forEach((pt) => {
+      pt.x += w / 2;
+      pt.y += h / 2;
+    });
+    let poly2 = new Path(pts);
+    bones.push(poly2);
+    r += step * 4;
+  }
+
+  for (let x = 1; x < bands; x++) {
+    let pA = bones[x - 1];
+    let pB = bones[x];
+    for (let d = 1; d < blendSteps; d++) {
+      const pts: Point[] = [];
+      pA.points.forEach((ptA, idx) => {
+        let ptB = pB.points[idx];
+        const pt = GeomHelpers.lerpPoints(ptA, ptB, d / blendSteps);
+        pt.x -= w / 2;
+        pt.y -= h / 2;
+        pt.x *= scale;
+        pt.y *= scale;
+        pt.x += w / 2;
+        pt.y += h / 2;
+        pts.push(pt);
+      });
+      const poly = new Path(pts);
+      if (x >= minBand) {
+        polygons.push(poly);
+      }
+    }
+  }
+
+  return polygons;
+}
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
-
-  const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
-    .noBoolean()
-    .rotate(18)
-    .defaultStyle({
-      strokeThickness: 0,
-      fillColor: "cyan",
-    })
-    .forward("RLEN()")
-    .circle({
-      radius: 2,
-      divisions: 3,
-      skip: 1,
-    })
-    .rotate("RANGLE()")
-    .repeatLast(3, 4080);
-
-  const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
-    stamp: lattice,
-    seedSequence: seeds,
-    rows: 1,
-    columns: 1,
-    rowSpacing: 300,
-    columnSpacing: 350,
-  });
-
-  let pathSets = grid.children().map((x) => {
-    let path = x.path();
-    let c = GeomHelpers.boundingCircleFromPaths(path);
-    if (c) {
-      let scale = 225 / c.radius;
-      return x.path(scale);
-    }
-    return path;
-  });
-
-  pathSets.forEach((paths) => {
-    let oldPaths = paths;
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 3, 4);
-    shapes.forEach((shape) => {
-      shape.style = {
-        strokeThickness: 0,
-      };
-      drawShape(ctx, shape, 0);
-      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
-    });
-
-    paths.forEach((path) => {
-      //drawPath(ctx, path, 0);
-    });
-  });
+  const paths = getPaths();
+  paths.forEach((path) => drawPath(ctx, path));
 };
 
 document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
-    // reset Sequences
-    Sequence.resetAll();
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
     ctx2.backgroundColor = "#000";
+
     // draw the shapes
     draw(ctx2);
     // download the SVG
-
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
+    const blob = new Blob([svg], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -131,9 +137,15 @@ document.onkeydown = function (e) {
 
 async function main() {
   await ClipperHelpers.init();
-
   const now = new Date().getTime();
-  draw(ctx);
+  const drawFrame = (t) => {
+    draw(ctx);
+    iter += step;
+    if (animate) {
+      requestAnimationFrame(drawFrame);
+    }
+  };
+  requestAnimationFrame(drawFrame);
   console.log(`${new Date().getTime() - now}ms`);
 }
 
