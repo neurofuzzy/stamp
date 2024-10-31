@@ -42,20 +42,28 @@ const doSpiral = true;
 const doSmooth = true;
 const doStairStep = true;
 const truncateStart = 1;
-const truncateEnd = 1;
+const truncateEnd = 3;
 
 let animate = false;
 
-Sequence.fromStatement("repeat 32,0 AS XX", 288);
+Sequence.fromStatement("repeat -16,16 AS XX", 288);
 
 const func = (perc: number) => {
   const s = doSpiral ? stepNum + perc : stepNum;
   const twist = s / 18;
   const ang = perc * Math.PI * 2 + twist;
-  const offset = Sequence.resolve("XX()");
+  let offset = Sequence.resolve("XX()");
   let pt = new Point(0, 0);
   pt.x = 0;
   pt.y = (s * size) / bands; //Math.log2(s + logPadding) * size;
+
+  if (stepNum == 2) {
+    offset *= perc;
+  }
+  if (stepNum == bands - 2) {
+    offset *= 1 - perc * perc;
+  }
+
   pt.y += offset;
   GeomHelpers.rotatePoint(pt, ang);
   return pt;
