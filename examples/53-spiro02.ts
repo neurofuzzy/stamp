@@ -33,56 +33,84 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 0.1;
-const size = 200;
-const bands = 10;
-const segs = 51;
-const scale = 1;
-const minBand = 3;
+const size = 60;
+const freq = 6;
+const amp = 2;
+const bands = 24;
+const blendSteps = 2;
+const segs = 250;
+const scale = 0.5;
+const minBand = 2;
+const logPadding = 0.7;
 const doSpiral = true;
 const doSmooth = true;
-const doStairStep = true;
-const truncateStart = 1;
-const truncateEnd = 1;
+const truncate = 0;
 
 let animate = false;
 
-Sequence.fromStatement("repeat 32,0 AS XX", 288);
+Sequence.fromStatement("yoyo 1,2,4,8,64 AS XX", 288);
 
 const func = (perc: number) => {
   const s = doSpiral ? stepNum + perc : stepNum;
-  const twist = s / 18;
-  const ang = perc * Math.PI * 2 + twist;
-  const offset = Sequence.resolve("XX()");
+  const a = amp * Math.log2(s / bands + 1);
+  const twist = s / 20;
   let pt = new Point(0, 0);
   pt.x = 0;
-  pt.y = (s * size) / bands; //Math.log2(s + logPadding) * size;
-  pt.y += offset;
-  GeomHelpers.rotatePoint(pt, ang);
+  pt.y = Math.log2(s + logPadding) * size;
+  pt.y += Sequence.resolve("XX()") * (stepNum / 10);
+  //pt.x -= Sequence.resolve("XX") * (stepNum / 10);
+  // pt.x += Math.sin(perc * Math.PI * 3 * freq) * s * a;
+  // pt.y += Math.cos(perc * Math.PI * 3 * freq) * s * a;
+
+  GeomHelpers.rotatePoint(pt, perc * Math.PI * 2 + twist);
   return pt;
 };
 
 //SVG.debugMode = true;
 
 function getPaths() {
+  Sequence.fromStatement("random 0-10 AS XX", 288);
+
   let paths: Path[] = [];
   let step = 4;
   let r = step * 10;
+
+  let bones = [];
 
   for (let x = 0; x < bands; x++) {
     const path = new ParametricPath(func, segs);
     stepNum = x;
     let pts: Point[] = path.toPoints();
     pts.forEach((pt) => {
-      pt.x *= scale;
-      pt.y *= scale;
       pt.x += w / 2;
       pt.y += h / 2;
     });
     let path2 = new Path(pts);
-    if (x >= minBand) {
-      paths.push(path2);
-    }
+    bones.push(path2);
     r += step * 4;
+  }
+
+  for (let x = 1; x < bands; x++) {
+    let pA = bones[x - 1];
+    let pB = bones[x];
+    for (let d = 1; d < blendSteps; d++) {
+      const pts: Point[] = [];
+      pA.points.forEach((ptA, idx) => {
+        let ptB = pB.points[idx];
+        const pt = GeomHelpers.lerpPoints(ptA, ptB, d / blendSteps);
+        pt.x -= w / 2;
+        pt.y -= h / 2;
+        pt.x *= scale;
+        pt.y *= scale;
+        pt.x += w / 2;
+        pt.y += h / 2;
+        pts.push(pt);
+      });
+      const path = new Path(pts);
+      if (x >= minBand) {
+        paths.push(path);
+      }
+    }
   }
 
   if (doSpiral) {
@@ -91,47 +119,16 @@ function getPaths() {
     paths.forEach((path) => {
       pts = pts.concat(path.points);
     });
-    let j = pts.length - 1;
-    while (j--) {
-      if (GeomHelpers.pointsAreEqual(pts[j], pts[j + 1], 1)) {
-        pts.splice(j + 1, 1);
-      }
-    }
-    for (let i = 0; i < truncateStart; i++) {
-      pts.shift();
-    }
-    for (let i = 0; i < truncateEnd; i++) {
+    for (let i = 0; i < truncate; i++) {
       pts.pop();
     }
-    paths = [new Path(pts)];
+    if (doSmooth) {
+      pts = GeomHelpers.smoothLine(pts, 4, 1, false);
+    }
+    const path = new Path(pts);
+    paths = [path];
   }
 
-  if (doStairStep) {
-    const angleStep = (1 / segs) * (Math.PI * 2);
-    paths.forEach((path) => {
-      const pts = path.points.concat();
-      const newPts: Point[] = [];
-      for (let i = 0; i < pts.length; i++) {
-        const ptA = pts[i];
-        const ptB = ptA.clone();
-        ptB.x -= w / 2;
-        ptB.y -= h / 2;
-        GeomHelpers.rotatePoint(ptB, angleStep);
-        ptB.x += w / 2;
-        ptB.y += h / 2;
-        newPts.push(ptA);
-        newPts.push(ptB);
-      }
-      path.points = newPts;
-    });
-  }
-
-  if (doSmooth) {
-    paths.forEach((path) => {
-      const pts = GeomHelpers.smoothLine(path.points, 4, 1, false);
-      path.points = pts;
-    });
-  }
   return paths;
 }
 

@@ -182,17 +182,20 @@ export class Path {
 }
 
 export class ParametricPath extends Path {
-  pointsFunction: (t: number) => Point;
+  pointsFunction: (t: number, points?: Point[]) => Point;
   segs: number;
-  constructor(pointsFunction: (t: number) => Point, segs = 12) {
+  constructor(
+    pointsFunction: (t: number, points?: Point[]) => Point,
+    segs = 12,
+  ) {
     super([]);
     this.pointsFunction = pointsFunction;
     this.segs = segs;
     const pts = this.points;
     const step = 1 / this.segs;
     let i = 0;
-    while (i <= 1.0001) {
-      const pt = this.pointsFunction(i);
+    while (i <= 1) {
+      const pt = this.pointsFunction(i, pts);
       if (pt) pts.push(pt);
       i += step;
     }
