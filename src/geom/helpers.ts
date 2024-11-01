@@ -809,7 +809,6 @@ export class GeomHelpers {
         startPtInBounds = endPtInBounds;
       }
     }
-    console.log(outPaths.length, "paths");
     return outPaths;
   }
 

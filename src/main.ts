@@ -151,7 +151,7 @@ function getPaths() {
     });
   }
 
-  const bounds = new BoundingBox(20, 20, w - 40, h - 40);
+  const bounds = new BoundingBox(25, 25, w - 50, h - 50);
   paths = GeomHelpers.cropPathsToBounds(paths, bounds);
   return paths;
 }
