@@ -1,10 +1,19 @@
 import * as C2S from "canvas2svg";
 import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
-import { ParametricPath, Path, Point } from "../src/geom/core";
+import {
+  BoundingBox,
+  ParametricPath,
+  Path,
+  Point,
+  Ray,
+  Segment,
+} from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
+import { Rectangle } from "./geom/shapes";
+import { Optimize } from "./lib/optimize";
 
 const backgroundColor = "black";
 
@@ -33,11 +42,11 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 0.1;
-const size = 200;
-const bands = 10;
+const size = 400;
+const bands = 20;
 const segs = 51;
 const scale = 1;
-const minBand = 3;
+const minBand = 1;
 const doSpiral = true;
 const doSmooth = true;
 const doStairStep = true;
@@ -46,7 +55,7 @@ const truncateEnd = 3;
 
 let animate = false;
 
-Sequence.fromStatement("repeat -16,16 AS XX", 288);
+Sequence.fromStatement("repeat 0,32 AS XX", 288);
 
 const func = (perc: number) => {
   const s = doSpiral ? stepNum + perc : stepNum;
@@ -57,8 +66,9 @@ const func = (perc: number) => {
   pt.x = 0;
   pt.y = (s * size) / bands; //Math.log2(s + logPadding) * size;
 
-  if (stepNum == 2) {
-    offset *= perc;
+  if (stepNum < 3) {
+    offset *= (perc + stepNum) / 3;
+    offset *= (perc + stepNum) / 3;
   }
   if (stepNum == bands - 2) {
     offset *= 1 - perc * perc;
@@ -140,6 +150,9 @@ function getPaths() {
       path.points = pts;
     });
   }
+
+  const bounds = new BoundingBox(20, 20, w - 40, h - 40);
+  paths = GeomHelpers.cropPathsToBounds(paths, bounds);
   return paths;
 }
 

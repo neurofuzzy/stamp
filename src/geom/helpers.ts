@@ -375,6 +375,19 @@ export class GeomHelpers {
     return sum < 0;
   }
 
+  static pointIsWithinBoundingBox(
+    pt: Point,
+    boundingBox: BoundingBox,
+    tolerance = 0,
+  ) {
+    return (
+      pt.x + tolerance >= boundingBox.x &&
+      pt.y + tolerance >= boundingBox.y &&
+      pt.x - tolerance <= boundingBox.x + boundingBox.width &&
+      pt.y - tolerance <= boundingBox.y + boundingBox.height
+    );
+  }
+
   static boundingBoxIsWithinBoundingBox(
     boundingBox: BoundingBox,
     outerBoundingBox: BoundingBox,
@@ -752,6 +765,52 @@ export class GeomHelpers {
     }
 
     return [];
+  }
+
+  static cropPathsToBounds(paths: Path[], bounds: BoundingBox): Path[] {
+    const outPaths: Path[] = [];
+    const borderSegs = bounds.toSegments();
+    for (let j = 0; j < paths.length; j++) {
+      const path = paths[j];
+      const pts = path.points.concat();
+      if (pts.length < 2) {
+        continue;
+      }
+      let newPath = new Path([]);
+      let startPt = pts[0];
+      let startPtInBounds = GeomHelpers.pointIsWithinBoundingBox(
+        startPt,
+        bounds,
+      );
+      for (let i = 1; i < pts.length; i++) {
+        let endPt = pts[i];
+        let endPtInBounds = GeomHelpers.pointIsWithinBoundingBox(endPt, bounds);
+        if (startPtInBounds && endPtInBounds) {
+          newPath.points.push(endPt);
+        } else if (startPtInBounds !== endPtInBounds) {
+          let intPts = GeomHelpers.segmentSegmentsIntersections(
+            new Segment(startPt, endPt),
+            borderSegs,
+            false,
+            false,
+          );
+          if (intPts && intPts.length) {
+            newPath.points.push(intPts[0].pt);
+          }
+          if (endPtInBounds) {
+            newPath.points.push(endPt);
+          }
+        }
+        if (!endPtInBounds && newPath.points.length > 0) {
+          outPaths.push(newPath);
+          newPath = new Path([]);
+        }
+        startPt = endPt;
+        startPtInBounds = endPtInBounds;
+      }
+    }
+    console.log(outPaths.length, "paths");
+    return outPaths;
   }
 
   static cropSegsToShape(segs: Segment[], shape: IShape): Segment[] {

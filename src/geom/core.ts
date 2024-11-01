@@ -221,6 +221,26 @@ export class BoundingBox {
   area() {
     return (this.width || 0) * (this.height || 0);
   }
+  toSegments() {
+    return [
+      new Segment(
+        new Point(this.x, this.y),
+        new Point(this.x + this.width, this.y),
+      ),
+      new Segment(
+        new Point(this.x + this.width, this.y),
+        new Point(this.x + this.width, this.y + this.height),
+      ),
+      new Segment(
+        new Point(this.x + this.width, this.y + this.height),
+        new Point(this.x, this.y + this.height),
+      ),
+      new Segment(
+        new Point(this.x, this.y + this.height),
+        new Point(this.x, this.y),
+      ),
+    ];
+  }
   clone() {
     return new BoundingBox(this.x, this.y, this.width, this.height);
   }
