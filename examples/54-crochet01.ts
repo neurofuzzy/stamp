@@ -42,8 +42,8 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 0.1;
-const size = 200;
-const bands = 10;
+const size = 400;
+const bands = 20;
 const segs = 51;
 const scale = 1;
 const minBand = 1;
@@ -70,7 +70,7 @@ const func = (perc: number) => {
     offset *= (perc + stepNum) / 3;
     offset *= (perc + stepNum) / 3;
   }
-  if (stepNum == bands - 1) {
+  if (stepNum == bands - 2) {
     offset *= 1 - perc * perc;
   }
 

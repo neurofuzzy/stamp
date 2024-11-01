@@ -808,6 +808,9 @@ export class GeomHelpers {
         startPt = endPt;
         startPtInBounds = endPtInBounds;
       }
+      if (newPath.points.length > 0) {
+        outPaths.push(newPath);
+      }
     }
     return outPaths;
   }
