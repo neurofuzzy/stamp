@@ -187,17 +187,18 @@ export class ParametricPath extends Path {
   constructor(
     pointsFunction: (t: number, points?: Point[]) => Point,
     segs = 12,
+    addTolerance = 0,
   ) {
     super([]);
     this.pointsFunction = pointsFunction;
     this.segs = segs;
     const pts = this.points;
-    const step = 1 / this.segs;
+    const step = Math.floor(100000 / this.segs);
     let i = 0;
-    while (i <= 1) {
+    while (i <= 1 + addTolerance) {
       const pt = this.pointsFunction(i, pts);
       if (pt) pts.push(pt);
-      i += step;
+      i += step * 0.00001;
     }
   }
   clone() {

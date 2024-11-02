@@ -1,5 +1,5 @@
 import * as C2S from "canvas2svg";
-import { drawPath } from "../src/lib/draw";
+import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
 import { BoundingBox, ParametricPath, Path, Point } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
@@ -16,9 +16,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 4.5 * 96;
-const pageHeight = 11 * 96;
+const pageHeight = 6.5 * 96;
 const ratio = 2;
-const zoom = 1.5;
+const zoom = 2;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -33,32 +33,32 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 0.1;
-const sizeX = 4.5 * 96;
-const sizeY = 11 * 96;
-const bands = 30;
-const segs = 31;
+const size = 190;
+const bands = 10;
+const segs = 50;
+const scale = 1;
+const minBand = 3;
+const doSpiral = false;
 const doSmooth = true;
-const smoothAmount = 0.6;
 const doStairStep = true;
+const truncateStart = 1;
+const truncateEnd = 3;
 
 let animate = false;
 
-Sequence.fromStatement("repeat 0 AS XX");
-Sequence.fromStatement("repeat 23,-23 AS YY");
+Sequence.fromStatement("repeat 0,32 AS XX", 288);
 
 const func = (perc: number) => {
-  let offsetX = Sequence.resolve("XX()");
-  let offsetY = Sequence.resolve("YY()");
+  const s = doSpiral ? stepNum + perc : stepNum;
+  const twist = 0; //s / 18;
+  const ang = perc * Math.PI * 2 + twist;
+  let offset = Sequence.resolve("XX()");
   let pt = new Point(0, 0);
-  pt.x = perc * sizeX;
-  pt.x += (stepNum % 2) * (sizeX / segs) * 0.5;
-  pt.x += Math.cos(perc * Math.PI * 2 + 1.7) * sizeX * 0.1;
-  pt.y = (stepNum * sizeY) / bands;
-  pt.x -= offsetX;
-  pt.y -= offsetY;
+  pt.x = 0;
+  pt.y = (s * size) / bands; //Math.log2(s + logPadding) * size;
 
-  pt.x += 1; // tweak
-  pt.y -= 6; // tweak
+  pt.y += offset;
+  GeomHelpers.rotatePoint(pt, ang * 2);
   return pt;
 };
 
@@ -66,48 +66,88 @@ const func = (perc: number) => {
 
 function getPaths() {
   let paths: Path[] = [];
+  let step = 4;
+  let r = step * 10;
+
   for (let x = 0; x < bands; x++) {
+    const path = new ParametricPath(func, segs, 0.0001);
     stepNum = x;
-    const path = new ParametricPath(func, segs, 0.1);
-    paths.push(path);
+    let pts: Point[] = path.toPoints();
+    pts.forEach((pt) => {
+      pt.x *= scale;
+      pt.y *= scale;
+      pt.x += w / 2;
+      pt.y += h / 2;
+    });
+    let path2 = new Path(pts);
+    if (x >= minBand) {
+      paths.push(path2);
+    }
+    r += step * 4;
+  }
+
+  if (doSpiral) {
+    // join all paths points into one
+    let pts: Point[] = [];
+    paths.forEach((path) => {
+      pts = pts.concat(path.points);
+    });
+    let j = pts.length - 1;
+    while (j--) {
+      if (GeomHelpers.pointsAreEqual(pts[j], pts[j + 1], 1)) {
+        pts.splice(j + 1, 1);
+      }
+    }
+    for (let i = 0; i < truncateStart; i++) {
+      pts.shift();
+    }
+    for (let i = 0; i < truncateEnd; i++) {
+      pts.pop();
+    }
+    paths = [new Path(pts)];
   }
 
   if (doStairStep) {
-    const stepAmt = sizeX / segs;
+    const angleStep = (1 / segs) * (Math.PI * 2);
     paths.forEach((path) => {
-      const pts = path.points;
+      const pts = path.points.concat();
       const newPts: Point[] = [];
-      for (let i = 0; i < pts.length - 1; i++) {
+      for (let i = 0; i < pts.length; i++) {
         const ptA = pts[i];
         const ptB = ptA.clone();
-        ptB.x += stepAmt;
+        ptB.x -= w / 2;
+        ptB.y -= h / 2;
+        GeomHelpers.rotatePoint(ptB, angleStep);
+        ptB.x += w / 2;
+        ptB.y += h / 2;
         newPts.push(ptA);
         newPts.push(ptB);
       }
-      newPts.push(pts[pts.length - 1]);
       path.points = newPts;
     });
   }
 
   if (doSmooth) {
     paths.forEach((path) => {
-      const pts = GeomHelpers.smoothLine(
-        path.points,
-        4,
-        1,
-        false,
-        smoothAmount * 0.3,
-        1 - smoothAmount * 0.3,
-      );
+      const pts = GeomHelpers.smoothLine(path.points, 4, 1, false);
+      if (!doSpiral) {
+        pts.pop();
+        const lastPt = pts[pts.length - 1];
+        let iter = 0;
+        while (!GeomHelpers.pointsAreEqual(lastPt, pts[0], 3)) {
+          pts.shift();
+          iter++;
+          if (iter > 100) {
+            break;
+          }
+        }
+      }
       path.points = pts;
     });
   }
 
-  const bounds = new BoundingBox(18, 18, w - 36, h - 36);
+  const bounds = new BoundingBox(25, 25, w - 50, h - 50);
   paths = GeomHelpers.cropPathsToBounds(paths, bounds);
-
-  // splice out paths with less than 16 points
-  paths = paths.filter((path) => path.points.length > 16);
   return paths;
 }
 
