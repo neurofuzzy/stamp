@@ -15,7 +15,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 4.5 * 96;
+const pageWidth = 4 * 96;
 const pageHeight = 11 * 96;
 const ratio = 2;
 const zoom = 1.5;
@@ -33,7 +33,7 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 0.1;
-const sizeX = 4.5 * 96;
+const sizeX = 3.9 * 96;
 const sizeY = 11 * 96;
 const bands = 30;
 const segs = 31;
@@ -57,7 +57,7 @@ const func = (perc: number) => {
   pt.x -= offsetX;
   pt.y -= offsetY;
 
-  pt.x += 1; // tweak
+  pt.x += 0; // tweak
   pt.y -= 6; // tweak
   return pt;
 };
@@ -66,7 +66,7 @@ const func = (perc: number) => {
 
 function getPaths() {
   let paths: Path[] = [];
-  for (let x = 0; x < bands; x++) {
+  for (let x = 0; x <= bands; x++) {
     stepNum = x;
     const path = new ParametricPath(func, segs, 0.1);
     paths.push(path);
@@ -93,7 +93,7 @@ function getPaths() {
     paths.forEach((path) => {
       const pts = GeomHelpers.smoothLine(
         path.points,
-        4,
+        3,
         1,
         false,
         smoothAmount * 0.3,
@@ -106,8 +106,8 @@ function getPaths() {
   const bounds = new BoundingBox(18, 18, w - 36, h - 36);
   paths = GeomHelpers.cropPathsToBounds(paths, bounds);
 
-  // splice out paths with less than 16 points
-  paths = paths.filter((path) => path.points.length > 16);
+  // splice out paths with less than 8 points
+  paths = paths.filter((path) => path.points.length > 8);
   return paths;
 }
 
