@@ -35,7 +35,7 @@ let iter = 919918726;
 const step = 0.1;
 const size = 3 * 96;
 const bands = 11;
-const segs = 40;
+const segs = 60;
 const scale = 1;
 const minBand = 3;
 const doSpiral = false;
@@ -52,7 +52,7 @@ Sequence.fromStatement("repeat 34,0 AS YY", 288);
 
 const func = (perc: number) => {
   const s = doSpiral ? stepNum + perc : stepNum;
-  const twist = s / 12;
+  const twist = s / 6.5;
   const ang = perc * Math.PI * 2 + twist;
   let offsetX = Sequence.resolve("XX()");
   let offsetY = Sequence.resolve("YY()");
