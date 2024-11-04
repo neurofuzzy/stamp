@@ -239,6 +239,9 @@ export class Stamp extends AbstractShape {
   }
 
   private _set(sequenceCall: string) {
+    if (sequenceCall.indexOf("()") == -1) {
+      sequenceCall += "()";
+    }
     Sequence.resolve(sequenceCall);
     this._cursorHistory.push(this._cursor.clone());
   }

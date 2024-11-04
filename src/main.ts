@@ -58,7 +58,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     // windows
     .boolean("BOOL()")
-    .set("WH()")
+    .set("WH")
     .rectangle({
       width: 16,
       height: "WH",
