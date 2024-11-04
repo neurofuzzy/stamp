@@ -31,8 +31,8 @@ const $ = (arg: unknown) =>
       ? parseInt(arg.replace("#", "0x"), 16)
       : Sequence.resolve(arg)
     : typeof arg === "number"
-    ? arg
-    : 0;
+      ? arg
+      : 0;
 
 interface IShapeParams {
   angle?: number | string;
@@ -139,7 +139,6 @@ interface INode {
 }
 
 export class Stamp extends AbstractShape {
-
   static readonly NONE = 0;
   static readonly UNION = 1;
   static readonly SUBTRACT = 2;
@@ -148,19 +147,24 @@ export class Stamp extends AbstractShape {
   private _nodes: INode[] = [];
   private _tree: clipperLib.PolyTree | null = null;
   private _polys: Polygon[] = [];
-  private _unclippedShapes:{ mode: number, shape: IShape, outln: number, scale: number }[] = [];
+  private _unclippedShapes: {
+    mode: number;
+    shape: IShape;
+    outln: number;
+    scale: number;
+  }[] = [];
   private _flipBeforeClip: boolean = false;
   private _styleMap: IStyleMap[] = [];
   private _mode: number = Stamp.UNION;
   private _cursor: Ray = new Ray(0, 0, 0);
   private _cursorHistory: Ray[] = [];
   private _baked: boolean = false;
-  private _bakedAlignmentOffset: Point = new Point(0,0);
+  private _bakedAlignmentOffset: Point = new Point(0, 0);
 
   constructor(
     center?: Ray,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false
+    reverse: boolean = false,
   ) {
     super(center, 1, alignment, reverse);
   }
@@ -216,21 +220,20 @@ export class Stamp extends AbstractShape {
   }
 
   private _breakApart() {
-
     let newPolys: Polygon[] = [];
 
     const ungroupAll = (poly: Polygon) => {
       if (poly.children().length > 0) {
-        poly.children().forEach(p => ungroupAll(p as Polygon));
+        poly.children().forEach((p) => ungroupAll(p as Polygon));
       } else {
         newPolys.push(poly);
       }
-    }
+    };
 
     if (this._polys.length >= 1) {
-      this._polys.forEach(p => {
+      this._polys.forEach((p) => {
         ungroupAll(p);
-      })
+      });
       this._polys = newPolys;
     }
   }
@@ -260,14 +263,16 @@ export class Stamp extends AbstractShape {
 
   private _rotateTo(r: number | string) {
     this._cursorHistory.push(this._cursor.clone());
-    this._cursor.direction = ($(r) * Math.PI / 180);
+    this._cursor.direction = ($(r) * Math.PI) / 180;
   }
 
   private _rotate(r: number | string) {
     this._cursorHistory.push(this._cursor.clone());
     const rdeg = $(r);
-    const rn = (rdeg * Math.PI / 180);
-    this._cursor.direction = GeomHelpers.normalizeAngle(this._cursor.direction + rn);
+    const rn = (rdeg * Math.PI) / 180;
+    this._cursor.direction = GeomHelpers.normalizeAngle(
+      this._cursor.direction + rn,
+    );
   }
 
   private _stepBack(steps: number | string) {
@@ -301,12 +306,16 @@ export class Stamp extends AbstractShape {
       g.center.y += this.center.y + this._cursor.y;
       g.center.direction += this.center.direction + this._cursor.direction;
 
-      this._unclippedShapes.push({ mode: this._mode, shape: g, outln: outln, scale: scale });
+      this._unclippedShapes.push({
+        mode: this._mode,
+        shape: g,
+        outln: outln,
+        scale: scale,
+      });
     }
   }
 
   private _clipShapes() {
-
     for (let i = 0; i < this._unclippedShapes.length; i++) {
       let g = this._unclippedShapes[i].shape;
       let outln = this._unclippedShapes[i].outln;
@@ -427,7 +436,9 @@ export class Stamp extends AbstractShape {
                     arcTolerance: 5000,
                   });
                   if (offsetResult) {
-                    let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
+                    let paths = ClipperHelpers.clipper.polyTreeToPaths(
+                      this._tree,
+                    );
                     let offsetPaths =
                       ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
                     const polyResult = ClipperHelpers.clipper.clipToPolyTree({
@@ -442,7 +453,6 @@ export class Stamp extends AbstractShape {
                   }
                 }
               }
-              
             } catch (e) {
               console.log("error unioning", e);
             }
@@ -455,6 +465,60 @@ export class Stamp extends AbstractShape {
             if (g.hidden) {
               continue;
             }
+
+            if (outln > 0) {
+              const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
+                delta: outln * 100000,
+                offsetInputs: [
+                  {
+                    data: b2.data,
+                    joinType: clipperLib.JoinType.Miter,
+                    endType: clipperLib.EndType.ClosedPolygon,
+                  },
+                ],
+              });
+              if (offsetResult) {
+                let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
+                let offsetPaths =
+                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
+                const polyResult = ClipperHelpers.clipper.clipToPolyTree({
+                  clipType: clipperLib.ClipType.Union,
+                  subjectInputs: [{ data: paths, closed: true }],
+                  clipInputs: [{ data: offsetPaths }],
+                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
+                });
+                this._tree = polyResult;
+              } else {
+                console.log("error offseting", outln);
+              }
+            } else if (outln < 0) {
+              const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
+                delta: -outln * 100000,
+                offsetInputs: [
+                  {
+                    data: b2.data,
+                    joinType: clipperLib.JoinType.Round,
+                    endType: clipperLib.EndType.ClosedPolygon,
+                  },
+                ],
+                arcTolerance: 5000,
+              });
+              if (offsetResult) {
+                let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
+                let offsetPaths =
+                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
+                const polyResult = ClipperHelpers.clipper.clipToPolyTree({
+                  clipType: clipperLib.ClipType.Difference,
+                  subjectInputs: [{ data: paths, closed: true }],
+                  clipInputs: [{ data: offsetPaths }],
+                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
+                });
+                this._tree = polyResult;
+              } else {
+                console.log("error offseting", outln);
+              }
+            }
+
             let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
 
             let polyResult: clipperLib.PolyTree;
@@ -522,7 +586,10 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        const offset = new Point(
+          $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
         GeomHelpers.rotatePoint(offset, 0 - this._cursor.direction);
         let s;
         let innerRadius = $(params.innerRadius);
@@ -536,7 +603,7 @@ export class Stamp extends AbstractShape {
             cen,
             $(params.radius),
             $(params.divisions),
-            $(params.align)
+            $(params.align),
           );
         } else {
           s = new Donut(
@@ -544,7 +611,7 @@ export class Stamp extends AbstractShape {
             $(params.radius),
             innerRadius,
             $(params.divisions),
-            $(params.align)
+            $(params.align),
           );
         }
         if ($(params.skip) > 0) {
@@ -568,7 +635,10 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        const offset = new Point(
+          $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
         GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new Ellipse(
           new Ray(
@@ -579,7 +649,7 @@ export class Stamp extends AbstractShape {
           $(params.radiusX),
           $(params.radiusY),
           $(params.divisions),
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -602,7 +672,10 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const offset = new Point(0 - $(params.offsetX || 0), $(params.offsetY || 0));
+        const offset = new Point(
+          0 - $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
         GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new LeafShape(
           new Ray(
@@ -615,7 +688,7 @@ export class Stamp extends AbstractShape {
           $(params.splitAngle) || 60,
           $(params.splitAngle2) || $(params.splitAngle),
           $(params.serration) || 0,
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -638,18 +711,21 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        const offset = new Point(
+          $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
         GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new Rectangle(
           new Ray(
             nspx * i - o.x + offset.x,
             +nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
           $(params.width),
           $(params.height),
           $(params.divisions),
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -670,22 +746,25 @@ export class Stamp extends AbstractShape {
       nspx = $(params.spacingX),
       nspy = $(params.spacingY);
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    
+
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        const offset = new Point(
+          $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
         GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new RoundedRectangle(
           new Ray(
             nspx * i - o.x + offset.x,
             +nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
           $(params.width),
           $(params.height),
           $(params.cornerRadius),
           $(params.divisions),
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           const s = shapes[shapes.length - 1];
@@ -712,17 +791,20 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const offset = new Point($(params.offsetX || 0), $(params.offsetY || 0));
+        const offset = new Point(
+          $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
         GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         const s = new Polygon(
           new Ray(
             nspx * i - o.x + offset.x,
             +nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
           params.rayStrings.map((s) => new Ray(0, 0).fromString(s)),
           $(params.divisions),
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -752,9 +834,9 @@ export class Stamp extends AbstractShape {
           new Ray(
             nspx * i - o.x + $(params.offsetX),
             +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
-          $(params.align)
+          $(params.align),
         ).fromString(params.subStampString);
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -781,13 +863,13 @@ export class Stamp extends AbstractShape {
           new Ray(
             nspx * i - o.x + $(params.offsetX),
             +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
           $(params.width),
           $(params.height),
           $(params.type),
           $(params.divisions),
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -814,13 +896,13 @@ export class Stamp extends AbstractShape {
           new Ray(
             nspx * i - o.x + $(params.offsetX),
             +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
           $(params.width),
           $(params.height),
           $(params.type),
           $(params.divisions),
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -847,13 +929,13 @@ export class Stamp extends AbstractShape {
           new Ray(
             nspx * i - o.x + $(params.offsetX),
             +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
           ),
           $(params.length),
           $(params.bottomRadius),
           $(params.topRadius),
           $(params.divisions),
-          $(params.align)
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -1062,7 +1144,11 @@ export class Stamp extends AbstractShape {
     return this._cursor.clone();
   }
 
-  path(scale: number = 1, optimize: boolean = true, mergeConnectedPaths:boolean = true): Path[] {
+  path(
+    scale: number = 1,
+    optimize: boolean = true,
+    mergeConnectedPaths: boolean = true,
+  ): Path[] {
     if (!this._baked) {
       this.bake();
     }
@@ -1126,11 +1212,11 @@ export class Stamp extends AbstractShape {
       }
     }
     const unmappedPolys = this._polys.filter(
-      (poly) => !mappedPolys.includes(poly)
+      (poly) => !mappedPolys.includes(poly),
     );
     unmappedPolys.forEach((poly) => {
       poly.style = resolveStyle(this.style);
-    })
+    });
   }
 
   /**
@@ -1227,7 +1313,7 @@ export class Stamp extends AbstractShape {
         fn.apply(this, args);
       }
     }
-    
+
     if (this._flipBeforeClip) {
       this._unclippedShapes.reverse();
     }
@@ -1240,7 +1326,7 @@ export class Stamp extends AbstractShape {
         this._breakApart();
       }
     }
-    
+
     this.mapStyles();
 
     const offset = this.alignmentOffset();

@@ -1,9 +1,10 @@
 import * as C2S from "canvas2svg";
-import { drawPath } from "../src/lib/draw";
-import { BoundingBox, ParametricPath, Path, Point } from "../src/geom/core";
-import { GeomHelpers } from "../src/geom/helpers";
+import { drawHatchPattern, drawShape } from "../src/lib/draw";
+import { Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
+import { Hatch } from "../src/lib/hatch";
 import { Sequence } from "../src/lib/sequence";
+import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 
 const backgroundColor = "black";
@@ -15,10 +16,10 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 4 * 96;
-const pageHeight = 4 * 96;
+const pageWidth = 6 * 96;
+const pageHeight = 9 * 96;
 const ratio = 2;
-const zoom = 2;
+const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -28,147 +29,62 @@ ctx.scale(ratio, ratio);
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-ctx.fillStyle = "black";
+ctx.fillStyle = "white";
 
-let stepNum = 0;
-let iter = 919918726;
-const step = 0.1;
-const size = 3 * 96;
-const bands = 11;
-const segs = 60;
-const scale = 1;
-const minBand = 3;
-const doSpiral = false;
-const doSmooth = true;
-const smoothAmount = 0.6;
-const doStairStep = true;
-const truncateStart = 0;
-const truncateEnd = 0;
+let seed = 10;
 
-let animate = false;
-
-Sequence.fromStatement("repeat 0,0 AS XX", 288);
-Sequence.fromStatement("repeat 34,0 AS YY", 288);
-
-const func = (perc: number) => {
-  const s = doSpiral ? stepNum + perc : stepNum;
-  const twist = s / 6.5;
-  const ang = perc * Math.PI * 2 + twist;
-  let offsetX = Sequence.resolve("XX()");
-  let offsetY = Sequence.resolve("YY()");
-  let pt = new Point(0, 0);
-  pt.x = 0;
-  pt.x += twist;
-  pt.y = (s * size) / bands; //Math.log2(s + logPadding) * size;
-  pt.x += offsetX;
-  pt.y += offsetY;
-  GeomHelpers.rotatePoint(pt, ang);
-  return pt;
-};
-
-//SVG.debugMode = true;
-
-function getPaths() {
-  let paths: Path[] = [];
-  let step = 4;
-  let r = step * 10;
-
-  for (let x = 0; x < bands; x++) {
-    const path = new ParametricPath(func, segs, 0.1);
-    stepNum = x;
-    let pts: Point[] = path.toPoints();
-    pts.forEach((pt) => {
-      pt.x *= scale;
-      pt.y *= scale;
-      pt.x += w / 2;
-      pt.y += h / 2;
-    });
-    let path2 = new Path(pts);
-    if (x >= minBand) {
-      paths.push(path2);
-    }
-    r += step * 4;
-  }
-
-  if (doSpiral) {
-    // join all paths points into one
-    let pts: Point[] = [];
-    paths.forEach((path) => {
-      pts = pts.concat(path.points);
-    });
-    let j = pts.length - 1;
-    while (j--) {
-      if (GeomHelpers.pointsAreEqual(pts[j], pts[j + 1], 1)) {
-        pts.splice(j + 1, 1);
-      }
-    }
-    for (let i = 0; i < truncateStart; i++) {
-      pts.shift();
-    }
-    for (let i = 0; i < truncateEnd; i++) {
-      pts.pop();
-    }
-    paths = [new Path(pts)];
-  }
-
-  if (doStairStep) {
-    const angleStep = (1 / segs) * (Math.PI * 2);
-    paths.forEach((path) => {
-      const pts = path.points.concat();
-      const newPts: Point[] = [];
-      for (let i = 0; i < pts.length; i++) {
-        const ptA = pts[i];
-        const ptB = ptA.clone();
-        ptB.x -= w / 2;
-        ptB.y -= h / 2;
-        GeomHelpers.rotatePoint(ptB, angleStep);
-        ptB.x += w / 2;
-        ptB.y += h / 2;
-        newPts.push(ptA);
-        newPts.push(ptB);
-      }
-      path.points = newPts;
-    });
-  }
-
-  if (doSmooth) {
-    paths.forEach((path) => {
-      const pts = GeomHelpers.smoothLine(
-        path.points,
-        3,
-        1,
-        false,
-        smoothAmount * 0.3,
-        1 - smoothAmount * 0.3,
-      );
-      if (!doSpiral) {
-        pts.pop();
-        const lastPt = pts[pts.length - 1];
-        let iter = 0;
-        while (!GeomHelpers.pointsAreEqual(lastPt, pts[0], 8)) {
-          pts.shift();
-          iter++;
-          if (iter > 100) {
-            break;
-          }
-        }
-      }
-      path.points = pts;
-    });
-  }
-
-  const bounds = new BoundingBox(18, 18, w - 36, h - 36);
-  paths = GeomHelpers.cropPathsToBounds(paths, bounds);
-
-  // splice out paths with less than 8 points
-  paths = paths.filter((path) => path.points.length > 8);
-  return paths;
-}
+Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
-  const paths = getPaths();
-  paths.forEach((path) => drawPath(ctx, path));
+
+  // city grid
+  const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+    // building shape
+    .rectangle({
+      width: 80,
+      height: 100,
+      align: ShapeAlignment.TOP,
+      outlineThickness: 10,
+    })
+    // ground shape
+    .rectangle({
+      width: 120,
+      height: 120,
+      align: ShapeAlignment.BOTTOM,
+    })
+    // windows
+    .boolean("BOOL()")
+    .rectangle({
+      width: 16,
+      height: 24,
+      numX: 2,
+      numY: 3,
+      spacingX: 30,
+      spacingY: 40,
+      offsetY: 20,
+      align: ShapeAlignment.TOP,
+    })
+    .boolean("BOOL()")
+    .move(100, 0)
+    .repeatLast(6, 4)
+    .move(-500, 120)
+    .boolean("BOOL()")
+    .repeatLast(9, 4);
+
+  // draw as single shape
+  drawShape(ctx, city);
+
+  /*
+  // draw children
+  city.children().forEach((child) => drawShape(ctx, child));
+  city.children().forEach((child) => {
+    if (child.style.hatchPattern) {
+      const fillPattern = Hatch.applyHatchToShape(child);
+      if (fillPattern) drawHatchPattern(ctx, fillPattern);
+    }
+  });
+  */
 };
 
 document.onkeydown = function (e) {
@@ -194,14 +110,7 @@ document.onkeydown = function (e) {
 async function main() {
   await ClipperHelpers.init();
   const now = new Date().getTime();
-  const drawFrame = (t) => {
-    draw(ctx);
-    iter += step;
-    if (animate) {
-      requestAnimationFrame(drawFrame);
-    }
-  };
-  requestAnimationFrame(drawFrame);
+  draw(ctx);
   console.log(`${new Date().getTime() - now}ms`);
 }
 
