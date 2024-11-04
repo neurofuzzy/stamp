@@ -273,6 +273,21 @@ export class GeomHelpers {
     return newRays;
   }
 
+  static shapesBoundingBox(shapes: IShape[]): BoundingBox {
+    let xMin = Number.MAX_VALUE;
+    let yMin = Number.MAX_VALUE;
+    let xMax = Number.MIN_VALUE;
+    let yMax = Number.MIN_VALUE;
+    for (let i = 0; i < shapes.length; i++) {
+      const b = shapes[i].boundingBox();
+      if (b.x < xMin) xMin = b.x;
+      if (b.y < yMin) yMin = b.y;
+      if (b.x + b.width > xMax) xMax = b.x + b.width;
+      if (b.y + b.height > yMax) yMax = b.y + b.height;
+    }
+    return new BoundingBox(xMin, yMin, xMax - xMin, yMax - yMin);
+  }
+
   static smoothLine(
     pts: Point[],
     iterations: number,

@@ -34,6 +34,8 @@ ctx.fillStyle = "white";
 let seed = 10;
 
 Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
+Sequence.fromStatement("repeat 60,100 AS BH", seed);
+Sequence.fromStatement("repeat 2,3 AS WS", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -43,14 +45,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     // building shape
     .rectangle({
       width: 80,
-      height: 100,
+      height: "BH()",
       align: ShapeAlignment.TOP,
       outlineThickness: 10,
     })
     // ground shape
     .rectangle({
       width: 120,
-      height: 120,
+      height: 140,
       align: ShapeAlignment.BOTTOM,
     })
     // windows
@@ -59,10 +61,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       width: 16,
       height: 24,
       numX: 2,
-      numY: 3,
+      numY: "WS()",
       spacingX: 30,
       spacingY: 40,
-      offsetY: 20,
+      offsetY: -20,
       align: ShapeAlignment.TOP,
     })
     .boolean("BOOL()")

@@ -287,6 +287,58 @@ export class Stamp extends AbstractShape {
     }
   }
 
+  private _align(shapes: IShape[], align: number) {
+    if (align) {
+      const boundingBox = GeomHelpers.shapesBoundingBox(shapes);
+      switch (align) {
+        case ShapeAlignment.TOP:
+          shapes.forEach((s) => {
+            s.center.y -= boundingBox.height / 2;
+          });
+          break;
+        case ShapeAlignment.BOTTOM:
+          shapes.forEach((s) => {
+            s.center.y += boundingBox.height / 2;
+          });
+          break;
+        case ShapeAlignment.LEFT:
+          shapes.forEach((s) => {
+            s.center.x -= boundingBox.width / 2;
+          });
+          break;
+        case ShapeAlignment.RIGHT:
+          shapes.forEach((s) => {
+            s.center.x += boundingBox.width / 2;
+          });
+          break;
+        case ShapeAlignment.TOP_LEFT:
+          shapes.forEach((s) => {
+            s.center.x -= boundingBox.width / 2;
+            s.center.y -= boundingBox.height / 2;
+          });
+          break;
+        case ShapeAlignment.TOP_RIGHT:
+          shapes.forEach((s) => {
+            s.center.x += boundingBox.width / 2;
+            s.center.y -= boundingBox.height / 2;
+          });
+          break;
+        case ShapeAlignment.BOTTOM_LEFT:
+          shapes.forEach((s) => {
+            s.center.x -= boundingBox.width / 2;
+            s.center.y += boundingBox.height / 2;
+          });
+          break;
+        case ShapeAlignment.BOTTOM_RIGHT:
+          shapes.forEach((s) => {
+            s.center.x += boundingBox.width / 2;
+            s.center.y += boundingBox.height / 2;
+          });
+          break;
+      }
+    }
+  }
+
   private _make(shapes: IShape[], outln: number = 0, scale: number = 1) {
     scale = scale || 1;
     for (let i = 0; i < shapes.length; i++) {
@@ -725,7 +777,7 @@ export class Stamp extends AbstractShape {
           $(params.width),
           $(params.height),
           $(params.divisions),
-          $(params.align),
+          //  $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -736,6 +788,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
+    this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
