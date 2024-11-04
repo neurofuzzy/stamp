@@ -238,6 +238,11 @@ export class Stamp extends AbstractShape {
     }
   }
 
+  private _set(sequenceCall: string) {
+    Sequence.resolve(sequenceCall);
+    this._cursorHistory.push(this._cursor.clone());
+  }
+
   private _moveTo(x: number | string, y: number | string) {
     this._cursorHistory.push(this._cursor.clone());
     this._cursor.x = $(x);
@@ -1056,6 +1061,11 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  set(sequenceCall: string) {
+    this._nodes.push({ fName: "_set", args: [sequenceCall] });
+    return this;
+  }
+
   moveTo(x: number | string = 0, y: number | string = 0) {
     this._nodes.push({ fName: "_moveTo", args: [x, y] });
     return this;
@@ -1342,6 +1352,7 @@ export class Stamp extends AbstractShape {
       _intersect: this._intersect,
       _boolean: this._boolean,
       _breakApart: this._breakApart,
+      _set: this._set,
       _moveTo: this._moveTo,
       _move: this._move,
       _forward: this._forward,
