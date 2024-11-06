@@ -68,7 +68,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     // ground shape
     .rectangle({
       width: "BW + 80",
-      height: 150,
+      height: 160,
       align: ShapeAlignment.BOTTOM,
     })
     // windows
