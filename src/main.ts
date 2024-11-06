@@ -16,8 +16,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 6 * 96;
-const pageHeight = 9 * 96;
+const pageWidth = 8 * 96;
+const pageHeight = 11 * 96;
 const ratio = 2;
 const zoom = 1;
 canvas.width = pageWidth * ratio;
@@ -34,47 +34,63 @@ ctx.fillStyle = "white";
 let seed = 10;
 
 Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
-Sequence.fromStatement("repeat 80,120 AS BH", seed);
-Sequence.fromStatement("repeat 18,24 AS WH", seed);
-Sequence.fromStatement("repeat 2,3 AS WS", seed);
+Sequence.fromStatement("random 40,70,70,100,130 AS BW", seed);
+Sequence.fromStatement("random 80,130 AS BH", seed);
+Sequence.fromStatement("random 18,24 AS WH", seed);
+Sequence.fromStatement("random 1,2,2,3,4 AS NWX", seed);
+Sequence.fromStatement("random 2,3 AS NWY", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+    .set("BW")
+    .set("BH")
+    .set("WH")
+    .set("NWX")
+    .set("NWY")
+    .move("BW * 0.5", 0)
     // building shape
     .rectangle({
-      width: 80,
-      height: "BH()",
+      width: "BW",
+      height: "BH",
       align: ShapeAlignment.TOP,
-      outlineThickness: 10,
+      outlineThickness: 0,
+    })
+    // flat roof shape
+    .rectangle({
+      width: "BW - 20",
+      height: "BH + 10",
+      align: ShapeAlignment.TOP,
+      outlineThickness: 0,
     })
     // ground shape
     .rectangle({
-      width: 120,
-      height: 140,
+      width: "BW + 80",
+      height: 150,
       align: ShapeAlignment.BOTTOM,
     })
     // windows
     .boolean("BOOL()")
-    .set("WH")
     .rectangle({
       width: 16,
       height: "WH",
-      numX: 2,
-      numY: "WS()",
+      numX: "NWX",
+      numY: "NWY",
       spacingX: 30,
-      spacingY: 40,
-      offsetY: 0,
+      spacingY: "WH + 10",
+      offsetY: 20,
       align: ShapeAlignment.TOP,
     })
     .boolean("BOOL()")
-    .move(100, 0)
-    .repeatLast(7, 4)
-    .move(-500, 140)
+    .move("BW * 0.5", 0)
+    .move(20, 0)
+    .repeatLast(14, 4)
+    .move(-20 * 5, 0)
+    .move(0 - (40 + 70 + 70 + 100 + 130), 160)
     .boolean("BOOL()")
-    .repeatLast(10, 4);
+    .repeatLast(18, 5);
 
   // draw as single shape
   drawShape(ctx, city);
