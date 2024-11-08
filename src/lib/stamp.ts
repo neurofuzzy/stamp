@@ -198,7 +198,7 @@ export class Stamp extends AbstractShape {
 
   private _boolean(type: string | number) {
     if (typeof type === "string") {
-      type = Sequence.resolve(type);
+      type = $(type);
     }
     switch (type) {
       case 0:
@@ -242,7 +242,7 @@ export class Stamp extends AbstractShape {
     if (sequenceCall.indexOf("()") == -1) {
       sequenceCall += "()";
     }
-    Sequence.resolve(sequenceCall);
+    $(sequenceCall);
     this._cursorHistory.push(this._cursor.clone());
   }
 
@@ -910,10 +910,11 @@ export class Stamp extends AbstractShape {
         if (params.style) {
           s.style = params.style;
         }
+        s.bake();
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    //this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 

@@ -31,26 +31,25 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = "white";
 
-let seed = 10;
+let seed = 12;
 
 Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
-Sequence.fromStatement("random 40,70,70,100,130 AS BW", seed);
-Sequence.fromStatement("random 80,130 AS BH", seed);
-Sequence.fromStatement("random 18,24 AS WH", seed);
-Sequence.fromStatement("random 1,2,2,3,4 AS NWX", seed);
-Sequence.fromStatement("random 2,3 AS NWY", seed);
+Sequence.fromStatement("shuffle 40,70,70,100,130 AS BW", seed);
+Sequence.fromStatement("repeat 80,130 AS BH", seed);
+Sequence.fromStatement("repeat 18,24 AS WH", seed);
+Sequence.fromStatement("shuffle 1,2,2,3,4 AS NWX", seed);
+Sequence.fromStatement("repeat 2,3 AS NWY", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   // city grid
-  const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+  const bldg = new Stamp(new Ray(0, 0, 0))
     .set("BW")
     .set("BH")
     .set("WH")
     .set("NWX")
     .set("NWY")
-    .move("BW * 0.5", 0)
     // building shape
     .rectangle({
       width: "BW",
@@ -65,12 +64,6 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
     })
-    // ground shape
-    .rectangle({
-      width: "BW + 80",
-      height: 160,
-      align: ShapeAlignment.BOTTOM,
-    })
     // windows
     .boolean("BOOL()")
     .rectangle({
@@ -83,14 +76,29 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: 20,
       align: ShapeAlignment.TOP,
     })
-    .boolean("BOOL()")
+    .boolean("BOOL()");
+
+  // city grid
+  const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+    .stamp({
+      subStamp: bldg,
+      outlineThickness: 10,
+      align: ShapeAlignment.TOP,
+    })
+    .move("BW * 0.5", 0)
+    // ground shape
+    .rectangle({
+      width: "BW + 80",
+      height: 160,
+      align: ShapeAlignment.BOTTOM,
+    })
     .move("BW * 0.5", 0)
     .move(20, 0)
-    .repeatLast(14, 4)
+    .repeatLast(5, 4)
     .move(-20 * 5, 0)
-    .move(0 - (40 + 70 + 70 + 100 + 130), 160)
-    .boolean("BOOL()")
-    .repeatLast(18, 5);
+    .move(0 - (40 + 70 + 70 + 100 + 130), 120)
+    // .boolean("BOOL()")
+    .repeatLast(8, 5);
 
   // draw as single shape
   drawShape(ctx, city);
