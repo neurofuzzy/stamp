@@ -97,8 +97,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .repeatLast(5, 4)
     .move(-20 * 5, 0)
     .move(0 - (40 + 70 + 70 + 100 + 130), 120)
-    // .boolean("BOOL()")
-    .repeatLast(8, 5);
+    .boolean("BOOL()")
+    .repeatLast(9, 5);
 
   // draw as single shape
   drawShape(ctx, city);
