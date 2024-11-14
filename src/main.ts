@@ -31,13 +31,14 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = "white";
 
-let seed = 12;
+let seed = 24;
 
 Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
-Sequence.fromStatement("shuffle 40,70,70,100,130 AS BW", seed);
+Sequence.fromStatement("repeat 2,1 AS BOOL2", seed);
+Sequence.fromStatement("random 40,70,70,100,130 AS BW", seed);
 Sequence.fromStatement("repeat 80,130 AS BH", seed);
 Sequence.fromStatement("repeat 18,24 AS WH", seed);
-Sequence.fromStatement("shuffle 1,2,2,3,4 AS NWX", seed);
+Sequence.fromStatement("random 1,2,2,3,4 AS NWX", seed);
 Sequence.fromStatement("repeat 2,3 AS NWY", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
@@ -65,7 +66,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       outlineThickness: 0,
     })
     // windows
-    .boolean("BOOL()")
+    .boolean("BOOL2()")
     .rectangle({
       width: 16,
       height: "WH",
@@ -76,7 +77,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: 20,
       align: ShapeAlignment.TOP,
     })
-    .boolean("BOOL()");
+    .boolean("BOOL2()");
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
@@ -96,28 +97,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .move(20, 0)
     .repeatLast(5, 4)
     .move(-20 * 5, 0)
-    .move(0 - (40 + 70 + 70 + 100 + 130), 120)
+    .move(0 - (40 + 70 + 70 + 100 + 130), 160)
     .boolean("BOOL()")
     .repeatLast(9, 5);
 
   // draw as single shape
   drawShape(ctx, city);
 
-  /*
   // draw children
-  city.children().forEach((child) => drawShape(ctx, child));
-  city.children().forEach((child) => {
-    if (child.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern) drawHatchPattern(ctx, fillPattern);
-    }
-  });
-  */
+  //city.children().forEach((child) => drawShape(ctx, child));
 };
 
 document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
+    // reset Sequences
+    Sequence.resetAll();
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary

@@ -356,7 +356,8 @@ export class Stamp extends AbstractShape {
         break;
       }
 
-      let g = shape.clone();
+      let g: IShape = shape.clone();
+
       // TODO: make shape clone copy style
       if (shape.style) {
         g.style = Object.assign({}, shape.style);
@@ -896,21 +897,21 @@ export class Stamp extends AbstractShape {
     let o = this._getGroupOffset(nnx, nny, nspx, nspy);
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
-        const s = new Stamp(
-          new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.align),
-        ).fromString(params.subStampString);
+        const center = new Ray(
+          nspx * i - o.x + $(params.offsetX),
+          nspy * j - o.y + $(params.offsetY),
+          params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
+        );
+        const s = new Stamp(center, $(params.align)).fromString(
+          params.subStampString,
+        );
+        s.bake();
         if ($(params.skip) > 0) {
           s.hidden = true;
         }
         if (params.style) {
           s.style = params.style;
         }
-        s.bake();
         shapes.push(s);
       }
     }
@@ -1305,9 +1306,9 @@ export class Stamp extends AbstractShape {
 
   /**
    * Bakes the clipped solution into a final polytree
-   * @param {boolean} rebake whether to re-bake a baked shape
+   * @param rebake whether to re-bake a baked shape
    */
-  bake(rebake = false) {
+  bake(rebake: boolean = false): void {
     if (this._baked && !rebake) {
       return;
     }
@@ -1435,10 +1436,7 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  /**
-   * @returns {String}
-   */
-  toString() {
+  toString(): string {
     return JSON.stringify([this._nodes]);
   }
 
@@ -1456,6 +1454,10 @@ export class Stamp extends AbstractShape {
     let stamp = new Stamp(this.center.clone(), this.alignment, this.reverse);
     stamp.isHole = this.isHole;
     stamp.hidden = this.hidden;
+    if (this._baked) {
+      stamp._tree = this._tree;
+      return stamp;
+    }
     return stamp.fromString(this.toString());
   }
 
