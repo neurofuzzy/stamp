@@ -540,14 +540,14 @@ export class Sequence {
   }
 
   static resolve(inputExpr: string, atDepth: number = 0): number {
-    const isOperatorExpr = / ([+-/*=%><//]) /g;
+    const isOperatorExpr = / ([+-/*%>&=|<//]) /g;
     const exprs = inputExpr
       .split(isOperatorExpr)
       .map((e) => e.toLowerCase().trim());
 
     const res = exprs.map((expr) => {
       const isOperator = /([+-/*%//])/g;
-      const isLogicalOperator = /([>=<])/g; // TODO: add more
+      const isLogicalOperator = /([>&=|<])/g; // TODO: add more
       const isNumeric = /^\d+$/;
 
       if (isOperator.test(expr) && expr.length == 1) {
@@ -555,6 +555,12 @@ export class Sequence {
       }
 
       if (isLogicalOperator.test(expr) && expr.length <= 3) {
+        if (expr.trim() === "&") {
+          return " && ";
+        }
+        if (expr.trim() === "|") {
+          return " || ";
+        }
         return ` ${expr.trim()} `;
       }
 

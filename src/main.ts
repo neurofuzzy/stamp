@@ -63,14 +63,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       height: "BH + 10",
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
-      skip: "BW < 101",
+      skip: "BW < 101 & BH < 81",
     })
     .ellipse({
       radiusX: "BW * 0.5",
       radiusY: "BW * 0.35",
       divisions: 4,
       offsetY: "BH",
-      skip: "BW > 100",
+      skip: "BW > 100 | BH > 80",
     })
     // windows
     .boolean("BOOL2()")
