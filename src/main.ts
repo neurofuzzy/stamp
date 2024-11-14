@@ -1,8 +1,7 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawShape } from "../src/lib/draw";
+import { drawShape } from "../src/lib/draw";
 import { Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
-import { Hatch } from "../src/lib/hatch";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
@@ -64,6 +63,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       height: "BH + 10",
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
+      skip: "BW < 101",
+    })
+    .ellipse({
+      radiusX: "BW * 0.5",
+      radiusY: "BW * 0.35",
+      divisions: 4,
+      offsetY: "BH",
+      skip: "BW > 100",
     })
     // windows
     .boolean("BOOL2()")
@@ -116,7 +123,7 @@ document.onkeydown = function (e) {
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
-    ctx2.backgroundColor = "#000";
+    //ctx2.backgroundColor = "#000";
 
     // draw the shapes
     draw(ctx2);
