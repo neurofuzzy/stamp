@@ -111,13 +111,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .circle({
       radius: 20,
       offsetY: -50,
-      divisions: 6,
+      divisions: 36,
     });
 
   const stuff = new StampsProvider([tree, bldg]);
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+    .setCursorBounds(0, 0, 600, 900)
     .markBoundsStart()
     .stamp({
       subStamp: stuff,
@@ -126,6 +127,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .markBoundsEnd()
     .moveOver(Heading.RIGHT, 0.5)
+    .setCursorBounds(0, 0, 700, 900)
     // ground shape
     .rectangle({
       width: "BW + 80",
@@ -134,11 +136,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .moveOver(Heading.RIGHT, 0.5)
     .move(20, 0)
-    .repeatLast(7, 4)
-    .moveTo(0, undefined)
+    .repeatLast(9, 9)
+    .moveTo(0)
     .move(0, 160)
     .boolean("BOOL()")
-    .repeatLast(11, 5);
+    .repeatLast(13, 5)
+    .crop(0, -200, 700, 1100);
 
   // draw as single shape
   drawShape(ctx, city);

@@ -249,6 +249,14 @@ export class BoundingBox {
       ),
     ];
   }
+  toPoints() {
+    return [
+      new Ray(this.x, this.y),
+      new Ray(this.x + this.width, this.y),
+      new Ray(this.x + this.width, this.y + this.height),
+      new Ray(this.x, this.y + this.height),
+    ];
+  }
   clone() {
     return new BoundingBox(this.x, this.y, this.width, this.height);
   }

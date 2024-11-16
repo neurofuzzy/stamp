@@ -69,6 +69,8 @@ export class Stamp extends AbstractShape {
   private _mode: number = Stamp.UNION;
   private _cursor: Ray = new Ray(0, 0, 0);
   private _cursorHistory: Ray[] = [];
+  private _cursorBounds: BoundingBox = new BoundingBox(0, 0, 0, 0);
+  private _cropBounds: BoundingBox = new BoundingBox(0, 0, 0, 0);
   private _baked: boolean = false;
   private _bakedAlignmentOffset: Point = new Point(0, 0);
 
@@ -157,6 +159,18 @@ export class Stamp extends AbstractShape {
     this._cursorHistory.push(this._cursor.clone());
   }
 
+  private _setCursorBounds(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    this._cursorBounds.x = x;
+    this._cursorBounds.y = y;
+    this._cursorBounds.width = width;
+    this._cursorBounds.height = height;
+  }
+
   private _moveTo(x: number | string, y: number | string) {
     this._cursorHistory.push(this._cursor.clone());
     if (x !== undefined) {
@@ -226,6 +240,13 @@ export class Stamp extends AbstractShape {
     );
   }
 
+  private _crop(x: number, y: number, width: number, height: number) {
+    this._cropBounds.x = x;
+    this._cropBounds.y = y;
+    this._cropBounds.width = width;
+    this._cropBounds.height = height;
+  }
+
   private _stepBack(steps: number | string) {
     const sn = $(steps);
     for (let i = 0; i < sn; i++) {
@@ -292,6 +313,13 @@ export class Stamp extends AbstractShape {
 
   private _make(shapes: IShape[], outln: number = 0, scale: number = 1) {
     scale = scale || 1;
+    if (this._cursorBounds.width > 0 && this._cursorBounds.height > 0) {
+      if (
+        !GeomHelpers.pointIsWithinBoundingBox(this._cursor, this._cursorBounds)
+      ) {
+        return;
+      }
+    }
     for (let i = 0; i < shapes.length; i++) {
       let shape: IShape | undefined = shapes[i];
 
@@ -1038,7 +1066,18 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  moveTo(x: number | string | undefined, y: number | string | undefined) {
+  setCursorBounds(x: number, y: number, width: number, height: number) {
+    this._nodes.push({
+      fName: "_setCursorBounds",
+      args: [x, y, width, height],
+    });
+    return this;
+  }
+
+  moveTo(
+    x: number | string | undefined = undefined,
+    y: number | string | undefined = undefined,
+  ) {
     this._nodes.push({ fName: "_moveTo", args: [x, y] });
     return this;
   }
@@ -1070,6 +1109,11 @@ export class Stamp extends AbstractShape {
 
   rotate(r: number | string = 0) {
     this._nodes.push({ fName: "_rotate", args: [r] });
+    return this;
+  }
+
+  crop(x: number, y: number, width: number, height: number) {
+    this._nodes.push({ fName: "_crop", args: [x, y, width, height] });
     return this;
   }
 
@@ -1327,33 +1371,35 @@ export class Stamp extends AbstractShape {
     }
 
     const privateFunctionMap: { [key: string]: Function } = {
-      _defaultStyle: this._defaultStyle,
       _add: this._add,
-      _subtract: this._subtract,
-      _intersect: this._intersect,
+      _bone: this._bone,
       _boolean: this._boolean,
       _breakApart: this._breakApart,
-      _markBoundsStart: this._markBoundsStart,
+      _circle: this._circle,
+      _crop: this._crop,
+      _defaultStyle: this._defaultStyle,
+      _ellipse: this._ellipse,
+      _forward: this._forward,
+      _intersect: this._intersect,
+      _leafShape: this._leafShape,
       _markBoundsEnd: this._markBoundsEnd,
-      _set: this._set,
-      _moveTo: this._moveTo,
+      _markBoundsStart: this._markBoundsStart,
       _move: this._move,
       _moveOver: this._moveOver,
-      _forward: this._forward,
-      _rotateTo: this._rotateTo,
-      _rotate: this._rotate,
-      _stepBack: this._stepBack,
-      _circle: this._circle,
-      _ellipse: this._ellipse,
-      _leafShape: this._leafShape,
+      _moveTo: this._moveTo,
+      _polygon: this._polygon,
       _rectangle: this._rectangle,
       _reset: this._reset,
+      _rotate: this._rotate,
+      _rotateTo: this._rotateTo,
       _roundedRectangle: this._roundedRectangle,
-      _bone: this._bone,
-      _polygon: this._polygon,
-      _stamp: this._stamp,
-      _tangram: this._tangram,
       _roundedTangram: this._roundedTangram,
+      _set: this._set,
+      _setCursorBounds: this._setCursorBounds,
+      _stamp: this._stamp,
+      _stepBack: this._stepBack,
+      _subtract: this._subtract,
+      _tangram: this._tangram,
     };
 
     let breakApartTimes = 0;
@@ -1378,6 +1424,25 @@ export class Stamp extends AbstractShape {
     this._clipShapes();
 
     if (this._tree) {
+      if (this._cropBounds.width > 0 && this._cropBounds.height > 0) {
+        const paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
+        const pts = this._cropBounds.toPoints();
+        pts.forEach((pt) => {
+          pt.x += this._cropBounds.width * 0.5;
+          pt.y += this._cropBounds.height * 0.5;
+        });
+        const clipRect = ClipperHelpers.shapeToClipperPaths(
+          new Polygon(new Ray(0, 0), pts),
+          1,
+        );
+        const polyResult = ClipperHelpers.clipper.clipToPolyTree({
+          clipType: clipperLib.ClipType.Intersection,
+          subjectInputs: [{ data: paths, closed: true }],
+          clipInputs: [clipRect],
+          subjectFillType: clipperLib.PolyFillType.EvenOdd,
+        });
+        this._tree = polyResult;
+      }
       this._polys = ClipperHelpers.polyTreeToPolygons(this._tree);
       for (let i = 0; i < breakApartTimes; i++) {
         this._breakApart();
