@@ -22,123 +22,27 @@ import {
 import { Donut } from "../geom/compoundshapes";
 import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
-import { Sequence } from "./sequence";
 import { Optimize } from "./optimize";
 import { StampsProvider } from "./stamps-provider";
+import {
+  paramsWithDefaults,
+  resolveStyle,
+  resolveStringOrNumber,
+} from "./stamp-helpers";
+import {
+  IBoneParams,
+  ICircleParams,
+  IEllipseParams,
+  ILeafShapeParams,
+  INode,
+  IPolygonParams,
+  IRectangleParams,
+  IRoundedRectangleParams,
+  IStampParams,
+  ITangramParams,
+} from "./stamp-interfaces";
 
-const $ = (arg: unknown) =>
-  typeof arg === "string"
-    ? arg.indexOf("#") === 0 || arg.indexOf("0x") === 0
-      ? parseInt(arg.replace("#", "0x"), 16)
-      : Sequence.resolve(arg)
-    : typeof arg === "number"
-      ? arg
-      : 0;
-
-interface IShapeParams {
-  angle?: number | string;
-  divisions?: number | string;
-  align?: number | string;
-  numX?: number | string;
-  numY?: number | string;
-  spacingX?: number | string;
-  spacingY?: number | string;
-  outlineThickness?: number | string;
-  scale?: number | string;
-  offsetX?: number | string;
-  offsetY?: number | string;
-  skip?: number | string;
-  style?: IStyle;
-}
-
-export interface ICircleParams extends IShapeParams {
-  radius: number | string;
-  innerRadius?: number | string;
-}
-
-export interface IEllipseParams extends IShapeParams {
-  radiusX: number | string;
-  radiusY: number | string;
-}
-
-export interface ILeafShapeParams extends IShapeParams {
-  radius: number | string;
-  splitAngle: number | string;
-  splitAngle2?: number | string;
-  serration?: number | string;
-}
-
-export interface IRectangleParams extends IShapeParams {
-  width: number | string;
-  height: number | string;
-}
-
-export interface IRoundedRectangleParams extends IShapeParams {
-  width: number | string;
-  height: number | string;
-  cornerRadius: number | string;
-}
-
-export interface IPolygonParams extends IShapeParams {
-  rays: Ray[];
-  /* processed internally */
-  rayStrings?: string[];
-}
-
-export interface IStampParams extends IShapeParams {
-  subStamp: Stamp | StampsProvider;
-  /* processed internally */
-  subStampString?: string;
-  providerIndex?: number;
-}
-
-export interface ITangramParams extends IShapeParams {
-  width: number | string;
-  height: number | string;
-  type: number | string;
-}
-
-export interface IBoneParams extends IShapeParams {
-  length: number | string;
-  bottomRadius: number | string;
-  topRadius: number | string;
-}
-
-function paramsWithDefaults<T extends IShapeParams>(params: IShapeParams): T {
-  params = Object.assign({}, params);
-  params.angle = params.angle ?? 0;
-  params.divisions = params.divisions ?? 1;
-  params.align = params.align ?? ShapeAlignment.CENTER;
-  params.numX = params.numX ?? 1;
-  params.numY = params.numY ?? 1;
-  params.spacingX = params.spacingX ?? 0;
-  params.spacingY = params.spacingY ?? 0;
-  params.outlineThickness = params.outlineThickness ?? 0;
-  params.offsetX = params.offsetX ?? 0;
-  params.offsetY = params.offsetY ?? 0;
-  params.skip = params.skip ?? 0;
-  return params as T;
-}
-
-function resolveStyle(style: IStyle) {
-  const out = Object.assign({}, style);
-  if (out.strokeColor !== undefined) out.strokeColor = $(out.strokeColor);
-  if (out.fillColor !== undefined) out.fillColor = $(out.fillColor);
-  if (out.hatchPattern !== undefined) out.hatchPattern = $(out.hatchPattern);
-  if (out.hatchScale !== undefined) out.hatchScale = $(out.hatchScale);
-  if (out.hatchAngle !== undefined) out.hatchAngle = $(out.hatchAngle);
-  return out;
-}
-
-interface IStyleMap {
-  bounds: BoundingBox;
-  style: IStyle;
-}
-
-interface INode {
-  fName: string;
-  args: any[];
-}
+const $ = resolveStringOrNumber;
 
 export class Stamp extends AbstractShape {
   static readonly NONE = 0;
@@ -1324,7 +1228,7 @@ export class Stamp extends AbstractShape {
    */
   bake(rebake: boolean = false): Stamp {
     if (this._baked && !rebake) {
-      return;
+      return this;
     }
 
     this._baked = true;
