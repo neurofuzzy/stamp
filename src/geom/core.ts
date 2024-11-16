@@ -1,5 +1,12 @@
 import { makeCircle } from "../lib/smallest-enclosing-circle";
 
+export enum Heading {
+  UP = 0,
+  RIGHT = 1,
+  DOWN = 2,
+  LEFT = 3,
+}
+
 export enum ShapeAlignment {
   TOP_LEFT = 0,
   TOP = 1,

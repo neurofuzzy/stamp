@@ -7,6 +7,7 @@ import {
   Ray,
   Path,
   ShapeAlignment,
+  Heading,
 } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 import {
@@ -39,6 +40,7 @@ import {
   IRectangleParams,
   IRoundedRectangleParams,
   IStampParams,
+  IStyleMap,
   ITangramParams,
 } from "./stamp-interfaces";
 
@@ -59,6 +61,9 @@ export class Stamp extends AbstractShape {
     outln: number;
     scale: number;
   }[] = [];
+  private _boundsStart: number = 0;
+  private _boundsEnd: number = 0;
+  private _currentBounds: BoundingBox = new BoundingBox(0, 0, 0, 0);
   private _flipBeforeClip: boolean = false;
   private _styleMap: IStyleMap[] = [];
   private _mode: number = Stamp.UNION;
@@ -154,8 +159,13 @@ export class Stamp extends AbstractShape {
 
   private _moveTo(x: number | string, y: number | string) {
     this._cursorHistory.push(this._cursor.clone());
-    this._cursor.x = $(x);
-    this._cursor.y = $(y);
+    if (x !== undefined) {
+      this._cursor.x = $(x);
+    }
+    console.log(y);
+    if (y !== undefined) {
+      this._cursor.y = $(y);
+    }
   }
 
   private _move(x: number | string, y: number | string) {
@@ -164,6 +174,33 @@ export class Stamp extends AbstractShape {
     GeomHelpers.rotatePoint(v, this._cursor.direction);
     this._cursor.x += v.x;
     this._cursor.y += v.y;
+  }
+
+  private _markBoundsStart() {
+    this._boundsStart = this._unclippedShapes.length;
+    this._boundsEnd = 100000;
+  }
+
+  private _markBoundsEnd() {
+    this._boundsEnd = this._unclippedShapes.length;
+  }
+
+  private _moveOver(heading: number, perc: number = 1) {
+    this._cursorHistory.push(this._cursor.clone());
+    switch (heading) {
+      case Heading.UP:
+        this._cursor.y -= this._currentBounds.height * perc;
+        break;
+      case Heading.RIGHT:
+        this._cursor.x += this._currentBounds.width * perc;
+        break;
+      case Heading.DOWN:
+        this._cursor.y += this._currentBounds.height * perc;
+        break;
+      case Heading.LEFT:
+        this._cursor.x -= this._currentBounds.width * perc;
+        break;
+    }
   }
 
   private _forward(distance: number) {
@@ -280,6 +317,12 @@ export class Stamp extends AbstractShape {
         scale: scale,
       });
     }
+    // set bounding box from bounding boxes of all shapes since last markBoundsStart
+    this._currentBounds = GeomHelpers.shapesBoundingBox(
+      this._unclippedShapes
+        .slice(this._boundsStart, this._boundsEnd)
+        .map((s) => s.shape),
+    );
   }
 
   private _clipShapes() {
@@ -975,6 +1018,16 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  markBoundsStart() {
+    this._nodes.push({ fName: "_markBoundsStart", args: [] });
+    return this;
+  }
+
+  markBoundsEnd() {
+    this._nodes.push({ fName: "_markBoundsEnd", args: [] });
+    return this;
+  }
+
   next() {
     this._nodes.push({ fName: "_next", args: Array.from(arguments) });
     return this;
@@ -985,13 +1038,18 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  moveTo(x: number | string = 0, y: number | string = 0) {
+  moveTo(x: number | string | undefined, y: number | string | undefined) {
     this._nodes.push({ fName: "_moveTo", args: [x, y] });
     return this;
   }
 
   move(x: number | string = 0, y: number | string = 0) {
     this._nodes.push({ fName: "_move", args: [x, y] });
+    return this;
+  }
+
+  moveOver(direction: number, perc: number) {
+    this._nodes.push({ fName: "_moveOver", args: [direction, perc] });
     return this;
   }
 
@@ -1275,9 +1333,12 @@ export class Stamp extends AbstractShape {
       _intersect: this._intersect,
       _boolean: this._boolean,
       _breakApart: this._breakApart,
+      _markBoundsStart: this._markBoundsStart,
+      _markBoundsEnd: this._markBoundsEnd,
       _set: this._set,
       _moveTo: this._moveTo,
       _move: this._move,
+      _moveOver: this._moveOver,
       _forward: this._forward,
       _rotateTo: this._rotateTo,
       _rotate: this._rotate,

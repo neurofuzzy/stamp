@@ -619,7 +619,6 @@ export class Sequence {
         return seq.next() || 0;
       }
     });
-    console.log(res.join(""));
     return +eval(res.join(""));
   }
 }

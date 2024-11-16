@@ -1,6 +1,6 @@
 import * as C2S from "canvas2svg";
 import { drawShape } from "../src/lib/draw";
-import { Ray, ShapeAlignment } from "../src/geom/core";
+import { Heading, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
@@ -118,25 +118,27 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
+    .markBoundsStart()
     .stamp({
       subStamp: stuff,
       outlineThickness: 10,
       align: ShapeAlignment.TOP,
     })
-    .move("BW * 0.5", 0)
+    .markBoundsEnd()
+    .moveOver(Heading.RIGHT, 0.5)
     // ground shape
     .rectangle({
       width: "BW + 80",
       height: 160,
       align: ShapeAlignment.BOTTOM,
     })
-    .move("BW * 0.5", 0)
+    .moveOver(Heading.RIGHT, 0.5)
     .move(20, 0)
-    .repeatLast(5, 4)
-    .move(-20 * 5, 0)
-    .move(0 - (40 + 70 + 70 + 100 + 130), 160)
+    .repeatLast(7, 4)
+    .moveTo(0, undefined)
+    .move(0, 160)
     .boolean("BOOL()")
-    .repeatLast(9, 5);
+    .repeatLast(11, 5);
 
   // draw as single shape
   drawShape(ctx, city);
