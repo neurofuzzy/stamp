@@ -1,10 +1,17 @@
-import { BoundingBox, BoundingCircle, IShape, IStyle, Ray, ShapeAlignment } from "../geom/core";
+import {
+  BoundingBox,
+  BoundingCircle,
+  IShape,
+  IStyle,
+  Ray,
+  Segment,
+  ShapeAlignment,
+} from "../geom/core";
 import { AbstractShape } from "../geom/shapes";
 import { Sequence } from "./sequence";
 
-
 export class ShapesProvider implements IShape {
-  protected shapes:IShape[];
+  protected shapes: IShape[];
   protected indexSequence: Sequence | null;
   protected currentShapeIndex = 0;
   protected currentShape: IShape = new AbstractShape();
@@ -17,7 +24,9 @@ export class ShapesProvider implements IShape {
     if (!this.shapes.length) {
       return;
     }
-    this.currentShapeIndex = this.indexSequence ? this.indexSequence.next() : this.currentShapeIndex + 1;
+    this.currentShapeIndex = this.indexSequence
+      ? this.indexSequence.next()
+      : this.currentShapeIndex + 1;
     const i = this.currentShapeIndex % this.shapes.length;
     this.currentShape = this.shapes[i]?.clone() || new AbstractShape();
   }
@@ -57,6 +66,9 @@ export class ShapesProvider implements IShape {
   generate(): Ray[] {
     this.next();
     return this.currentShape.generate();
+  }
+  toSegments(): Segment[] {
+    return this.currentShape.toSegments();
   }
   addChild(shape: IShape) {
     this.shapes.push(shape);

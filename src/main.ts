@@ -5,6 +5,7 @@ import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
+import { StampsProvider } from "./lib/stamps-provider";
 
 const backgroundColor = "black";
 
@@ -35,10 +36,12 @@ let seed = 24;
 Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
 Sequence.fromStatement("repeat 2,1 AS BOOL2", seed);
 Sequence.fromStatement("random 40,70,70,100,130 AS BW", seed);
-Sequence.fromStatement("repeat 80,130 AS BH", seed);
-Sequence.fromStatement("repeat 18,24 AS WH", seed);
+Sequence.fromStatement("repeat 80,130,80,130,80 AS BH", seed);
+Sequence.fromStatement("repeat 18,24,18,24,18 AS WH", seed);
 Sequence.fromStatement("random 1,2,2,3,4 AS NWX", seed);
-Sequence.fromStatement("repeat 2,3 AS NWY", seed);
+Sequence.fromStatement("repeat 2,3,2,3,2 AS NWY", seed);
+Sequence.fromStatement("random 0,0,1 AS DOFF", seed);
+Sequence.fromStatement("random 0,15,15,0,45 AS DX", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -50,6 +53,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .set("WH")
     .set("NWX")
     .set("NWY")
+    .set("DX")
+    .set("DOFF")
     // building shape
     .rectangle({
       width: "BW",
@@ -84,12 +89,37 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: 20,
       align: ShapeAlignment.TOP,
     })
+    // door
+    .rectangle({
+      width: 16,
+      height: "WH + 10",
+      spacingX: 30,
+      spacingY: "WH + 10",
+      offsetX: "DX",
+      offsetY: 10,
+      align: ShapeAlignment.TOP,
+      skip: "DOFF | BW < 61",
+    })
     .boolean("BOOL2()");
+
+  const tree = new Stamp(new Ray(0, 0, 0))
+    .rectangle({
+      width: 10,
+      height: 50,
+      align: ShapeAlignment.TOP,
+    })
+    .circle({
+      radius: 20,
+      offsetY: -50,
+      divisions: 6,
+    });
+
+  const stuff = new StampsProvider([tree, bldg]);
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
     .stamp({
-      subStamp: bldg,
+      subStamp: stuff,
       outlineThickness: 10,
       align: ShapeAlignment.TOP,
     })

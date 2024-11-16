@@ -24,6 +24,7 @@ import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Sequence } from "./sequence";
 import { Optimize } from "./optimize";
+import { StampsProvider } from "./stamps-provider";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -85,9 +86,10 @@ export interface IPolygonParams extends IShapeParams {
 }
 
 export interface IStampParams extends IShapeParams {
-  subStamp: Stamp;
+  subStamp: Stamp | StampsProvider;
   /* processed internally */
   subStampString?: string;
+  providerIndex?: number;
 }
 
 export interface ITangramParams extends IShapeParams {
@@ -886,6 +888,14 @@ export class Stamp extends AbstractShape {
   }
 
   private _stamp(params: IStampParams) {
+    if (params.providerIndex !== undefined) {
+      const stamp = StampsProvider.getInstance(
+        params.providerIndex,
+      ).nextStamp();
+      if (stamp) {
+        params.subStampString = stamp.toString();
+      }
+    }
     if (!params.subStampString) {
       return;
     }
@@ -1167,7 +1177,11 @@ export class Stamp extends AbstractShape {
 
   stamp(params: IStampParams) {
     params = paramsWithDefaults<IStampParams>(params);
-    params.subStampString = params.subStamp.toString();
+    if (params.subStamp instanceof StampsProvider) {
+      params.providerIndex = params.subStamp.instanceIndex();
+    } else {
+      params.subStampString = params.subStamp.toString();
+    }
     this._nodes.push({
       fName: "_stamp",
       args: [params],
@@ -1308,7 +1322,7 @@ export class Stamp extends AbstractShape {
    * Bakes the clipped solution into a final polytree
    * @param rebake whether to re-bake a baked shape
    */
-  bake(rebake: boolean = false): void {
+  bake(rebake: boolean = false): Stamp {
     if (this._baked && !rebake) {
       return;
     }
