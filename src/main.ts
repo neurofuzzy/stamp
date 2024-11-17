@@ -45,6 +45,7 @@ Sequence.fromStatement("random 0,15,15,0,45 AS DX", seed);
 
 Sequence.fromStatement("repeat 35,50,40,45 AS TH", seed);
 Sequence.fromStatement("repeat -30,0,30 AS STEEPLEX", seed);
+Sequence.fromStatement("repeat 70,60,50 AS STEEPLEH", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -89,13 +90,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       numY: "NWY",
       spacingX: 30,
       spacingY: "WH + 10",
-      offsetY: 20,
-      align: ShapeAlignment.TOP,
+      offsetY: "BH * 0.5",
     })
     // door
     .rectangle({
       width: 16,
-      height: "WH + 10",
+      height: "WH",
       spacingX: 30,
       spacingY: "WH + 10",
       offsetX: "DX",
@@ -107,11 +107,19 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // church
   const church = new Stamp(new Ray(0, 0, 0))
+    .set("STEEPLEH")
     .set("STEEPLEX")
     // building shape
     .rectangle({
       width: 100,
       height: 60,
+      align: ShapeAlignment.TOP,
+      outlineThickness: 0,
+    })
+    .rectangle({
+      width: 60,
+      height: 60,
+      offsetX: "STEEPLEX",
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
     })
@@ -147,22 +155,24 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     // steeple
     .rectangle({
       width: 40,
-      height: 70,
+      height: "STEEPLEH",
       offsetX: "STEEPLEX",
-      offsetY: 90,
+      offsetY: 60,
+      align: ShapeAlignment.TOP,
     })
     .circle({
       radius: 20,
       divisions: 4,
       offsetX: "STEEPLEX",
-      offsetY: 125,
+      offsetY: "STEEPLEH + 60",
     })
     .boolean("BOOL2()")
     .rectangle({
       width: 10,
       height: 20,
       offsetX: "STEEPLEX",
-      offsetY: 110,
+      offsetY: "STEEPLEH + 35",
+      align: ShapeAlignment.TOP,
     })
     .boolean("BOOL2()");
 
@@ -215,8 +225,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.BOTTOM,
     })
     .moveOver(Heading.RIGHT, 0.5)
-    .move(10, 0)
-    .repeatLast(9, 10)
+    .move(15, 0)
+    .repeatLast(9, 12)
     .moveTo(0)
     .move(0, 160)
     .boolean("BOOL()")

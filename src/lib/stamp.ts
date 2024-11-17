@@ -766,7 +766,7 @@ export class Stamp extends AbstractShape {
           $(params.width),
           $(params.height),
           $(params.divisions),
-          //  $(params.align),
+          $(params.align),
         );
         if ($(params.skip) > 0) {
           s.hidden = true;
@@ -777,7 +777,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    //this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
