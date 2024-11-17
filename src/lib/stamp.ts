@@ -628,7 +628,7 @@ export class Stamp extends AbstractShape {
           $(params.offsetX || 0),
           $(params.offsetY || 0),
         );
-        GeomHelpers.rotatePoint(offset, 0 - this._cursor.direction);
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
         let s;
         let innerRadius = $(params.innerRadius);
         let cen = new Ray(
@@ -1428,8 +1428,8 @@ export class Stamp extends AbstractShape {
         const paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
         const pts = this._cropBounds.toPoints();
         pts.forEach((pt) => {
-          pt.x += this._cropBounds.width * 0.5;
-          pt.y += this._cropBounds.height * 0.5;
+          pt.x += this.center.x;
+          pt.y += this.center.y;
         });
         const clipRect = ClipperHelpers.shapeToClipperPaths(
           new Polygon(new Ray(0, 0), pts),

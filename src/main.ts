@@ -16,7 +16,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 8 * 96;
+const pageWidth = 11 * 96;
 const pageHeight = 11 * 96;
 const ratio = 2;
 const zoom = 1;
@@ -31,7 +31,7 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = "white";
 
-let seed = 24;
+let seed = 27;
 
 Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
 Sequence.fromStatement("repeat 2,1 AS BOOL2", seed);
@@ -43,10 +43,12 @@ Sequence.fromStatement("repeat 2,3,2,3,2 AS NWY", seed);
 Sequence.fromStatement("random 0,0,1 AS DOFF", seed);
 Sequence.fromStatement("random 0,15,15,0,45 AS DX", seed);
 
+Sequence.fromStatement("repeat 45,60,50,55 AS TH", seed);
+
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
-  // city grid
+  // building
   const bldg = new Stamp(new Ray(0, 0, 0))
     .set("BW")
     .set("BH")
@@ -102,32 +104,101 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .boolean("BOOL2()");
 
-  const tree = new Stamp(new Ray(0, 0, 0))
+  // church
+  const church = new Stamp(new Ray(0, 0, 0))
+    // building shape
     .rectangle({
-      width: 10,
-      height: 50,
+      width: 100,
+      height: 60,
       align: ShapeAlignment.TOP,
+      outlineThickness: 0,
+    })
+    .ellipse({
+      radiusX: 50,
+      radiusY: 30,
+      divisions: 4,
+      offsetY: 60,
+    })
+    // windows
+    .boolean("BOOL2()")
+    .rectangle({
+      width: 16,
+      height: 20,
+      numX: 3,
+      numY: 1,
+      spacingX: 30,
+      spacingY: 30,
+      offsetY: 25,
+    })
+    .leafShape({
+      radius: 20,
+      splitAngle: 60,
+      splitAngle2: 78,
+      divisions: 8,
+      numX: 3,
+      numY: 1,
+      spacingX: 30,
+      spacingY: 30,
+      offsetY: 35,
+    })
+    .boolean("BOOL2()")
+    // steeple
+    .rectangle({
+      width: 36,
+      height: 50,
+      offsetY: 100,
     })
     .circle({
+      radius: 18,
+      divisions: 4,
+      offsetY: 125,
+    })
+    .boolean("BOOL2()")
+    .rectangle({
+      width: 10,
+      height: 20,
+      offsetY: 110,
+    })
+    .boolean("BOOL2()");
+
+  // tree
+  const tree = new Stamp(new Ray(0, 0, 0))
+    // trunk shape
+    .rectangle({
+      width: 10,
+      height: "TH()",
+      align: ShapeAlignment.TOP,
+    })
+    // canopy shape
+    .circle({
       radius: 20,
-      offsetY: -50,
+      offsetY: "TH - 20",
+      divisions: 36,
+    })
+    .circle({
+      radius: 14,
+      offsetY: "TH",
       divisions: 36,
     });
 
-  const stuff = new StampsProvider([tree, bldg]);
+  // city objects
+  const blocks = new StampsProvider(
+    [tree, bldg, bldg, tree, church],
+    Sequence.fromStatement("random 1,2,2,3,4,3,3", seed),
+  );
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
-    .setCursorBounds(0, 0, 600, 900)
+    .setCursorBounds(0, 0, 900, 900)
     .markBoundsStart()
     .stamp({
-      subStamp: stuff,
+      subStamp: blocks,
       outlineThickness: 10,
       align: ShapeAlignment.TOP,
     })
     .markBoundsEnd()
     .moveOver(Heading.RIGHT, 0.5)
-    .setCursorBounds(0, 0, 700, 900)
+    .setCursorBounds(0, 0, 1100, 900)
     // ground shape
     .rectangle({
       width: "BW + 80",
@@ -136,12 +207,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .moveOver(Heading.RIGHT, 0.5)
     .move(20, 0)
-    .repeatLast(9, 9)
+    .repeatLast(9, 10)
     .moveTo(0)
     .move(0, 160)
     .boolean("BOOL()")
     .repeatLast(13, 5)
-    .crop(0, -200, 700, 1100);
+    .crop(-40, -200, 1000, 1100);
 
   // draw as single shape
   drawShape(ctx, city);
