@@ -43,7 +43,8 @@ Sequence.fromStatement("repeat 2,3,2,3,2 AS NWY", seed);
 Sequence.fromStatement("random 0,0,1 AS DOFF", seed);
 Sequence.fromStatement("random 0,15,15,0,45 AS DX", seed);
 
-Sequence.fromStatement("repeat 45,60,50,55 AS TH", seed);
+Sequence.fromStatement("repeat 35,50,40,45 AS TH", seed);
+Sequence.fromStatement("repeat -30,0,30 AS STEEPLEX", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -106,6 +107,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // church
   const church = new Stamp(new Ray(0, 0, 0))
+    .set("STEEPLEX")
     // building shape
     .rectangle({
       width: 100,
@@ -131,7 +133,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: 25,
     })
     .leafShape({
-      radius: 20,
+      radius: 8,
       splitAngle: 60,
       splitAngle2: 78,
       divisions: 8,
@@ -144,19 +146,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .boolean("BOOL2()")
     // steeple
     .rectangle({
-      width: 36,
-      height: 50,
-      offsetY: 100,
+      width: 40,
+      height: 70,
+      offsetX: "STEEPLEX",
+      offsetY: 90,
     })
     .circle({
-      radius: 18,
+      radius: 20,
       divisions: 4,
+      offsetX: "STEEPLEX",
       offsetY: 125,
     })
     .boolean("BOOL2()")
     .rectangle({
       width: 10,
       height: 20,
+      offsetX: "STEEPLEX",
       offsetY: 110,
     })
     .boolean("BOOL2()");
@@ -170,15 +175,19 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
     })
     // canopy shape
-    .circle({
-      radius: 20,
+    .roundedRectangle({
+      width: 30,
+      height: 20,
+      cornerRadius: 10,
       offsetY: "TH - 20",
       divisions: 36,
     })
-    .circle({
-      radius: 14,
-      offsetY: "TH",
-      divisions: 36,
+    .leafShape({
+      radius: 12,
+      splitAngle: 70,
+      splitAngle2: 120,
+      divisions: 8,
+      offsetY: "TH - 7",
     });
 
   // city objects
@@ -206,7 +215,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.BOTTOM,
     })
     .moveOver(Heading.RIGHT, 0.5)
-    .move(20, 0)
+    .move(10, 0)
     .repeatLast(9, 10)
     .moveTo(0)
     .move(0, 160)

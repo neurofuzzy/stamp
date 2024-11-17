@@ -273,6 +273,21 @@ export class GeomHelpers {
     return newRays;
   }
 
+  static pointsBoundingBox(points: Point[] | Ray[]): BoundingBox {
+    let xMin = Number.MAX_VALUE;
+    let yMin = Number.MAX_VALUE;
+    let xMax = Number.MIN_VALUE;
+    let yMax = Number.MIN_VALUE;
+    for (let i = 0; i < points.length; i++) {
+      const pt = points[i];
+      if (pt.x < xMin) xMin = pt.x;
+      if (pt.y < yMin) yMin = pt.y;
+      if (pt.x > xMax) xMax = pt.x;
+      if (pt.y > yMax) yMax = pt.y;
+    }
+    return new BoundingBox(xMin, yMin, xMax - xMin, yMax - yMin);
+  }
+
   static shapesBoundingBox(shapes: IShape[]): BoundingBox {
     let xMin = Number.MAX_VALUE;
     let yMin = Number.MAX_VALUE;
