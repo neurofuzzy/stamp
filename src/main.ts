@@ -160,8 +160,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: 60,
       align: ShapeAlignment.TOP,
     })
-    .circle({
-      radius: 20,
+    .ellipse({
+      radiusX: 20,
+      radiusY: 20,
       divisions: 4,
       offsetX: "STEEPLEX",
       offsetY: "STEEPLEH + 60",

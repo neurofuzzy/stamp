@@ -575,6 +575,90 @@ export class Rectangle extends AbstractShape {
   }
 }
 
+export class Trapezoid extends Rectangle {
+  taper: number;
+  constructor(
+    center?: Ray,
+    width: number = 100,
+    height: number = 100,
+    taper: number = 20,
+    divisions: number = 1,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
+    reverse: boolean = false,
+  ) {
+    super(center, width, height, divisions, alignment, reverse);
+    this.taper = taper;
+  }
+  generate(withinArea?: BoundingBox) {
+    let rays: Ray[] = [];
+    const offset = this.alignmentOffset();
+    // add rectangle corners
+    rays.push(
+      new Ray(
+        this.center.x - this.width / 2 + offset.x + this.taper,
+        this.center.y - this.height / 2 + offset.y,
+      ),
+    );
+    rays.push(
+      new Ray(
+        this.center.x + this.width / 2 + offset.x - this.taper,
+        this.center.y - this.height / 2 + offset.y,
+      ),
+    );
+    rays.push(
+      new Ray(
+        this.center.x + this.width / 2 + offset.x,
+        this.center.y + this.height / 2 + offset.y,
+      ),
+    );
+    rays.push(
+      new Ray(
+        this.center.x - this.width / 2 + offset.x,
+        this.center.y + this.height / 2 + offset.y,
+      ),
+    );
+    rays.push(
+      new Ray(
+        this.center.x - this.width / 2 + offset.x,
+        this.center.y - this.height / 2 + offset.y,
+      ),
+    );
+    if (this.reverse) {
+      rays.reverse();
+    }
+    GeomHelpers.normalizeRayDirections(rays);
+    if (this.center.direction) {
+      rays.forEach((r) => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r);
+      });
+    }
+    if (this.divisions > 1) {
+      rays = GeomHelpers.subdivideRays(rays[0], rays[1], this.divisions)
+        .concat(GeomHelpers.subdivideRays(rays[1], rays[2], this.divisions))
+        .concat(GeomHelpers.subdivideRays(rays[2], rays[3], this.divisions))
+        .concat(GeomHelpers.subdivideRays(rays[3], rays[0], this.divisions));
+    }
+    this.fit(rays, withinArea);
+    return rays;
+  }
+  clone(atScale = 1) {
+    const scale = atScale || 1;
+    const s = new Trapezoid(
+      this.center.clone(),
+      this.width * scale,
+      this.height * scale,
+      this.taper * scale,
+      this.divisions,
+      this.alignment,
+      this.reverse,
+    );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
+    return s;
+  }
+}
+
 export class RoundedRectangle extends Rectangle {
   radius: number;
   constructor(

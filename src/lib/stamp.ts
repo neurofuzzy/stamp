@@ -1,24 +1,25 @@
 import * as clipperLib from "js-angusj-clipper/web";
 import {
   BoundingBox,
+  Heading,
   IShape,
   IStyle,
+  Path,
   Point,
   Ray,
-  Path,
   ShapeAlignment,
-  Heading,
 } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 import {
   AbstractShape,
+  Bone,
   Circle,
   Ellipse,
+  LeafShape,
   Polygon,
   Rectangle,
   RoundedRectangle,
-  Bone,
-  LeafShape,
+  Trapezoid,
 } from "../geom/shapes";
 import { Donut } from "../geom/compoundshapes";
 import { RoundedTangram, Tangram } from "../geom/tangram";
@@ -42,6 +43,7 @@ import {
   IStampParams,
   IStyleMap,
   ITangramParams,
+  ITrapezoidParams,
 } from "./stamp-interfaces";
 
 const $ = resolveStringOrNumber;
@@ -781,6 +783,45 @@ export class Stamp extends AbstractShape {
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
+  private _trapezoid(params: ITrapezoidParams) {
+    let shapes: IShape[] = [];
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        const offset = new Point(
+          $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
+        const s = new Trapezoid(
+          new Ray(
+            nspx * i - o.x + offset.x,
+            +nspy * j - o.y + offset.y,
+            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
+          ),
+          $(params.width),
+          $(params.height),
+          $(params.taper),
+          $(params.divisions),
+          $(params.align),
+        );
+        if ($(params.skip) > 0) {
+          s.hidden = true;
+        }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
+      }
+    }
+    //this._align(shapes, $(params.align));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  }
+
   private _roundedRectangle(params: IRoundedRectangleParams) {
     let shapes: IShape[] = [];
     let nnx = $(params.numX),
@@ -1153,6 +1194,15 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  trapezoid(params: ITrapezoidParams) {
+    params = paramsWithDefaults<ITrapezoidParams>(params);
+    this._nodes.push({
+      fName: "_trapezoid",
+      args: [params],
+    });
+    return this;
+  }
+
   roundedRectangle(params: IRoundedRectangleParams) {
     params = paramsWithDefaults<IRoundedRectangleParams>(params);
     this._nodes.push({
@@ -1400,6 +1450,7 @@ export class Stamp extends AbstractShape {
       _stepBack: this._stepBack,
       _subtract: this._subtract,
       _tangram: this._tangram,
+      _trapezoid: this._trapezoid,
     };
 
     let breakApartTimes = 0;

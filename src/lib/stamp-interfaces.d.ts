@@ -61,6 +61,12 @@ export interface ITangramParams extends IShapeParams {
   type: number | string;
 }
 
+export interface ITrapezoidParams extends IShapeParams {
+  width: number | string;
+  height: number | string;
+  taper: number | string;
+}
+
 export interface IBoneParams extends IShapeParams {
   length: number | string;
   bottomRadius: number | string;
