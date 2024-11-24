@@ -35,6 +35,7 @@ let seed = 27;
 
 Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
 Sequence.fromStatement("repeat 2,1 AS BOOL2", seed);
+Sequence.fromStatement("repeat 2,1 AS BOOL3", seed);
 Sequence.fromStatement("random 40,70,70,100,130 AS BW", seed);
 Sequence.fromStatement("repeat 80,130,80,130,80 AS BH", seed);
 Sequence.fromStatement("repeat 80,80,80,80,80 AS BH2", seed);
@@ -52,6 +53,11 @@ Sequence.fromStatement("repeat 60,50,40 AS STEEPLEH", seed);
 Sequence.fromStatement("repeat 15,20,30 AS CH", seed);
 Sequence.fromStatement("repeat 0,1 AS T1", seed);
 Sequence.fromStatement("repeat 1,0 AS T2", seed);
+
+Sequence.fromStatement("random 80,80,110,140 AS STW", seed);
+Sequence.fromStatement("repeat 130,90,130,90 AS STH", seed);
+Sequence.fromStatement("random 2,2,3,4 AS STNWX", seed);
+Sequence.fromStatement("repeat 2,1,2,1 AS STNWY", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -195,13 +201,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: "STEEPLEH + 60",
       skip: "STEEPLEH > 59",
     })
-    .rectangle({
-      width: 25,
-      height: 10,
+    .circle({
+      radius: 10,
       offsetX: "STEEPLEX",
       offsetY: "STEEPLEH + 60",
       skip: "STEEPLEH < 60",
-      align: ShapeAlignment.TOP,
     })
     .boolean("BOOL2()")
     .rectangle({
@@ -238,10 +242,74 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: "TH - 7",
     });
 
+  // store
+  const store = new Stamp(new Ray(0, 0, 0))
+    .set("STH")
+    .set("STW")
+    .set("STNWX")
+    .set("STNWY")
+    // store shape
+    .rectangle({
+      width: "STW",
+      height: "STH",
+      align: ShapeAlignment.TOP,
+      outlineThickness: 0,
+    })
+    .boolean("BOOL3()")
+    // store windows
+    .rectangle({
+      width: "STW * 0.5 - 30",
+      height: 30,
+      numX: 2,
+      numY: 1,
+      spacingX: "STW * 0.5 + 6",
+      spacingY: 30,
+      offsetY: 20,
+    })
+    // door
+    .rectangle({
+      width: 16,
+      height: 50,
+      offsetY: 10,
+    })
+    // higher floor windows
+    .rectangle({
+      width: 20,
+      height: 20,
+      numX: "STNWX",
+      numY: "STNWY",
+      spacingX: 32,
+      spacingY: 30,
+      offsetY: "STH * 0.5 + 24",
+    })
+    .boolean("BOOL3()")
+    // roof
+    .rectangle({
+      width: "STW - 20",
+      height: 10,
+      offsetY: "STH",
+      align: ShapeAlignment.TOP,
+      outlineThickness: 0,
+    })
+    .circle({
+      radius: 10,
+      offsetY: "STH + 10",
+    })
+    // canopy
+    .trapezoid({
+      width: "STW + 20",
+      height: 20,
+      taper: 6,
+      offsetY: 36,
+      align: ShapeAlignment.TOP,
+    });
+
+  Sequence.fromStatement("random 0,1,2,0,1,2,0,1,2,3 as BLDGS", seed);
+  Sequence.fromStatement("random 4,4,4,0 as TREES", seed);
   // city objects
   const blocks = new StampsProvider(
-    [bldg, tree, bldg2, bldg2, church],
-    Sequence.fromStatement("random 0,1,2,3,0,1,2,3,0,1,2,3,4", seed),
+    [bldg, bldg2, store, church, tree],
+    Sequence.fromStatement("random BLDGS(),TREES(),BLDGS(),TREES()", seed),
   );
 
   // city grid
@@ -268,7 +336,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .moveTo(0)
     .move(0, 160)
     .boolean("BOOL()")
-    .repeatLast(13, 5)
+    .repeatLast(13, 3)
     .crop(-40, -200, 1000, 1100);
 
   // draw as single shape
