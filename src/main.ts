@@ -16,7 +16,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 11 * 96;
+const pageWidth = 16 * 96;
 const pageHeight = 11 * 96;
 const ratio = 2;
 const zoom = 1;
@@ -55,7 +55,7 @@ Sequence.fromStatement("repeat 0,1 AS T1", seed);
 Sequence.fromStatement("repeat 1,0 AS T2", seed);
 
 Sequence.fromStatement("random 80,80,110,140 AS STW", seed);
-Sequence.fromStatement("repeat 130,90,130,90 AS STH", seed);
+Sequence.fromStatement("repeat 120,80,120,80 AS STH", seed);
 Sequence.fromStatement("random 2,2,3,4 AS STNWX", seed);
 Sequence.fromStatement("repeat 2,1,2,1 AS STNWY", seed);
 
@@ -280,7 +280,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       numY: "STNWY",
       spacingX: 32,
       spacingY: 30,
-      offsetY: "STH * 0.5 + 24",
+      offsetY: "STH * 0.5 + 18",
     })
     .boolean("BOOL3()")
     // roof
@@ -300,7 +300,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       width: "STW + 20",
       height: 20,
       taper: 6,
-      offsetY: 36,
+      offsetY: 30,
       align: ShapeAlignment.TOP,
     });
 
@@ -314,7 +314,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
-    .setCursorBounds(0, 0, 900, 900)
+    .setCursorBounds(0, 0, 1200, 900)
     .markBoundsStart()
     .stamp({
       subStamp: blocks,
@@ -323,21 +323,21 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .markBoundsEnd()
     .moveOver(Heading.RIGHT, 0.5)
-    .setCursorBounds(0, 0, 1100, 900)
+    .setCursorBounds(0, 0, 1400, 900)
     // ground shape
     .rectangle({
-      width: "BW + 80",
+      width: "BW + 100",
       height: 160,
       align: ShapeAlignment.BOTTOM,
     })
     .moveOver(Heading.RIGHT, 0.5)
     .move(15, 0)
-    .repeatLast(9, 12)
+    .repeatLast(9, 16)
     .moveTo(0)
     .move(0, 160)
     .boolean("BOOL()")
-    .repeatLast(13, 3)
-    .crop(-40, -200, 1000, 1100);
+    .repeatLast(13, 5)
+    .crop(-40, -200, 1340, 1100);
 
   // draw as single shape
   drawShape(ctx, city);
