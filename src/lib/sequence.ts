@@ -160,6 +160,7 @@ export class Sequence {
     this._firstPick = true;
     this._usedValues = [];
     this._prng = arbit(this._seed);
+    this.started = false;
     this.done = false;
   }
 
@@ -592,7 +593,7 @@ export class Sequence {
         }
         let n = seq.current();
         if (isNaN(n)) {
-          return seq.next() || 0;
+          return 0;
         }
         return n;
       }

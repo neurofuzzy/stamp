@@ -12,6 +12,7 @@ interface IShapeParams {
   offsetY?: number | string;
   skip?: number | string;
   style?: IStyle;
+  tag?: string;
 }
 
 export interface ICircleParams extends IShapeParams {
@@ -80,5 +81,6 @@ interface IStyleMap {
 
 interface INode {
   fName: string;
+  tag?: string;
   args: any[];
 }

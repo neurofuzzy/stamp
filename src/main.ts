@@ -37,15 +37,21 @@ Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
 Sequence.fromStatement("repeat 2,1 AS BOOL2", seed);
 Sequence.fromStatement("random 40,70,70,100,130 AS BW", seed);
 Sequence.fromStatement("repeat 80,130,80,130,80 AS BH", seed);
+Sequence.fromStatement("repeat 80,80,80,80,80 AS BH2", seed);
 Sequence.fromStatement("repeat 18,24,18,24,18 AS WH", seed);
 Sequence.fromStatement("random 1,2,2,3,4 AS NWX", seed);
 Sequence.fromStatement("repeat 2,3,2,3,2 AS NWY", seed);
-Sequence.fromStatement("random 0,0,1 AS DOFF", seed);
+Sequence.fromStatement("repeat 0,0,1 AS DOFF", seed);
 Sequence.fromStatement("random 0,15,15,0,45 AS DX", seed);
 
-Sequence.fromStatement("repeat 35,50,40,45 AS TH", seed);
+Sequence.fromStatement("repeat 35,50,40,45 AS TH", 22);
+Sequence.fromStatement("random 70,100,100 AS CW", seed);
+Sequence.fromStatement("random 2,3,3 AS CNWX", seed);
 Sequence.fromStatement("repeat -30,0,30 AS STEEPLEX", seed);
-Sequence.fromStatement("repeat 70,60,50 AS STEEPLEH", seed);
+Sequence.fromStatement("repeat 60,50,40 AS STEEPLEH", seed);
+Sequence.fromStatement("repeat 15,20,30 AS CH", seed);
+Sequence.fromStatement("repeat 0,1 AS T1", seed);
+Sequence.fromStatement("repeat 1,0 AS T2", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -68,13 +74,16 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     // flat roof shape
     .rectangle({
+      tag: "roof",
       width: "BW - 20",
       height: "BH + 10",
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
       skip: "BW < 101 & BH < 81",
     })
+    // pitched roof shape
     .ellipse({
+      tag: "pitchroof",
       radiusX: "BW * 0.5",
       radiusY: "BW * 0.35",
       divisions: 4,
@@ -105,27 +114,45 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .boolean("BOOL2()");
 
+  // building2
+  const bldg2 = new Stamp(new Ray(0, 0, 0))
+    .extends(bldg)
+    .skipTag("pitchroof", "T1() | BW > 100 | BH > 80")
+    //.replaceVariable("BH", "BH2")
+    .trapezoid({
+      tag: "roof",
+      taper: 10,
+      width: "BW + 10",
+      offsetY: "BH - 15",
+      height: "30",
+      align: ShapeAlignment.TOP,
+      skip: "T2() | BH > 80",
+    });
+
   // church
   const church = new Stamp(new Ray(0, 0, 0))
     .set("STEEPLEH")
     .set("STEEPLEX")
+    .set("CH")
+    .set("CW")
+    .set("CNWX")
     // building shape
     .rectangle({
-      width: 100,
+      width: "CW",
       height: 60,
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
     })
     .rectangle({
       width: 60,
-      height: 60,
+      height: 50,
       offsetX: "STEEPLEX",
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
     })
     .ellipse({
-      radiusX: 50,
-      radiusY: 30,
+      radiusX: "CW * 0.5",
+      radiusY: "CH",
       divisions: 4,
       offsetY: 60,
     })
@@ -133,10 +160,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .boolean("BOOL2()")
     .rectangle({
       width: 16,
-      height: 20,
-      numX: 3,
+      height: 17,
+      numX: "CNWX",
       numY: 1,
-      spacingX: 30,
+      spacingX: 25,
       spacingY: 30,
       offsetY: 25,
     })
@@ -145,19 +172,19 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       splitAngle: 60,
       splitAngle2: 78,
       divisions: 8,
-      numX: 3,
+      numX: "CNWX",
       numY: 1,
-      spacingX: 30,
+      spacingX: 25,
       spacingY: 30,
-      offsetY: 35,
+      offsetY: 32,
     })
     .boolean("BOOL2()")
     // steeple
     .rectangle({
       width: 40,
-      height: "STEEPLEH",
+      height: "STEEPLEH + 10",
       offsetX: "STEEPLEX",
-      offsetY: 60,
+      offsetY: 50,
       align: ShapeAlignment.TOP,
     })
     .ellipse({
@@ -166,23 +193,33 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 4,
       offsetX: "STEEPLEX",
       offsetY: "STEEPLEH + 60",
+      skip: "STEEPLEH > 59",
+    })
+    .rectangle({
+      width: 25,
+      height: 10,
+      offsetX: "STEEPLEX",
+      offsetY: "STEEPLEH + 60",
+      skip: "STEEPLEH < 60",
+      align: ShapeAlignment.TOP,
     })
     .boolean("BOOL2()")
     .rectangle({
       width: 10,
       height: 20,
       offsetX: "STEEPLEX",
-      offsetY: "STEEPLEH + 35",
+      offsetY: "STEEPLEH + 30",
       align: ShapeAlignment.TOP,
     })
     .boolean("BOOL2()");
 
   // tree
   const tree = new Stamp(new Ray(0, 0, 0))
+    .set("TH")
     // trunk shape
     .rectangle({
       width: 10,
-      height: "TH()",
+      height: "TH",
       align: ShapeAlignment.TOP,
     })
     // canopy shape
@@ -203,8 +240,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // city objects
   const blocks = new StampsProvider(
-    [tree, bldg, bldg, tree, church],
-    Sequence.fromStatement("random 1,2,2,3,4,3,3", seed),
+    [bldg, tree, bldg2, bldg2, church],
+    Sequence.fromStatement("random 0,1,2,3,0,1,2,3,0,1,2,3,4", seed),
   );
 
   // city grid

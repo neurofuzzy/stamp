@@ -1,6 +1,6 @@
 import { IStyle, ShapeAlignment } from "../geom/core";
 import { Sequence } from "./sequence";
-import { IShapeParams } from "./stamp-interfaces";
+import { INode, IShapeParams } from "./stamp-interfaces";
 
 export function paramsWithDefaults<T extends IShapeParams>(
   params: IShapeParams,
@@ -39,4 +39,18 @@ export function resolveStyle(style: IStyle) {
   if (out.hatchScale !== undefined) out.hatchScale = $(out.hatchScale);
   if (out.hatchAngle !== undefined) out.hatchAngle = $(out.hatchAngle);
   return out;
+}
+
+export function cloneNode(node: INode) {
+  const args = node.args.concat();
+  args.forEach((arg, idx) => {
+    if (typeof arg === "object") {
+      args[idx] = Object.assign({}, arg);
+    }
+  });
+  return {
+    fName: node.fName,
+    tag: node.tag,
+    args,
+  };
 }

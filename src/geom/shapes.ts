@@ -617,12 +617,6 @@ export class Trapezoid extends Rectangle {
         this.center.y + this.height / 2 + offset.y,
       ),
     );
-    rays.push(
-      new Ray(
-        this.center.x - this.width / 2 + offset.x,
-        this.center.y - this.height / 2 + offset.y,
-      ),
-    );
     if (this.reverse) {
       rays.reverse();
     }

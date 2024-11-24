@@ -32,10 +32,10 @@ export class StampsProvider {
     const i = this._currentStampIndex % this._stamps.length;
     this._currentStamp = this._stamps[i]?.clone() || new AbstractShape();
   }
-  public currentStamp(): Stamp {
+  public currentStamp(): Stamp | undefined {
     return this._currentStamp;
   }
-  public nextStamp(): Stamp {
+  public nextStamp(): Stamp | undefined {
     this.next();
     return this._currentStamp;
   }

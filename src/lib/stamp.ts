@@ -27,6 +27,7 @@ import { ClipperHelpers } from "./clipper-helpers";
 import { Optimize } from "./optimize";
 import { StampsProvider } from "./stamps-provider";
 import {
+  cloneNode,
   paramsWithDefaults,
   resolveStyle,
   resolveStringOrNumber,
@@ -1153,6 +1154,68 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  /**
+   * removes any nodes with the given tag
+   * @param tag
+   * @returns
+   */
+  removeTag(tag: string) {
+    let i = this._nodes.length;
+    while (i--) {
+      if (this._nodes[i].tag === tag) {
+        this._nodes.splice(i, 1);
+        // reduce any repeatLasts steps by 1
+        for (let j = i; j < this._nodes.length; j++) {
+          if (this._nodes[j].fName === "_repeatLast") {
+            this._nodes[j].args[0]--;
+          }
+        }
+      }
+    }
+    return this;
+  }
+
+  skipTag(tag: string, condition: string) {
+    let i = this._nodes.length;
+    while (i--) {
+      if (this._nodes[i].tag === tag) {
+        if (typeof this._nodes[i].args[0] === "object") {
+          this._nodes[i].args[0].skip = condition;
+        }
+      }
+    }
+    return this;
+  }
+
+  /**
+   * replaces any occurances of named sequences
+   * @param oldName
+   * @param newName
+   * @returns
+   */
+  replaceVariable(oldName: string, newName: string) {
+    this._nodes.forEach((node) => {
+      node.args.forEach((arg, idx) => {
+        if (arg === oldName) {
+          arg = newName;
+        }
+        if (arg === `${oldName}()`) {
+          arg = `${newName}()`;
+        }
+        node.args[idx] = arg;
+      });
+    });
+    return this;
+  }
+
+  /**
+   * crops the stamp to the given bounds
+   * @param x
+   * @param y
+   * @param width
+   * @param height
+   * @returns
+   */
   crop(x: number, y: number, width: number, height: number) {
     this._nodes.push({ fName: "_crop", args: [x, y, width, height] });
     return this;
@@ -1162,6 +1225,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<ICircleParams>(params);
     this._nodes.push({
       fName: "_circle",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1171,6 +1235,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<IEllipseParams>(params);
     this._nodes.push({
       fName: "_ellipse",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1180,6 +1245,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<ILeafShapeParams>(params);
     this._nodes.push({
       fName: "_leafShape",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1189,6 +1255,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<IRectangleParams>(params);
     this._nodes.push({
       fName: "_rectangle",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1198,6 +1265,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<ITrapezoidParams>(params);
     this._nodes.push({
       fName: "_trapezoid",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1207,6 +1275,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<IRoundedRectangleParams>(params);
     this._nodes.push({
       fName: "_roundedRectangle",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1216,6 +1285,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<IBoneParams>(params);
     this._nodes.push({
       fName: "_bone",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1226,6 +1296,7 @@ export class Stamp extends AbstractShape {
     params.rayStrings = params.rays.map((r) => r.toString());
     this._nodes.push({
       fName: "_polygon",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1240,6 +1311,7 @@ export class Stamp extends AbstractShape {
     }
     this._nodes.push({
       fName: "_stamp",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1249,6 +1321,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<ITangramParams>(params);
     this._nodes.push({
       fName: "_tangram",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1258,6 +1331,7 @@ export class Stamp extends AbstractShape {
     params = paramsWithDefaults<ITangramParams>(params);
     this._nodes.push({
       fName: "_roundedTangram",
+      tag: params.tag,
       args: [params],
     });
     return this;
@@ -1371,6 +1445,15 @@ export class Stamp extends AbstractShape {
    */
   flip() {
     this._flipBeforeClip = !this._flipBeforeClip;
+    return this;
+  }
+
+  /**
+   * Extends the stamp with another stamp
+   */
+  extends(other: Stamp) {
+    const newNodes = other._nodes.map((node) => cloneNode(node));
+    this._nodes.push(...newNodes);
     return this;
   }
 
@@ -1549,8 +1632,16 @@ export class Stamp extends AbstractShape {
     let stamp = new Stamp(this.center.clone(), this.alignment, this.reverse);
     stamp.isHole = this.isHole;
     stamp.hidden = this.hidden;
-    if (this._baked) {
-      stamp._tree = this._tree;
+    if (this._baked && this._tree) {
+      // clone the tree by unioning it with an empty path
+      let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
+      const polyResult = ClipperHelpers.clipper.clipToPolyTree({
+        clipType: clipperLib.ClipType.Union,
+        subjectInputs: [{ data: paths, closed: true }],
+        clipInputs: [{ data: [] }],
+        subjectFillType: clipperLib.PolyFillType.EvenOdd,
+      });
+      stamp._tree = polyResult;
       return stamp;
     }
     return stamp.fromString(this.toString());
