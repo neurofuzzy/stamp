@@ -298,9 +298,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     // canopy
     .trapezoid({
       width: "STW + 20",
-      height: 20,
+      height: 16,
       taper: 6,
-      offsetY: 30,
+      offsetY: 24,
       align: ShapeAlignment.TOP,
     });
 

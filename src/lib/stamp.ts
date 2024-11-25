@@ -34,6 +34,7 @@ import {
 } from "./stamp-helpers";
 import {
   IBoneParams,
+  IBoundsParams,
   ICircleParams,
   IEllipseParams,
   ILeafShapeParams,
@@ -67,6 +68,7 @@ export class Stamp extends AbstractShape {
   private _boundsStart: number = 0;
   private _boundsEnd: number = 0;
   private _currentBounds: BoundingBox = new BoundingBox(0, 0, 0, 0);
+  private _boundsParams: IBoundsParams = {};
   private _flipBeforeClip: boolean = false;
   private _styleMap: IStyleMap[] = [];
   private _mode: number = Stamp.UNION;
@@ -193,8 +195,9 @@ export class Stamp extends AbstractShape {
     this._cursor.y += v.y;
   }
 
-  private _markBoundsStart() {
+  private _markBoundsStart(params: IBoundsParams) {
     this._boundsStart = this._unclippedShapes.length;
+    this._boundsParams = params || {};
     this._boundsEnd = 100000;
   }
 
@@ -1088,8 +1091,8 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  markBoundsStart() {
-    this._nodes.push({ fName: "_markBoundsStart", args: [] });
+  markBoundsStart(params?: IBoundsParams) {
+    this._nodes.push({ fName: "_markBoundsStart", args: [params] });
     return this;
   }
 

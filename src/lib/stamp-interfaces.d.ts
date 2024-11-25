@@ -84,3 +84,7 @@ interface INode {
   tag?: string;
   args: any[];
 }
+
+interface IBoundsParams {
+  padding?: number | string;
+}
