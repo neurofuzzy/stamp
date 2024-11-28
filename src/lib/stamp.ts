@@ -1603,7 +1603,24 @@ export class Stamp extends AbstractShape {
       });
     };
 
+    const applyScaleToPoly = (p: Polygon) => {
+      p.rays.forEach((r) => {
+        r.x -= this.center.x;
+        r.y -= this.center.y;
+        r.x *= this.scale;
+        r.y *= this.scale;
+        r.x += this.center.x;
+        r.y += this.center.y;
+      });
+      p.children().forEach((child) => {
+        if (child instanceof Polygon) {
+          applyScaleToPoly(child as Polygon);
+        }
+      });
+    };
+
     this._polys.forEach(applyOffsetToPoly);
+    this._polys.forEach(applyScaleToPoly);
 
     return this;
   }
@@ -1633,8 +1650,9 @@ export class Stamp extends AbstractShape {
 
   clone(): Stamp {
     let stamp = new Stamp(this.center.clone(), this.alignment, this.reverse);
-    stamp.isHole = this.isHole;
     stamp.hidden = this.hidden;
+    stamp.isHole = this.isHole;
+    stamp.scale = this.scale;
     if (this._baked && this._tree) {
       // clone the tree by unioning it with an empty path
       let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);

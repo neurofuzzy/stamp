@@ -1,33 +1,33 @@
-import * as C2S from 'canvas2svg';
-import { drawShape } from '../src/lib/draw';
-import { Ray } from '../src/geom/core';
-import { ClipperHelpers } from '../src/lib/clipper-helpers';
-import { Sequence } from '../src/lib/sequence';
-import { Stamp } from '../src/lib/stamp';
-import '../src/style.css';
-import colors from 'nice-color-palettes';
-import { GridStampLayout } from '../src/lib/stamp-layout';
-import { GeomHelpers } from '../src/geom/helpers';
-import { GeomUtils } from '../src/geom/util';
+import * as C2S from "canvas2svg";
+import { drawShape } from "../src/lib/draw";
+import { Ray } from "../src/geom/core";
+import { ClipperHelpers } from "../src/lib/clipper-helpers";
+import { Sequence } from "../src/lib/sequence";
+import { Stamp } from "../src/lib/stamp";
+import "../src/style.css";
+import colors from "nice-color-palettes";
+import { GridStampLayout } from "../src/lib/stamp-layout";
+import { GeomHelpers } from "../src/geom/helpers";
+import { GeomUtils } from "../src/geom/util";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
     <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
   </div>
 `;
 
-const canvas = document.getElementById('canvas') as HTMLCanvasElement
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const ratio = 2;
-canvas.width = 900 * ratio
-canvas.height = 900 * ratio
-canvas.style.width = '900px'
-canvas.style.height = '900px'
-const ctx = canvas.getContext('2d')!
-ctx.scale(ratio, ratio)
+canvas.width = 900 * ratio;
+canvas.height = 900 * ratio;
+canvas.style.width = "900px";
+canvas.style.height = "900px";
+const ctx = canvas.getContext("2d")!;
+ctx.scale(ratio, ratio);
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-ctx.fillStyle = 'white';
+ctx.fillStyle = "white";
 
 Sequence.seed = 1;
 
@@ -49,12 +49,10 @@ Sequence.seed = 197;
 Sequence.seed = 193;
 Sequence.seed = 316;
 
-
 const len = 30;
 const weight = 2;
 
 const draw = (ctx: CanvasRenderingContext2D) => {
-
   ctx.clearRect(0, 0, w, h);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
@@ -67,24 +65,29 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .circle({
       radius: 2,
       divisions: 3,
-      skip: 1
+      skip: 1,
     })
     .rotate("RANGLE()")
-    .repeatLast(3, 240)
+    .repeatLast(3, 240);
 
-  Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,-72,-72,-72 AS RANGLE");
-  const seeds = Sequence.fromStatement("repeat 77763,836736,988787,988769,987636,987650", 12);
+  Sequence.fromStatement(
+    "shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,-72,-72,-72 AS RANGLE",
+  );
+  const seeds = Sequence.fromStatement(
+    "repeat 77763,836736,988787,988769,987636,987650",
+    12,
+  );
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    seedSequence: seeds,
+    permutationSequence: seeds,
     rows: 2,
     columns: 2,
     rowSpacing: 420,
-    columnSpacing: 420
+    columnSpacing: 420,
   });
 
-  let pathSets = grid.children().map(x => {
+  let pathSets = grid.children().map((x) => {
     let path = x.path();
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
@@ -94,18 +97,17 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     return path;
   });
 
-  pathSets.forEach(paths => {
-    paths.forEach(seg => {
+  pathSets.forEach((paths) => {
+    paths.forEach((seg) => {
       //drawPath(ctx, seg, 0);
     });
     let shapes = ClipperHelpers.offsetPathsToShape(paths, 6, 4);
-    shapes.forEach(shape => {
+    shapes.forEach((shape) => {
       drawShape(ctx, shape, 0);
       console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
     });
   });
-  
-}
+};
 
 document.onkeydown = function (e) {
   // if enter
@@ -115,7 +117,7 @@ document.onkeydown = function (e) {
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
-    ctx2.backgroundColor = '#000';
+    ctx2.backgroundColor = "#000";
     // draw the shapes
     draw(ctx2);
     // download the SVG
@@ -130,14 +132,11 @@ document.onkeydown = function (e) {
 };
 
 async function main() {
-
   await ClipperHelpers.init();
 
   const now = new Date().getTime();
   draw(ctx);
   console.log(`${new Date().getTime() - now}ms`);
-
 }
-
 
 main();

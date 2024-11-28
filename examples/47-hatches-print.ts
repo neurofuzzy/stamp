@@ -77,7 +77,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const parent = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
-    seedSequence: Sequence.fromStatement("REPEAT 1-25"),
+    permutationSequence: Sequence.fromStatement("REPEAT 1-25"),
     columns: 2,
     rows: 3,
     rowSpacing: 190,

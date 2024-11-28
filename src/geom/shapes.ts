@@ -24,6 +24,7 @@ export class AbstractShape implements IShape {
   };
   id: number = ++AbstractShape.id;
   center: Ray;
+  scale: number = 1;
   divisions: number;
   reverse: boolean;
   childShapes: IShape[];
@@ -43,6 +44,7 @@ export class AbstractShape implements IShape {
     this.reverse = reverse || false;
     this.childShapes = [];
     this.isHole = false;
+    this.scale = 1;
   }
   generate(): Ray[] {
     console.log("generate", this.divisions);

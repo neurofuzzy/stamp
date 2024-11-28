@@ -95,13 +95,15 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //const seeds = Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30");
   //const seeds = Sequence.fromStatement("repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118");
   //const seeds = Sequence.fromStatement("repeat 1,2,10, 18,107,22, 31,95,59, 69,100,103,105");
-  const seeds = Sequence.fromStatement("repeat 331,335,350, 384,461,456, 457,421,460, 459,473,494");
+  const seeds = Sequence.fromStatement(
+    "repeat 331,335,350, 384,461,456, 457,421,460, 459,473,494",
+  );
   //const seeds = Sequence.fromStatement("repeat 491,492,493, 494,495,496, 497,498,499, 500,501,502");
   //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    seedSequence: seeds,
+    permutationSequence: seeds,
     rows: 4,
     columns: 3,
     rowSpacing: 400,
@@ -146,7 +148,7 @@ document.onkeydown = function (e) {
     // draw the shapes
     draw(ctx2);
     // download the SVG
-  
+
     const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
     const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
     const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });

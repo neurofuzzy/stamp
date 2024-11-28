@@ -43,7 +43,7 @@ export class Sequence {
   };
   static resetAll = (
     seed: number = NaN,
-    skipSequeces: (Sequence | null)[] = [],
+    skipSequeces: (Sequence | null | undefined)[] = [],
   ) => {
     Sequence.__prng = arbit(!isNaN(seed) ? seed : Sequence.seed);
     for (let alias in Sequence.sequences) {
