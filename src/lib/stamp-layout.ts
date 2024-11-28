@@ -26,12 +26,12 @@ interface ICircleGridStampLayoutParams extends IStampLayoutParams {
   spacing: number;
 }
 
-interface ICircleFillStampLayoutParams extends IStampLayoutParams {
+interface ICirclePackingStampLayoutParams extends IStampLayoutParams {
   radius: number;
   count: number;
   padding?: number;
   /** number between 0 - 100 */
-  flare?: number;
+  spherify?: number;
 }
 
 class AbstractStampLayout extends AbstractShape {
@@ -128,14 +128,14 @@ export class CircleGridStampLayout extends AbstractStampLayout {
   }
 }
 
-export class CircleFillStampLayout extends AbstractStampLayout {
-  constructor(center: Ray, params: ICircleFillStampLayoutParams) {
+export class CirclePackingStampLayout extends AbstractStampLayout {
+  constructor(center: Ray, params: ICirclePackingStampLayoutParams) {
     super(center, params);
   }
 
   children(): Stamp[] {
     const c: Stamp[] = [];
-    const params = this.params as ICircleFillStampLayoutParams;
+    const params = this.params as ICirclePackingStampLayoutParams;
     const layoutSeed = params.seed ?? 1;
     const prng = arbit(layoutSeed);
     const numPoints = params.count ?? 20;
@@ -186,7 +186,8 @@ export class CircleFillStampLayout extends AbstractStampLayout {
       stamp.center = farthest.clone();
       stamp.scale =
         (params.scaleSequence?.next() || 1) *
-        (1 - distFromCenter / radius / Math.max(1, 100 - (params.flare || 0)));
+        (1 -
+          distFromCenter / radius / Math.max(1, 100 - (params.spherify || 0)));
       //stamp.generate();
       c.push(stamp);
     }

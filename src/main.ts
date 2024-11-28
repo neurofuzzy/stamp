@@ -7,7 +7,7 @@ import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
 import {
-  CircleFillStampLayout,
+  CirclePackingStampLayout,
   GridStampLayout,
 } from "../src/lib/stamp-layout";
 import { GeomHelpers } from "../src/geom/helpers";
@@ -71,7 +71,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       skip: 1,
     })
     .rotate("RANGLE()")
-    .repeatLast(3, 60);
+    .repeatLast(3, 60)
+    .setBounds(48, 48);
 
   const circle = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
@@ -86,9 +87,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .boolean(2)
     .circle({
       radius: 12,
-    });
+    })
+    .setBounds(48, 48);
 
-  const grid = new CircleFillStampLayout(new Ray(w / 2, h / 2, 0), {
+  const grid = new CirclePackingStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: circle,
     permutationSequence: Sequence.fromStatement("repeat 4,6,40,9"),
     scaleSequence: Sequence.fromStatement("repeat 2,3,4"),
@@ -96,7 +98,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     radius: 300,
     count: 22,
     padding: 24,
-    flare: 98.2,
+    spherify: 98.2,
   });
 
   grid.children().forEach((x) => {
@@ -105,9 +107,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   let pathSets = grid.children().map((x) => {
     let path = x.path();
-    let c = GeomHelpers.boundingCircleFromPaths(path);
+    let c = x.boundingCircle();
     if (c) {
-      let scale = (10 / c.radius) * x.scale;
+      let scale = c.radius / 5;
       return x.path(scale);
     }
     return path;

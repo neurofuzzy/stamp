@@ -1,6 +1,7 @@
 import * as clipperLib from "js-angusj-clipper/web";
 import {
   BoundingBox,
+  BoundingCircle,
   Heading,
   IShape,
   IStyle,
@@ -68,7 +69,7 @@ export class Stamp extends AbstractShape {
   private _boundsStart: number = 0;
   private _boundsEnd: number = 0;
   private _currentBounds: BoundingBox = new BoundingBox(0, 0, 0, 0);
-  private _boundsParams: IBoundsParams = {};
+  private _overrideBounds: BoundingBox | null = null;
   private _flipBeforeClip: boolean = false;
   private _styleMap: IStyleMap[] = [];
   private _mode: number = Stamp.UNION;
@@ -85,6 +86,34 @@ export class Stamp extends AbstractShape {
     reverse: boolean = false,
   ) {
     super(center, 1, alignment, reverse);
+  }
+
+  boundingCircle(): BoundingCircle {
+    if (this._overrideBounds) {
+      const scale = this.scale || 1;
+      return new BoundingCircle(
+        this.center.x,
+        this.center.y,
+        Math.max(
+          this._overrideBounds.width * scale,
+          this._overrideBounds.height * scale,
+        ) / 2,
+      );
+    }
+    return super.boundingCircle();
+  }
+
+  boundingBox(): BoundingBox {
+    if (this._overrideBounds) {
+      const scale = this.scale || 1;
+      return new BoundingBox(
+        this.center.x - (this._overrideBounds.width / 2) * scale,
+        this.center.y - (this._overrideBounds.height / 2) * scale,
+        this._overrideBounds.width * scale,
+        this._overrideBounds.height * scale,
+      );
+    }
+    return super.boundingBox();
   }
 
   private _reset() {
@@ -1111,6 +1140,11 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  setBounds(width: number, height: number) {
+    this._overrideBounds = new BoundingBox(0, 0, width, height);
+    return this;
+  }
+
   setCursorBounds(x: number, y: number, width: number, height: number) {
     this._nodes.push({
       fName: "_setCursorBounds",
@@ -1653,6 +1687,9 @@ export class Stamp extends AbstractShape {
     stamp.hidden = this.hidden;
     stamp.isHole = this.isHole;
     stamp.scale = this.scale;
+    if (this._overrideBounds) {
+      stamp.setBounds(this._overrideBounds.width, this._overrideBounds.height);
+    }
     if (this._baked && this._tree) {
       // clone the tree by unioning it with an empty path
       let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
