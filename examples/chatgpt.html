@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iterative Circle Packing</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      canvas {
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="circlePacking" width="800" height="800"></canvas>
+
+    <script>
+      const canvas = document.getElementById("circlePacking");
+      const ctx = canvas.getContext("2d");
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const radius = Math.min(width, height) / 2 - 10; // Disk radius
+      const maxIterations = 500; // Max number of iterations
+      const circles = []; // Array to store circle data
+      const initialRadius = 20; // Starting radius of circles
+      const numCircles = 100; // Number of circles to pack
+
+      // Utility to calculate Euclidean distance
+      function distance(x1, y1, x2, y2) {
+        return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+      }
+
+      // Generate random initial positions within the disk
+      function generateInitialCircles() {
+        while (circles.length < numCircles) {
+          const x = (Math.random() - 0.5) * radius * 2;
+          const y = (Math.random() - 0.5) * radius * 2;
+          if (distance(x, y, 0, 0) + initialRadius <= radius) {
+            circles.push({ x, y, r: initialRadius });
+          }
+        }
+      }
+
+      // Perform iterative optimization to pack circles
+      function packCircles() {
+        for (let iteration = 0; iteration < maxIterations; iteration++) {
+          let moved = false;
+
+          for (let i = 0; i < circles.length; i++) {
+            const circle1 = circles[i];
+            let dx = 0,
+              dy = 0;
+
+            for (let j = 0; j < circles.length; j++) {
+              if (i === j) continue;
+
+              const circle2 = circles[j];
+              const dist = distance(circle1.x, circle1.y, circle2.x, circle2.y);
+              const overlap = circle1.r + circle2.r - dist;
+
+              if (overlap > 0) {
+                // Resolve overlap
+                const angle = Math.atan2(
+                  circle2.y - circle1.y,
+                  circle2.x - circle1.x,
+                );
+                dx -= overlap * Math.cos(angle) * 0.5;
+                dy -= overlap * Math.sin(angle) * 0.5;
+              }
+            }
+
+            // Check bounds to keep circles within the disk
+            const distFromCenter = distance(
+              circle1.x + dx,
+              circle1.y + dy,
+              0,
+              0,
+            );
+            if (distFromCenter + circle1.r > radius) {
+              const scale = (radius - circle1.r) / distFromCenter;
+              dx *= scale;
+              dy *= scale;
+            }
+
+            // Update positions if movement occurred
+            if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+              circle1.x += dx;
+              circle1.y += dy;
+              moved = true;
+            }
+          }
+
+          if (!moved) break; // Stop if no significant movement
+        }
+      }
+
+      // Draw circles on the canvas
+      function drawCircles() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+
+        for (const circle of circles) {
+          ctx.beginPath();
+          ctx.arc(
+            width / 2 + circle.x,
+            height / 2 + circle.y,
+            circle.r,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 70%)`;
+          ctx.fill();
+          ctx.strokeStyle = "#333";
+          ctx.stroke();
+        }
+      }
+
+      // Run the algorithm
+      generateInitialCircles();
+      packCircles();
+      drawCircles();
+    </script>
+  </body>
+</html>

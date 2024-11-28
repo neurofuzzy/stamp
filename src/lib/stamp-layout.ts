@@ -29,6 +29,9 @@ interface ICircleGridStampLayoutParams extends IStampLayoutParams {
 interface ICircleFillStampLayoutParams extends IStampLayoutParams {
   radius: number;
   count: number;
+  padding?: number;
+  /** number between 0 - 100 */
+  flare?: number;
 }
 
 class AbstractStampLayout extends AbstractShape {
@@ -136,8 +139,9 @@ export class CircleFillStampLayout extends AbstractStampLayout {
     const layoutSeed = params.seed ?? 1;
     const prng = arbit(layoutSeed);
     const numPoints = params.count ?? 20;
-    const numTriesPerPoint = 100;
+    const numTriesPerPoint = 200;
     const radius = params.radius;
+    const padding = params.padding ?? 2;
     for (let j = 0; j < numPoints; j++) {
       const pointDists: { pt: Ray; dist: number }[] = [];
       for (let i = 0; i < numTriesPerPoint; i++) {
@@ -148,13 +152,13 @@ export class CircleFillStampLayout extends AbstractStampLayout {
         );
         let dist = Infinity;
         for (let k = 0; k < c.length; k++) {
-          let currentDist = GeomHelpers.distanceBetweenPointsSquared(
-            pt,
-            c[k].center,
-          );
+          let currentDist = GeomHelpers.distanceBetweenPoints(pt, c[k].center);
           if (currentDist < dist) {
             dist = currentDist;
           }
+        }
+        if (c.length > 0 && dist > radius * 0.5) {
+          continue;
         }
         if (
           GeomHelpers.distanceBetweenPointsSquared(pt, this.center) >
@@ -164,17 +168,25 @@ export class CircleFillStampLayout extends AbstractStampLayout {
         }
         pointDists.push({ pt, dist });
       }
-      // sort points by distance from center
+      // sort points by distance from all other points
       pointDists.sort((a, b) => {
         const aDist = a.dist;
         const bDist = b.dist;
         return bDist - aDist;
       });
       const farthest = pointDists[0].pt;
-
+      const distFromCenter = GeomHelpers.distanceBetweenPoints(
+        farthest,
+        this.center,
+      );
+      if (distFromCenter > radius) {
+        continue;
+      }
       const stamp = params.stamp.clone();
       stamp.center = farthest.clone();
-      stamp.scale = params.scaleSequence?.next() || 1;
+      stamp.scale =
+        (params.scaleSequence?.next() || 1) *
+        (1 - distFromCenter / radius / Math.max(1, 100 - (params.flare || 0)));
       //stamp.generate();
       c.push(stamp);
     }
@@ -185,47 +197,86 @@ export class CircleFillStampLayout extends AbstractStampLayout {
       const bc = stamp.boundingCircle();
       stampRadii.push(bc?.radius || 0);
     });
-    for (let t = 0; t < 600; t++) {
-      c.reverse();
+    const velocities: Ray[] = [];
+    c.forEach(() => {
+      velocities.push(new Ray(0, 0));
+    });
+    for (let t = 0; t < 16; t++) {
+      let f = t / 3 + 1;
+      // pull in with gravity
       for (let i = 0; i < c.length; i++) {
-        for (let j = 0; j < c.length; j++) {
+        const dist = GeomHelpers.distanceBetweenPoints(
+          c[i].center,
+          this.center,
+        );
+        const angle = GeomHelpers.angleBetweenPoints(c[i].center, this.center);
+        const force = (1 * (dist / radius)) / f;
+        velocities[i].x += force * Math.cos(angle);
+        velocities[i].y += force * Math.sin(angle);
+      }
+      // push away from eachother
+      for (let j = 0; j < c.length; j++) {
+        for (let i = 0; i < c.length; i++) {
           if (i === j) {
             continue;
           }
-          const dist = Math.max(
-            1,
+          const dist =
             GeomHelpers.distanceBetweenPoints(c[i].center, c[j].center) -
-              (stampRadii[i] + stampRadii[j]),
-          );
+            (stampRadii[i] + stampRadii[j]);
           const angle = GeomHelpers.angleBetweenPoints(
             c[i].center,
             c[j].center,
           );
-          const otherDistFromCenterFactor =
-            GeomHelpers.distanceBetweenPoints(c[j].center, this.center) /
-            radius;
-          const forceFactor =
-            (stampRadii[j] / stampRadii[i]) * otherDistFromCenterFactor;
-          const impulse = 0 - Math.min(dist + 40, 80);
-          const force = (impulse / Math.pow(dist, 2)) * forceFactor;
-          const forceAngle = angle;
+          const force = 1 / dist / f;
+          velocities[i].x -= force * Math.cos(angle);
+          velocities[i].y -= force * Math.sin(angle);
+          velocities[j].x += force * Math.cos(angle);
+          velocities[j].y += force * Math.sin(angle);
+        }
+      }
 
-          c[i].center.x += force * Math.cos(forceAngle) * forceFactor;
-          c[i].center.y += force * Math.sin(forceAngle) * forceFactor;
-          c[j].center.x -= (force * Math.cos(forceAngle)) / forceFactor;
-          c[j].center.y -= (force * Math.sin(forceAngle)) / forceFactor;
+      // apply velocity to centers
+      for (let i = 0; i < c.length; i++) {
+        c[i].center.x += velocities[i].x;
+        c[i].center.y += velocities[i].y;
+      }
+    }
+    for (let k = 0; k < padding; k += 0.125) {
+      c.reverse();
+      stampRadii.reverse();
+      for (let i = 0; i < c.length; i++) {
+        for (let j = 0; j < c.length; j++) {
+          const dist =
+            GeomHelpers.distanceBetweenPoints(c[i].center, c[j].center) -
+            (stampRadii[i] + stampRadii[j]) -
+            k;
+          const angle = GeomHelpers.angleBetweenPoints(
+            c[i].center,
+            c[j].center,
+          );
+          if (dist <= k) {
+            // resolve penetration
+            // move both stamps away from each other by half the negative distance
+            // consider the angle between the two stamps
+            c[i].center.x += (dist / padding) * Math.cos(angle);
+            c[i].center.y += (dist / padding) * Math.sin(angle);
+            c[j].center.x += (dist / padding) * Math.cos(angle + Math.PI);
+            c[j].center.y += (dist / padding) * Math.sin(angle + Math.PI);
+          }
           const distFromCenter = GeomHelpers.distanceBetweenPoints(
             c[i].center,
             this.center,
           );
-          if (distFromCenter > radius - stampRadii[i]) {
-            const factor = 1 - (radius - stampRadii[i]) / distFromCenter;
-            c[i].center.x -= this.center.x;
-            c[i].center.y -= this.center.y;
-            c[i].center.x *= 1 - factor / 10;
-            c[i].center.y *= 1 - factor / 10;
-            c[i].center.x += this.center.x;
-            c[i].center.y += this.center.y;
+          if (k < padding - 1) {
+            if (distFromCenter > radius - stampRadii[i]) {
+              const factor = 1 - (radius - stampRadii[i]) / distFromCenter;
+              c[i].center.x -= this.center.x;
+              c[i].center.y -= this.center.y;
+              c[i].center.x *= 1 - factor / (k + 1);
+              c[i].center.y *= 1 - factor / (k + 1);
+              c[i].center.x += this.center.x;
+              c[i].center.y += this.center.y;
+            }
           }
         }
       }

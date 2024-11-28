@@ -23,7 +23,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 16 * 96;
+const pageWidth = 8 * 96;
 const pageHeight = 8 * 96;
 const ratio = 2;
 const zoom = 1;
@@ -74,7 +74,6 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .repeatLast(3, 60);
 
   const circle = new Stamp(new Ray(w / 2, h / 2, 0))
-    .noBoolean()
     .defaultStyle({
       strokeThickness: 1,
       strokeColor: "cyan",
@@ -82,16 +81,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillAlpha: 0.5,
     })
     .circle({
-      radius: 10,
+      radius: 24,
+    })
+    .boolean(2)
+    .circle({
+      radius: 12,
     });
 
   const grid = new CircleFillStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: circle,
     permutationSequence: Sequence.fromStatement("repeat 4,6,40,9"),
     scaleSequence: Sequence.fromStatement("repeat 2,3,4"),
-    seed: 65,
+    seed: 512,
     radius: 300,
-    count: 40,
+    count: 22,
+    padding: 24,
+    flare: 98.2,
   });
 
   grid.children().forEach((x) => {
