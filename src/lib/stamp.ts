@@ -1374,7 +1374,7 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  repeatLast(steps: number, times: number = 1) {
+  repeatLast(steps: number, times: number | string = 1) {
     this._nodes.push({ fName: "_repeatLast", args: [steps, times] });
     return this;
   }
@@ -1521,7 +1521,7 @@ export class Stamp extends AbstractShape {
         //i--;
         let len = nodes.length;
         let steps = args[0];
-        let times = args[1];
+        let times = $(args[1]);
 
         if (steps > 0 && steps <= len) {
           let r = nodes.slice(i - steps, i);

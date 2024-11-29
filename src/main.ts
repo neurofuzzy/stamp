@@ -1,18 +1,13 @@
 import * as C2S from "canvas2svg";
-import { drawPath, drawShape } from "../src/lib/draw";
+import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
 import { Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
-import colors from "nice-color-palettes";
-import {
-  CirclePackingStampLayout,
-  GridStampLayout,
-} from "../src/lib/stamp-layout";
-import { GeomHelpers } from "../src/geom/helpers";
-import { GeomUtils } from "../src/geom/util";
-import { Rectangle } from "./geom/shapes";
+import { CirclePackingStampLayout } from "../src/lib/stamp-layout";
+import { HatchPattern, HatchPatternType } from "./geom/hatch-patterns";
+import { Hatch } from "./lib/hatch";
 
 const backgroundColor = "black";
 
@@ -26,7 +21,7 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 8 * 96;
 const pageHeight = 8 * 96;
 const ratio = 2;
-const zoom = 1;
+const zoom = 2;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -40,90 +35,73 @@ ctx.fillStyle = "white";
 
 Sequence.seed = 1;
 
-// 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[83];
-const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
-Sequence.fromStatement(colorSeq, 125);
-
-Sequence.fromStatement("shuffle 72,72,72,72,-36 AS IB");
-Sequence.fromStatement("shuffle 72, 72, -72, IB() AS IA");
-Sequence.fromStatement("shuffle 72, 72, -72, -72, -72, -36 AS RANGLE");
-
-Sequence.fromStatement("shuffle 1,1 AS RLEN");
-
-// 1,4,6,12,26,30,91,117,127
-const seeds = Sequence.fromStatement("repeat 1,6,12,26,30,91,117,127");
-
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
-  const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
-    .noBoolean()
-    .rotate(18)
-    .defaultStyle({
-      strokeThickness: 0,
-      fillColor: "cyan",
-    })
-    .forward("RLEN()")
-    .circle({
-      radius: 2,
-      divisions: 3,
-      skip: 1,
-    })
-    .rotate("RANGLE()")
-    .repeatLast(3, 60)
-    .setBounds(48, 48);
+  Sequence.fromStatement("repeat 3,4,5 AS S");
+  Sequence.fromStatement("random 10,-20,30,40 AS R");
 
   const circle = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       strokeThickness: 1,
-      strokeColor: "cyan",
-      fillColor: "#0066cc",
-      fillAlpha: 0.5,
+      strokeColor: "#cccccc",
+      fillColor: "0",
+      fillAlpha: 0,
+      hatchPattern: HatchPatternType.PHYLLO,
+      hatchStrokeThickness: 1,
+      hatchStrokeColor: "#cccccc",
+      hatchScale: 0.3,
+      hatchInset: 0.5,
+    })
+    .set("R")
+    .set("S")
+    .rotate("R")
+    .circle({
+      radius: 18,
+      divisions: "S",
     })
     .circle({
-      radius: 24,
+      radius: 18,
+      divisions: "S",
+      angle: "90 / S",
     })
     .boolean(2)
     .circle({
       radius: 12,
+      divisions: "S",
     })
-    .setBounds(48, 48);
+    .circle({
+      radius: 12,
+      divisions: "S",
+      angle: "90 / S",
+    })
+    .boolean(1)
+    .circle({
+      radius: 5,
+      divisions: "S",
+      angle: "90 / S",
+    })
+    .setBounds(46, 46);
 
   const grid = new CirclePackingStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: circle,
     permutationSequence: Sequence.fromStatement("repeat 4,6,40,9"),
-    scaleSequence: Sequence.fromStatement("repeat 2,3,4"),
+    scaleSequence: Sequence.fromStatement("repeat 3,4,5"),
     seed: 512,
     radius: 300,
     count: 22,
-    padding: 24,
+    padding: 18,
     spherify: 98.2,
   });
 
-  grid.children().forEach((x) => {
-    drawShape(ctx, x);
-  });
-
-  let pathSets = grid.children().map((x) => {
-    let path = x.path();
-    let c = x.boundingCircle();
-    if (c) {
-      let scale = c.radius / 5;
-      return x.path(scale);
+  grid.children().forEach((child) => {
+    drawShape(ctx, child);
+    if (child.style.hatchPattern) {
+      const fillPattern = Hatch.applyHatchToShape(child);
+      if (fillPattern) {
+        drawHatchPattern(ctx, fillPattern, true);
+      }
     }
-    return path;
-  });
-
-  pathSets.forEach((paths) => {
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 0.5, 4);
-    shapes.forEach((shape) => {
-      //drawShape(ctx, shape, 0);
-      // console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
-    });
-    paths.forEach((path) => {
-      drawPath(ctx, path, 0);
-    });
   });
 };
 

@@ -282,12 +282,9 @@ export class CirclePackingStampLayout extends AbstractStampLayout {
         }
       }
     }
+
     c.forEach((stamp) => {
       const seed = params.permutationSequence?.next() || i;
-      Sequence.resetAll(seed, [
-        params.permutationSequence,
-        params.scaleSequence,
-      ]);
       Sequence.seed = seed;
       stamp.generate();
     });
