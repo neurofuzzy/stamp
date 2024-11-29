@@ -21,7 +21,7 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 8 * 96;
 const pageHeight = 8 * 96;
 const ratio = 2;
-const zoom = 2;
+const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -45,19 +45,42 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const circle = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
-      strokeThickness: 0,
+      strokeThickness: 1,
       strokeColor: "#cccccc",
       fillColor: "0",
       fillAlpha: 0,
-      hatchPattern: HatchPatternType.FLOWER,
+      hatchPattern: HatchPatternType.PHYLLO,
       hatchStrokeThickness: 1,
       hatchStrokeColor: "#cccccc",
-      hatchScale: 0.25,
+      hatchScale: 0.3,
       hatchInset: 0.5,
+    })
+    .set("R")
+    .set("S")
+    .set("B")
+    .set("B2")
+    .rotate("R")
+    .circle({
+      radius: 18,
+      divisions: "S",
     })
     .circle({
       radius: 18,
-    });
+      divisions: "S",
+      angle: "90 / S",
+    })
+    .boolean("B")
+    .circle({
+      radius: 12,
+      divisions: "S",
+    })
+    .boolean("B2")
+    .circle({
+      radius: "B2 * 5",
+      divisions: "S",
+      angle: "90 / S",
+    })
+    .setBounds(46, 46);
 
   const grid = new CirclePackingStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: circle,

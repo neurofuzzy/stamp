@@ -259,6 +259,7 @@ export class PhylloHatchPattern extends HatchPattern {
         pt.y +=
           ((Math.sin(angle * (12 / this.scale + 0.5)) * currentRadius) / 12.5) *
           this.scale *
+          1 *
           ((j % 2) - 0.5);
         GeomHelpers.rotatePoint(pt, angle);
         pt.x += this.center.x;
@@ -350,7 +351,7 @@ export class FlowerHatchPattern extends HatchPattern {
     const numSegments = Math.ceil(radius / hatchStep);
     let currentRadius = 0;
     let step = radius / numSegments;
-    const div = 0.5;
+    const div = 2;
     const pts: Point[] = [];
     const valuesAtAngle = [];
     for (let j = 0; j < numSegments / 5; j++) {
@@ -359,9 +360,10 @@ export class FlowerHatchPattern extends HatchPattern {
         const angle = (i * Math.PI) / 180;
         const pt = new Point(0, currentRadius);
         pt.y +=
-          ((Math.sin(angle * (12 / this.scale + 0.5)) * currentRadius) / 6.5) *
+          ((Math.sin(angle * (6 / this.scale + 0.5)) * currentRadius) / 3.5) *
           this.scale *
           ((j % 2) - 0.5);
+
         valuesAtAngle[i] = pt.y;
         pt.y = Math.max(lastValueAtAngle, pt.y);
         GeomHelpers.rotatePoint(pt, angle);
@@ -375,6 +377,33 @@ export class FlowerHatchPattern extends HatchPattern {
           step *= 0.99;
         }
       }
+    }
+    let i = pts.length;
+    while (i--) {
+      if (i - div < div) {
+        break;
+      }
+      const previousPts = pts.slice(0, i - div);
+      const currentPt = pts[i];
+      let hasNearbyPoint = false;
+      for (let j = previousPts.length - 1; j >= 0; j--) {
+        const previousPt = previousPts[j];
+        if (
+          GeomHelpers.distanceBetweenPoints(currentPt, previousPt) <
+          hatchStep * 0.35
+        ) {
+          hasNearbyPoint = true;
+          break;
+        }
+      }
+      if (!hasNearbyPoint) {
+        pts.pop();
+      } else {
+        break;
+      }
+    }
+    if (pts.length > div) {
+      pts.pop();
     }
     let p = new Path(pts);
     segments.push(p);
@@ -485,6 +514,66 @@ export class SinewaveHatchPattern extends HatchPattern {
       }
       segments.push(new Path(pts));
     }
+    if (this.spherify) {
+      PathModifiers.spherify(segments, this.center, radius * 2);
+    }
+    segments.forEach((s) => {
+      s.points.forEach((p) =>
+        GeomHelpers.rotatePointAboutOrigin(this.center, p),
+      );
+    });
+    return segments;
+  }
+}
+
+export class SinewaveCrossHatchPattern extends HatchPattern {
+  generate(): Path[] {
+    const segmentsAB: Path[] = [];
+    const segmentsCD: Path[] = [];
+    const segments: Path[] = [];
+    const hatchStep = this.scale * 5;
+    const radius =
+      Math.max(this.width, this.height) * 0.5 +
+      this.overflow +
+      Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
+    const startX =
+      this.center.x - Math.round(radius / hatchStep) * hatchStep * 1.5;
+    const startY =
+      this.center.y - Math.round(radius / hatchStep) * hatchStep * 1.5;
+    const numSegments = Math.ceil((radius * 3) / hatchStep);
+    const numPoints = Math.max(1, Math.floor(hatchStep / 6));
+    for (let i = 0; i < numSegments; i++) {
+      const a = new Point(startX + i * hatchStep, this.center.y - radius);
+      const b = new Point(startX + i * hatchStep, this.center.y + radius);
+      const c = new Point(this.center.x - radius, startY + i * hatchStep);
+      const d = new Point(this.center.x + radius, startY + i * hatchStep);
+      const ptsAB = GeomHelpers.subdividePointsByDistance(a, b, numPoints);
+      ptsAB.forEach((p, idx) => {
+        p.x +=
+          Math.sin(((idx - numPoints / 2) * Math.PI) / 60 / this.scale) *
+          hatchStep *
+          2;
+      });
+      const ptsCD = GeomHelpers.subdividePointsByDistance(
+        c,
+        d,
+        Math.max(1, Math.floor(hatchStep / 6)),
+      );
+      ptsCD.forEach((p, idx) => {
+        p.y +=
+          Math.sin(((idx - numPoints / 2) * Math.PI) / 60 / this.scale) *
+          hatchStep *
+          2;
+      });
+      if (i % 2 === 0) {
+        ptsAB.reverse();
+        ptsCD.reverse();
+      }
+      segmentsAB.push(new Path(ptsAB));
+      segmentsCD.push(new Path(ptsCD));
+    }
+    segments.push(...segmentsAB);
+    segments.push(...segmentsCD);
     if (this.spherify) {
       PathModifiers.spherify(segments, this.center, radius * 2);
     }
@@ -1402,6 +1491,7 @@ export enum HatchPatternType {
   OFFSET = 38,
   OFFSETLOOP = 39,
   WINDING = 40,
+  SINEWAVECROSS = 41,
 }
 
 export enum HatchBooleanType {

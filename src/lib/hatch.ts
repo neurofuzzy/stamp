@@ -3,12 +3,15 @@ import {
   AltWeaveHatchPattern,
   BraidHatchPattern,
   BrickHatchPattern,
-  WaveHatchPattern,
   ChevronHatchPattern,
   CircleHatchPattern,
   CloverHatchPattern,
   CrossHatchPattern,
+  CurlyHatchPattern,
   DashedHatchPattern,
+  FlowerHatchPattern,
+  GlobeHatchPattern,
+  GreekHatchPattern,
   HatchBooleanType,
   HatchFillShape,
   HatchPatternType,
@@ -18,30 +21,28 @@ import {
   IHatchPattern,
   LatticeHatchPattern,
   LineHatchPattern,
+  LoopHatchPattern,
   MoleculeHatchPattern,
   OffsetHatchPattern,
   OrigamiHatchPattern,
+  OrthoHatchPattern,
+  PhylloHatchPattern,
   PinwheelHatchPattern,
   QbertHatchPattern,
   RailHatchPattern,
   RockHatchPattern,
   SawtoothHatchPattern,
+  ScribbleHatchPattern,
+  ShellHatchPattern,
   SinewaveHatchPattern,
+  SinewaveCrossHatchPattern,
   SlateHatchPattern,
+  SmoothOrthoHatchPattern,
   SpiralHatchPattern,
   TerraceHatchPattern,
   TriWeaveHatchPattern,
   TriangularGridHatchPattern,
-  CurlyHatchPattern,
-  ScribbleHatchPattern,
-  LoopHatchPattern,
-  GlobeHatchPattern,
-  FlowerHatchPattern,
-  PhylloHatchPattern,
-  OrthoHatchPattern,
-  SmoothOrthoHatchPattern,
-  GreekHatchPattern,
-  ShellHatchPattern,
+  WaveHatchPattern,
   WindingHatchPattern,
 } from "../geom/hatch-patterns";
 import { IShape, Ray, Path } from "../geom/core";
@@ -119,6 +120,9 @@ export class Hatch {
         break;
       case HatchPatternType.SINEWAVE:
         hatchPattern = new SinewaveHatchPattern(...args);
+        break;
+      case HatchPatternType.SINEWAVECROSS:
+        hatchPattern = new SinewaveCrossHatchPattern(...args);
         break;
       case HatchPatternType.WAVE:
         hatchPattern = new WaveHatchPattern(...args);
