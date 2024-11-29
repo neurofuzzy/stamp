@@ -21,7 +21,7 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 8 * 96;
 const pageHeight = 8 * 96;
 const ratio = 2;
-const zoom = 2;
+const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -39,6 +39,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   Sequence.fromStatement("repeat 3,4,5 AS S");
+  Sequence.fromStatement("repeat 1,2,2 AS B");
+  Sequence.fromStatement("repeat 2,1,1 AS B2");
   Sequence.fromStatement("random 10,-20,30,40 AS R");
 
   const circle = new Stamp(new Ray(w / 2, h / 2, 0))
@@ -55,6 +57,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .set("R")
     .set("S")
+    .set("B")
+    .set("B2")
     .rotate("R")
     .circle({
       radius: 18,
@@ -65,19 +69,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: "S",
       angle: "90 / S",
     })
-    .boolean(2)
+    .boolean("B")
     .circle({
       radius: 12,
       divisions: "S",
     })
+    .boolean("B2")
     .circle({
-      radius: 12,
-      divisions: "S",
-      angle: "90 / S",
-    })
-    .boolean(1)
-    .circle({
-      radius: 5,
+      radius: "B2 * 5",
       divisions: "S",
       angle: "90 / S",
     })
