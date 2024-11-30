@@ -43,17 +43,27 @@ let animate = false;
 
 const func = (perc: number) => {
   let pt = new Point(0, 0);
+
   pt.y =
-    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.125) * 6 +
-    Math.cos(perc * Math.PI * 10 + stepNum * 8.7) * 6;
+    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.25) * 5 +
+    Math.cos(0 - perc * Math.PI * 10 + stepNum * 10) * 6;
+  pt.x = perc * 750;
+
+  /*
+  pt.y =
+    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.25) * 7 +
+    Math.cos(0 - perc * Math.PI * 10 + stepNum * 4.7) * 4 +
+    Math.cos(0 - perc * Math.PI * 8 + stepNum * 9) * 4;
   pt.x = perc * 650;
+  */
+
   return pt;
 };
 
 //SVG.debugMode = true;
 
 function getPaths() {
-  Sequence.fromStatement("random 0-5 AS XX", 288);
+  Sequence.fromStatement("random 0-1 AS XX", 288);
 
   let tracks: Path[] = [];
   let step = 4;
@@ -136,8 +146,8 @@ function getPaths() {
       if (score > maxScore) {
         const a = ptA.clone();
         const b = ptB.clone();
-        a.x += 1.5;
-        b.x -= 1.5;
+        a.x += 1;
+        b.x -= 1;
         const pts = segIdx % 2 == 0 ? [a, b] : [b, a];
         hatchPoints.push(...pts);
         score = 0;
