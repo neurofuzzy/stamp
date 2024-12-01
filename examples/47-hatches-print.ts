@@ -1,9 +1,5 @@
 import * as C2S from "canvas2svg";
-import {
-  drawHatchPattern,
-  drawHatchPatternDebug,
-  drawShape,
-} from "../src/lib/draw";
+import { drawHatchPattern, drawShape } from "../src/lib/draw";
 import { IStyle, Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Hatch } from "../src/lib/hatch";
@@ -11,11 +7,8 @@ import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { HatchBooleanType, HatchPatternType } from "../src/geom/hatch-patterns";
-import {
-  GridStampLayout,
-  CircleGridStampLayout,
-} from "../src/lib/stamp-layout";
+import { HatchBooleanType } from "../src/geom/hatch-patterns";
+import { GridStampLayout } from "../src/lib/stamp-layout";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>

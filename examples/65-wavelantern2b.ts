@@ -1,12 +1,10 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
+import { drawPath } from "../src/lib/draw";
 import { ParametricPath, Path, Point } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
-import { Hatch } from "./lib/hatch";
-import { Rectangle } from "./geom/shapes";
 
 const backgroundColor = "black";
 
@@ -156,10 +154,10 @@ function getPaths() {
     acc,
   );
   let bb = GeomHelpers.pointsBoundingBox(tracksPts);
-  bb.x += 25;
+  bb.x += 23;
   bb.y += 100;
-  bb.width = 3.5 * 96 * 0.5;
-  bb.height = 10.5 * 96 * 0.5;
+  bb.width = 3.6 * 96 * 0.5;
+  bb.height = 10.6 * 96 * 0.5;
 
   return GeomHelpers.cropPathsToBounds(hatches, bb);
 }

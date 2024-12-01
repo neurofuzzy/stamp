@@ -9,7 +9,7 @@ import colors from "nice-color-palettes";
 import { GridStampLayout } from "../src/lib/stamp-layout";
 import { GeomHelpers } from "../src/geom/helpers";
 import { GeomUtils } from "../src/geom/util";
-import { Rectangle } from "./geom/shapes";
+import { Rectangle } from "../src/geom/shapes";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>

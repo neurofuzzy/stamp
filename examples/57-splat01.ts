@@ -1,5 +1,5 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
+import { drawPath } from "../src/lib/draw";
 import { BoundingBox, ParametricPath, Path, Point } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";

@@ -6,8 +6,8 @@ import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
 import { LinkedCell, LinkedGrid, Direction } from "../src/lib/linkedgrid";
 import { Optimize } from "../src/lib/optimize";
-import { Hatch } from "./lib/hatch";
-import { HatchPatternType } from "./geom/hatch-patterns";
+import { Hatch } from "../src/lib/hatch";
+import { HatchPatternType } from "../src/geom/hatch-patterns";
 
 const backgroundColor = "black";
 

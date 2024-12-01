@@ -1,19 +1,10 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
-import {
-  BoundingBox,
-  ParametricPath,
-  Path,
-  Point,
-  Ray,
-  Segment,
-} from "../src/geom/core";
+import { drawPath } from "../src/lib/draw";
+import { BoundingBox, ParametricPath, Path, Point } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
-import { Rectangle } from "./geom/shapes";
-import { Optimize } from "./lib/optimize";
 
 const backgroundColor = "black";
 

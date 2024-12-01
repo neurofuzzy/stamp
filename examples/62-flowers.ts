@@ -1,13 +1,13 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
+import { drawHatchPattern, drawShape } from "../src/lib/draw";
 import { Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import { CirclePackingStampLayout } from "../src/lib/stamp-layout";
-import { HatchPatternType } from "./geom/hatch-patterns";
-import { Hatch } from "./lib/hatch";
+import { HatchPatternType } from "../src/geom/hatch-patterns";
+import { Hatch } from "../src/lib/hatch";
 
 const backgroundColor = "black";
 

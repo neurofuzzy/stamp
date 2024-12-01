@@ -1,10 +1,11 @@
 import * as C2S from "canvas2svg";
 import { drawPath } from "../src/lib/draw";
-import { ParametricPath, Path, Point } from "../src/geom/core";
+import { ParametricPath, Path, Point, Ray } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
+import { Circle } from "../src/geom/shapes";
 
 const backgroundColor = "black";
 
@@ -15,8 +16,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 4.5 * 96;
-const pageHeight = 6.5 * 96;
+const pageWidth = 4 * 96;
+const pageHeight = 8 * 96;
 const ratio = 2;
 const zoom = 2;
 canvas.width = pageWidth * ratio;
@@ -32,40 +33,30 @@ ctx.fillStyle = "black";
 
 let stepNum = 0;
 let iter = 919918726;
-const step = 0.1;
-const size = 60;
-const freq = 6;
-const amp = 3;
-const bands = 32;
-const blendSteps = 2;
-const segs = 512;
-const scale = 0.45;
+const step = 4;
+const bands = 8;
+const blendSteps = 6;
+const segs = 32;
 const minBand = 2;
-const logPadding = 0.7;
-const doSpiral = true;
-
+const inset = 7;
+const maxScore = 60;
 let animate = false;
 
 const func = (perc: number) => {
-  const s = doSpiral ? stepNum + perc : stepNum;
-  const a = amp * Math.log2(s / bands + 1);
-  const twist = s / 50;
   let pt = new Point(0, 0);
-  pt.x = 0;
-  pt.y = Math.log2(s + logPadding) * size; // spiral
-  pt.x -= Math.sin(perc * Math.PI * 3 * freq) * s * a;
-  pt.y += Math.cos(perc * Math.PI * 3 * freq) * s * a;
-
-  GeomHelpers.rotatePoint(pt, perc * Math.PI * 2 + twist);
+  pt.y =
+    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.125) * 8 +
+    Math.cos(perc * Math.PI * 10 + stepNum * 14.7) * 7;
+  pt.x = perc * 650;
   return pt;
 };
 
 //SVG.debugMode = true;
 
 function getPaths() {
-  Sequence.fromStatement("random 0-10 AS XX", 288);
+  Sequence.fromStatement("random 0-0 AS XX", 288);
 
-  let paths: Path[] = [];
+  let tracks: Path[] = [];
   let step = 4;
   let r = step * 10;
 
@@ -76,8 +67,14 @@ function getPaths() {
     stepNum = x;
     let pts: Point[] = path.toPoints();
     pts.forEach((pt) => {
-      pt.x += w / 2;
-      pt.y += h / 2;
+      let offsetPt = new Point(Sequence.resolve("XX()") * 1, 0);
+      //let ang = GeomUtil.angleBetween(cen, pt);
+      //GeomUtil.rotatePoint(offsetPt, 0 - ang);
+      pt.x += offsetPt.x * 0.5;
+      pt.y += offsetPt.y + x * 40;
+      let tmp = pt.x;
+      pt.x = pt.y;
+      pt.y = tmp;
     });
     let path2 = new Path(pts);
     bones.push(path2);
@@ -87,37 +84,83 @@ function getPaths() {
   for (let x = 1; x < bands; x++) {
     let pA = bones[x - 1];
     let pB = bones[x];
+    if (x >= minBand) {
+      tracks.push(pA);
+    }
     for (let d = 1; d < blendSteps; d++) {
       const pts: Point[] = [];
       pA.points.forEach((ptA, idx) => {
         let ptB = pB.points[idx];
         const pt = GeomHelpers.lerpPoints(ptA, ptB, d / blendSteps);
-        pt.x -= w / 2;
-        pt.y -= h / 2;
-        pt.x *= scale;
-        pt.y *= scale;
-        pt.x += w / 2;
-        pt.y += h / 2;
         pts.push(pt);
       });
       const path = new Path(pts);
       if (x >= minBand) {
-        paths.push(path);
+        // paths.push(path);
       }
     }
   }
 
-  if (doSpiral) {
-    // join all paths points into one
-    let pts: Point[] = [];
-    paths.forEach((path) => {
-      pts = pts.concat(path.points);
+  tracks.forEach((path) => {
+    const pts = GeomHelpers.smoothLine(path.points, 6, 0.25, false);
+    path.points = pts;
+  });
+
+  // crosshatch
+  const hatches: Path[] = [];
+
+  for (let x = 1; x < tracks.length; x++) {
+    let pA = tracks[x - 1];
+    let pB = tracks[x];
+    const paPoints = pA.toPoints();
+    const pbPoints = pB.toPoints();
+
+    hatches.push(pA);
+    let score = 0;
+    let segIdx = 0;
+    let ptB;
+    let step = 25;
+
+    paPoints.forEach((ptA, idx) => {
+      if (idx == 0 || idx >= paPoints.length - 8) {
+        return;
+      }
+      ptB = pbPoints[idx];
+      if (!ptB) {
+        return;
+      }
+
+      let segScore = 1 / (GeomHelpers.distanceBetweenPoints(ptA, ptB) / step);
+      score += segScore;
+
+      if (score > maxScore) {
+        const midPt = GeomHelpers.lerpPoints(ptA, ptB, 0.5);
+        const center = new Ray(midPt.x, midPt.y, 0);
+        const radius = GeomHelpers.distanceBetweenPoints(ptA, ptB) / 2 - inset;
+        const shape = new Circle(center, radius);
+        const segs = shape.toSegments();
+        const pts = segs.map((seg) => seg.a);
+        pts.push(segs[1].a.clone());
+        const p = new Path(pts);
+        hatches.push(p);
+        score = 0;
+        segIdx++;
+      }
     });
-    const path = new Path(pts);
-    paths = [path];
   }
 
-  return paths;
+  const acc: Point[] = [];
+  const tracksPts = tracks.reduce(
+    (acc, path) => acc.concat(path.toPoints()),
+    acc,
+  );
+  let bb = GeomHelpers.pointsBoundingBox(tracksPts);
+  bb.x += 23;
+  bb.y += 100;
+  bb.width = 3.6 * 96 * 0.5;
+  bb.height = 10.6 * 96 * 0.5;
+
+  return GeomHelpers.cropPathsToBounds(hatches, bb);
 }
 
 const draw = (ctx: CanvasRenderingContext2D) => {

@@ -1,35 +1,35 @@
-import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawHatchPatternDebug, drawShape } from '../src/lib/draw';
-import { IStyle, Ray } from '../src/geom/core';
-import { ClipperHelpers } from '../src/lib/clipper-helpers';
-import { Hatch } from '../src/lib/hatch';
-import { Sequence } from '../src/lib/sequence';
-import { Stamp } from '../src/lib/stamp';
-import '../src/style.css';
-import colors from 'nice-color-palettes';
-import { HatchBooleanType, HatchPatternType } from '../src/geom/hatch-patterns';
-import { GridStampLayout, CircleGridStampLayout } from '../src/lib/stamp-layout';
+import * as C2S from "canvas2svg";
+import { drawHatchPattern, drawShape } from "../src/lib/draw";
+import { IStyle, Ray } from "../src/geom/core";
+import { ClipperHelpers } from "../src/lib/clipper-helpers";
+import { Hatch } from "../src/lib/hatch";
+import { Sequence } from "../src/lib/sequence";
+import { Stamp } from "../src/lib/stamp";
+import "../src/style.css";
+import colors from "nice-color-palettes";
+import { HatchBooleanType } from "../src/geom/hatch-patterns";
+import { GridStampLayout } from "../src/lib/stamp-layout";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
     <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
   </div>
 `;
 
-const canvas = document.getElementById('canvas') as HTMLCanvasElement
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 12.5 * 96;
 const pageHeight = 8.5 * 96;
 const ratio = 2;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
-canvas.style.width = pageWidth + 'px';
-canvas.style.height = pageHeight + 'px';
-const ctx = canvas.getContext('2d')!
-ctx.scale(ratio, ratio)
+canvas.style.width = pageWidth + "px";
+canvas.style.height = pageHeight + "px";
+const ctx = canvas.getContext("2d")!;
+ctx.scale(ratio, ratio);
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-ctx.fillStyle = 'white';
+ctx.fillStyle = "white";
 
 Sequence.seed = 0;
 
@@ -42,11 +42,9 @@ Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
 Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-Sequence.fromStatement("repeat 1-35 AS HATCH")
-
+Sequence.fromStatement("repeat 1-35 AS HATCH");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
-
   ctx.clearRect(0, 0, w, h);
 
   const style: IStyle = {
@@ -61,14 +59,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     hatchOffsetY: 0,
     hatchOverflow: 0,
     hatchSpherify: true,
-  }
+  };
 
   // compound leaf
-  const child = new Stamp(new Ray(0, 0))
-    .defaultStyle(style)
-    .circle({
-      radius: 70,
-    })
+  const child = new Stamp(new Ray(0, 0)).defaultStyle(style).circle({
+    radius: 70,
+  });
 
   const parent = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
@@ -78,18 +74,21 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     rowSpacing: 150,
     columnSpacing: 150,
   });
-  
-  parent.children().forEach(child => {
-    if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
+
+  parent.children().forEach((child) => {
+    if (
+      child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE ||
+      child.style.hatchBooleanType === HatchBooleanType.INTERSECT
+    ) {
       const shape = Hatch.subtractHatchFromShape(child);
-      if (shape) drawShape(ctx, shape)
+      if (shape) drawShape(ctx, shape);
     } else {
-      drawShape(ctx, child)
+      drawShape(ctx, child);
     }
   });
   Sequence.resetAll();
 
-  parent.children().forEach(child => {
+  parent.children().forEach((child) => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) {
@@ -112,9 +111,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   */
 
   //drawRay(ctx, tree.center)
-  
-
-}
+};
 
 document.onkeydown = function (e) {
   // if enter
@@ -128,7 +125,7 @@ document.onkeydown = function (e) {
     // draw the shapes
     draw(ctx2);
     // download the SVG
-  
+
     const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
     const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
     const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
@@ -139,16 +136,12 @@ document.onkeydown = function (e) {
   }
 };
 
-
 async function main() {
-
   await ClipperHelpers.init();
 
   const now = new Date().getTime();
   draw(ctx);
   console.log(`${new Date().getTime() - now}ms`);
-
 }
-
 
 main();

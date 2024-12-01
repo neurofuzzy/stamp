@@ -5,7 +5,7 @@ import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
-import { StampsProvider } from "./lib/stamps-provider";
+import { StampsProvider } from "../src/lib/stamps-provider";
 
 const backgroundColor = "black";
 

@@ -1,5 +1,5 @@
 import * as C2S from "canvas2svg";
-import { drawPath, drawShape } from "../src/lib/draw";
+import { drawShape } from "../src/lib/draw";
 import { Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
@@ -9,7 +9,7 @@ import colors from "nice-color-palettes";
 import { GridStampLayout } from "../src/lib/stamp-layout";
 import { GeomHelpers } from "../src/geom/helpers";
 import { GeomUtils } from "../src/geom/util";
-import { Rectangle } from "./geom/shapes";
+import { Rectangle } from "../src/geom/shapes";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>

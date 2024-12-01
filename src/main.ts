@@ -1,12 +1,11 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawPath, drawShape } from "../src/lib/draw";
-import { ParametricPath, Path, Point } from "../src/geom/core";
+import { drawPath } from "../src/lib/draw";
+import { ParametricPath, Path, Point, Ray } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
-import { Hatch } from "./lib/hatch";
-import { Rectangle } from "./geom/shapes";
+import { Circle } from "./geom/shapes";
 
 const backgroundColor = "black";
 
@@ -35,17 +34,19 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 4;
-const bands = 14;
+const bands = 8;
 const blendSteps = 6;
 const segs = 32;
 const minBand = 2;
+const inset = 7;
+const maxScore = 60;
 let animate = false;
 
 const func = (perc: number) => {
   let pt = new Point(0, 0);
   pt.y =
-    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.125) * 6 +
-    Math.cos(perc * Math.PI * 10 + stepNum * 8.7) * 6;
+    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.125) * 8 +
+    Math.cos(perc * Math.PI * 10 + stepNum * 14.7) * 7;
   pt.x = perc * 650;
   return pt;
 };
@@ -53,7 +54,7 @@ const func = (perc: number) => {
 //SVG.debugMode = true;
 
 function getPaths() {
-  Sequence.fromStatement("random 0-5 AS XX", 288);
+  Sequence.fromStatement("random 0-0 AS XX", 288);
 
   let tracks: Path[] = [];
   let step = 4;
@@ -70,7 +71,7 @@ function getPaths() {
       //let ang = GeomUtil.angleBetween(cen, pt);
       //GeomUtil.rotatePoint(offsetPt, 0 - ang);
       pt.x += offsetPt.x * 0.5;
-      pt.y += offsetPt.y + x * 20;
+      pt.y += offsetPt.y + x * 40;
       let tmp = pt.x;
       pt.x = pt.y;
       pt.y = tmp;
@@ -114,12 +115,11 @@ function getPaths() {
     const paPoints = pA.toPoints();
     const pbPoints = pB.toPoints();
 
-    const hatchPoints: Point[] = [];
+    hatches.push(pA);
     let score = 0;
     let segIdx = 0;
     let ptB;
-    let step = 100;
-    let maxScore = 40;
+    let step = 25;
 
     paPoints.forEach((ptA, idx) => {
       if (idx == 0 || idx >= paPoints.length - 8) {
@@ -134,20 +134,19 @@ function getPaths() {
       score += segScore;
 
       if (score > maxScore) {
-        const a = ptA.clone();
-        const b = ptB.clone();
-        a.x += 1.5;
-        b.x -= 1.5;
-        const pts = segIdx % 2 == 0 ? [a, b] : [b, a];
-        hatchPoints.push(...pts);
+        const midPt = GeomHelpers.lerpPoints(ptA, ptB, 0.5);
+        const center = new Ray(midPt.x, midPt.y, 0);
+        const radius = GeomHelpers.distanceBetweenPoints(ptA, ptB) / 2 - inset;
+        const shape = new Circle(center, radius);
+        const segs = shape.toSegments();
+        const pts = segs.map((seg) => seg.a);
+        pts.push(segs[1].a.clone());
+        const p = new Path(pts);
+        hatches.push(p);
         score = 0;
         segIdx++;
       }
     });
-
-    const h = GeomHelpers.smoothLine(hatchPoints, 4, 0.25, false, 0.2, 0.8);
-    const s = new Path(h);
-    hatches.push(s);
   }
 
   const acc: Point[] = [];
@@ -156,10 +155,10 @@ function getPaths() {
     acc,
   );
   let bb = GeomHelpers.pointsBoundingBox(tracksPts);
-  bb.x += 25;
+  bb.x += 23;
   bb.y += 100;
-  bb.width = 3.5 * 96 * 0.5;
-  bb.height = 10.5 * 96 * 0.5;
+  bb.width = 3.6 * 96 * 0.5;
+  bb.height = 10.6 * 96 * 0.5;
 
   return GeomHelpers.cropPathsToBounds(hatches, bb);
 }
