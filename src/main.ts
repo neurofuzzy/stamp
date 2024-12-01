@@ -1,11 +1,11 @@
 import * as C2S from "canvas2svg";
-import { drawPath } from "../src/lib/draw";
-import { ParametricPath, Path, Point, Ray } from "../src/geom/core";
+import { drawPath, drawShape } from "../src/lib/draw";
+import { IShape, ParametricPath, Path, Point, Ray } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
-import { Circle } from "./geom/shapes";
+import { AbstractShape, Circle, Polygon } from "./geom/shapes";
 
 const backgroundColor = "black";
 
@@ -34,13 +34,18 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 4;
-const bands = 8;
+const bands = 11;
 const blendSteps = 6;
 const segs = 32;
 const minBand = 2;
 const inset = 7;
 const maxScore = 60;
+const paths: Path[] = [];
+const shapes: IShape[] = [];
 let animate = false;
+
+AbstractShape.defaultStyle.strokeThickness = 0;
+AbstractShape.defaultStyle.fillColor = "#006699";
 
 const func = (perc: number) => {
   let pt = new Point(0, 0);
@@ -53,7 +58,7 @@ const func = (perc: number) => {
 
 //SVG.debugMode = true;
 
-function getPaths() {
+function createGeometry() {
   Sequence.fromStatement("random 0-0 AS XX", 288);
 
   let tracks: Path[] = [];
@@ -94,10 +99,6 @@ function getPaths() {
         const pt = GeomHelpers.lerpPoints(ptA, ptB, d / blendSteps);
         pts.push(pt);
       });
-      const path = new Path(pts);
-      if (x >= minBand) {
-        // paths.push(path);
-      }
     }
   }
 
@@ -106,16 +107,30 @@ function getPaths() {
     path.points = pts;
   });
 
-  // crosshatch
-  const hatches: Path[] = [];
-
   for (let x = 1; x < tracks.length; x++) {
-    let pA = tracks[x - 1];
-    let pB = tracks[x];
-    const paPoints = pA.toPoints();
-    const pbPoints = pB.toPoints();
+    let trackA = tracks[x - 1].clone();
+    let trackB = tracks[x].clone();
+    const paPoints = trackA.toPoints();
+    const pbPoints = trackB.toPoints();
 
-    hatches.push(pA);
+    paths.push(trackA);
+
+    if (x == tracks.length - 1) {
+      break;
+    }
+
+    let parentPoly: Polygon;
+
+    if (x % 2 === 1) {
+      const outline = trackA
+        .toPoints()
+        .concat(trackB.toPoints().reverse())
+        .map((pt) => pt.toRay());
+
+      parentPoly = new Polygon(new Ray(0, 0), outline);
+      shapes.push(parentPoly);
+    }
+
     let score = 0;
     let segIdx = 0;
     let ptB;
@@ -138,11 +153,16 @@ function getPaths() {
         const center = new Ray(midPt.x, midPt.y, 0);
         const radius = GeomHelpers.distanceBetweenPoints(ptA, ptB) / 2 - inset;
         const shape = new Circle(center, radius);
+        if (parentPoly) {
+          parentPoly.addChild(shape);
+        } else {
+          shapes.push(shape);
+        }
         const segs = shape.toSegments();
         const pts = segs.map((seg) => seg.a);
         pts.push(segs[1].a.clone());
         const p = new Path(pts);
-        hatches.push(p);
+        paths.push(p);
         score = 0;
         segIdx++;
       }
@@ -159,14 +179,13 @@ function getPaths() {
   bb.y += 100;
   bb.width = 3.6 * 96 * 0.5;
   bb.height = 10.6 * 96 * 0.5;
-
-  return GeomHelpers.cropPathsToBounds(hatches, bb);
 }
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
-  const paths = getPaths();
-  paths.forEach((path) => drawPath(ctx, path));
+  createGeometry();
+  shapes.forEach((shape) => drawShape(ctx, shape));
+  //paths.forEach((path) => drawPath(ctx, path));
 };
 
 document.onkeydown = function (e) {
