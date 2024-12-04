@@ -92,8 +92,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     // pitched roof shape
     .ellipse({
       tag: "pitchroof",
-      radiusX: "BW * 0.5",
-      radiusY: "BW * 0.35",
+      radiusX: "BW / 2",
+      radiusY: "BW / 3",
       divisions: 4,
       offsetY: "BH",
       skip: "BW > 100 | BH > 80",
@@ -107,7 +107,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       numY: "NWY",
       spacingX: 30,
       spacingY: "WH + 14",
-      offsetY: "BH * 0.5",
+      offsetY: "BH / 2",
     })
     .arch({
       width: 16,
@@ -117,7 +117,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       spacingX: 30,
       spacingY: "WH + 14",
       divisions: 8,
-      offsetY: "BH * 0.5 + WH * 0.5",
+      offsetY: "BH / 2 + WH / 2",
     })
     // door
     .rectangle({
@@ -168,7 +168,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       outlineThickness: 0,
     })
     .ellipse({
-      radiusX: "CW * 0.5",
+      radiusX: "CW / 2",
       radiusY: "CH",
       divisions: 4,
       offsetY: 60,
@@ -269,11 +269,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .boolean("BOOL3()")
     // store windows
     .rectangle({
-      width: "STW * 0.5 - 30",
+      width: "STW / 2 - 30",
       height: 30,
       numX: 2,
       numY: 1,
-      spacingX: "STW * 0.5 + 6",
+      spacingX: "STW / 2 + 6",
       spacingY: 30,
       offsetY: 20,
     })
@@ -291,7 +291,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       numY: "STNWY",
       spacingX: 32,
       spacingY: 34,
-      offsetY: "STH * 0.5 + 14",
+      offsetY: "STH / 2 + 14",
     })
     .arch({
       width: 20,
@@ -301,7 +301,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       spacingY: 34,
       sweepAngle: "WA",
       divisions: 8,
-      offsetY: "STH * 0.5 + 24",
+      offsetY: "STH / 2 + 24",
     })
     .boolean("BOOL3()")
     // roof
@@ -361,10 +361,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .crop(-40, -200, 1340, 1100);
 
   // draw as single shape
-  drawShape(ctx, city);
+  //drawShape(ctx, city);
 
   // draw children
-  //city.children().forEach((child) => drawShape(ctx, child));
+  city.children().forEach((child) => drawShape(ctx, child));
 };
 
 document.onkeydown = function (e) {
