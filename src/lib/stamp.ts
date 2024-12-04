@@ -407,6 +407,11 @@ export class Stamp extends AbstractShape {
         }
       }
 
+      let gbb = g.boundingBox();
+      if (gbb.width === 0 || gbb.height === 0) {
+        continue;
+      }
+
       let b: clipperLib.SubjectInput;
       let b2 = null;
 
@@ -775,7 +780,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    // this._align(shapes, $(params.align));
+    //this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 

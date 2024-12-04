@@ -234,6 +234,7 @@ export class Arc extends AbstractShape {
 export class Arch extends AbstractShape {
   radius: number;
   width: number;
+  private _height: number;
   sweepAngleDegrees: number;
   startAngle: number;
   endAngle: number;
@@ -253,9 +254,13 @@ export class Arch extends AbstractShape {
     const b = this.width * 0.5;
     const a = b * Math.tan(this.endAngle);
     this.radius = Math.sqrt(b * b + a * a);
+    this._height = (this.radius + this.radius * Math.sin(this.endAngle)) * 2;
     this.reverse = reverse;
   }
   generate(withinArea?: BoundingBox) {
+    if (this.sweepAngleDegrees === 0) {
+      return [];
+    }
     const rays = [];
     for (let i = 0; i <= this.divisions; i++) {
       const angle = GeomHelpers.lerpAngle(
@@ -266,16 +271,13 @@ export class Arch extends AbstractShape {
       rays.push(
         new Ray(
           this.center.x + this.radius * Math.cos(angle),
-          this.center.y + this.radius * Math.sin(angle),
+          this.center.y + this.radius * Math.sin(angle) + this.radius,
           this.startAngle + (Math.PI * 2 * i) / this.divisions,
         ),
       );
     }
-    const oppositeLength = this.radius * Math.sin(this.endAngle);
-    console.log(this.radius, oppositeLength);
     rays.forEach((r) => {
-      r.y += this.radius;
-      r.y -= this.radius + oppositeLength;
+      r.y -= this._height * 0.5;
     });
     if (this.reverse) {
       rays.reverse();
@@ -293,13 +295,23 @@ export class Arch extends AbstractShape {
     this.fit(rays, withinArea);
     return rays;
   }
+  boundingBox(): BoundingBox {
+    if (this.sweepAngleDegrees === 0) {
+      return new BoundingBox(this.center.x, this.center.y, 0, 0);
+    }
+    return new BoundingBox(
+      this.center.x - this.width / 2,
+      this.center.y - this._height / 2,
+      this.width,
+      this._height,
+    );
+  }
   clone(atScale = 1) {
     const scale = atScale || 1;
-    const s = new Arc(
+    const s = new Arch(
       this.center.clone(),
-      this.radius * scale,
-      this.startAngle,
-      this.endAngle,
+      this.width * scale,
+      this.sweepAngleDegrees,
       this.divisions,
       this.alignment,
       this.reverse,
