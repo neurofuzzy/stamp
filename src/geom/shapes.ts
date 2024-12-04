@@ -231,6 +231,86 @@ export class Arc extends AbstractShape {
   }
 }
 
+export class Arch extends AbstractShape {
+  radius: number;
+  width: number;
+  sweepAngleDegrees: number;
+  startAngle: number;
+  endAngle: number;
+  constructor(
+    center?: Ray,
+    width: number = 100,
+    sweepAngleDegrees: number = 30,
+    divisions: number = 64,
+    alignment: ShapeAlignment = ShapeAlignment.CENTER,
+    reverse: boolean = false,
+  ) {
+    super(center, divisions, alignment, reverse);
+    this.width = width;
+    this.sweepAngleDegrees = sweepAngleDegrees;
+    this.startAngle = 0 - (sweepAngleDegrees * Math.PI) / 180 - Math.PI / 2;
+    this.endAngle = (sweepAngleDegrees * Math.PI) / 180 - Math.PI / 2;
+    const b = this.width * 0.5;
+    const a = b * Math.tan(this.endAngle);
+    this.radius = Math.sqrt(b * b + a * a);
+    this.reverse = reverse;
+  }
+  generate(withinArea?: BoundingBox) {
+    const rays = [];
+    for (let i = 0; i <= this.divisions; i++) {
+      const angle = GeomHelpers.lerpAngle(
+        this.startAngle,
+        this.endAngle,
+        i / this.divisions,
+      );
+      rays.push(
+        new Ray(
+          this.center.x + this.radius * Math.cos(angle),
+          this.center.y + this.radius * Math.sin(angle),
+          this.startAngle + (Math.PI * 2 * i) / this.divisions,
+        ),
+      );
+    }
+    const oppositeLength = this.radius * Math.sin(this.endAngle);
+    console.log(this.radius, oppositeLength);
+    rays.forEach((r) => {
+      r.y += this.radius;
+      r.y -= this.radius + oppositeLength;
+    });
+    if (this.reverse) {
+      rays.reverse();
+      rays.forEach((r) => (r.direction += Math.PI));
+    }
+    if (this.reverse) {
+      rays.reverse();
+    }
+    GeomHelpers.normalizeRayDirections(rays);
+    if (this.center.direction) {
+      rays.forEach((r) => {
+        GeomHelpers.rotateRayAboutOrigin(this.center, r);
+      });
+    }
+    this.fit(rays, withinArea);
+    return rays;
+  }
+  clone(atScale = 1) {
+    const scale = atScale || 1;
+    const s = new Arc(
+      this.center.clone(),
+      this.radius * scale,
+      this.startAngle,
+      this.endAngle,
+      this.divisions,
+      this.alignment,
+      this.reverse,
+    );
+    s.isHole = this.isHole;
+    s.hidden = this.hidden;
+    s.style = Object.assign({}, this.style);
+    return s;
+  }
+}
+
 export class Polygon extends AbstractShape {
   rays: Ray[];
   _scale: number = 1;

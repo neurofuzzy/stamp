@@ -20,6 +20,11 @@ export interface ICircleParams extends IShapeParams {
   innerRadius?: number | string;
 }
 
+export interface IArchParams extends IShapeParams {
+  width: number | string;
+  sweepAngle?: number | string;
+}
+
 export interface IEllipseParams extends IShapeParams {
   radiusX: number | string;
   radiusY: number | string;

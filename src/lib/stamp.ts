@@ -13,6 +13,7 @@ import {
 import { GeomHelpers } from "../geom/helpers";
 import {
   AbstractShape,
+  Arch,
   Bone,
   Circle,
   Ellipse,
@@ -34,6 +35,7 @@ import {
   resolveStringOrNumber,
 } from "./stamp-helpers";
 import {
+  IArchParams,
   IBoneParams,
   IBoundsParams,
   ICircleParams,
@@ -738,6 +740,45 @@ export class Stamp extends AbstractShape {
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
+  private _arch(params: IArchParams) {
+    let shapes: IShape[] = [];
+    let nnx = $(params.numX),
+      nny = $(params.numY),
+      nspx = $(params.spacingX),
+      nspy = $(params.spacingY);
+    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
+    for (let j = 0; j < nny; j++) {
+      for (let i = 0; i < nnx; i++) {
+        const offset = new Point(
+          $(params.offsetX || 0),
+          $(params.offsetY || 0),
+        );
+        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
+        let cen = new Ray(
+          nspx * i - o.x + offset.x,
+          nspy * j - o.y + offset.y,
+          params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
+        );
+        let s = new Arch(
+          cen,
+          $(params.width),
+          $(params.sweepAngle),
+          $(params.divisions),
+          $(params.align),
+        );
+        if ($(params.skip) > 0) {
+          s.hidden = true;
+        }
+        if (params.style) {
+          s.style = params.style;
+        }
+        shapes.push(s);
+      }
+    }
+    // this._align(shapes, $(params.align));
+    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  }
+
   private _leafShape(params: ILeafShapeParams) {
     let shapes: IShape[] = [];
     let nnx = $(params.numX),
@@ -1268,6 +1309,16 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
+  arch(params: IArchParams) {
+    params = paramsWithDefaults<IArchParams>(params);
+    this._nodes.push({
+      fName: "_arch",
+      tag: params.tag,
+      args: [params],
+    });
+    return this;
+  }
+
   ellipse(params: IEllipseParams) {
     params = paramsWithDefaults<IEllipseParams>(params);
     this._nodes.push({
@@ -1542,6 +1593,7 @@ export class Stamp extends AbstractShape {
 
     const privateFunctionMap: { [key: string]: Function } = {
       _add: this._add,
+      _arch: this._arch,
       _bone: this._bone,
       _boolean: this._boolean,
       _breakApart: this._breakApart,

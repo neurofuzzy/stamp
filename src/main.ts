@@ -1,11 +1,12 @@
 import * as C2S from "canvas2svg";
-import { drawPath, drawShape } from "../src/lib/draw";
-import { IShape, ParametricPath, Path, Point, Ray } from "../src/geom/core";
-import { GeomHelpers } from "../src/geom/helpers";
+import { drawShape } from "../src/lib/draw";
+import { Heading, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
+import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
-import { AbstractShape, Circle, Polygon } from "./geom/shapes";
+import { StampsProvider } from "../src/lib/stamps-provider";
+import { AbstractShape, Arch, Rectangle } from "./geom/shapes";
 
 const backgroundColor = "black";
 
@@ -17,9 +18,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 4 * 96;
-const pageHeight = 8 * 96;
+const pageHeight = 4 * 96;
 const ratio = 2;
-const zoom = 2;
+const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
 canvas.style.width = pageWidth * zoom + "px";
@@ -29,172 +30,65 @@ ctx.scale(ratio, ratio);
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-ctx.fillStyle = "black";
+ctx.fillStyle = "white";
 
-let stepNum = 0;
-let iter = 919918726;
-const step = 4;
-const bands = 11;
-const blendSteps = 6;
-const segs = 32;
-const minBand = 2;
-const inset = 7;
-const maxScore = 60;
-const paths: Path[] = [];
-const shapes: IShape[] = [];
-let animate = false;
+let seed = 27;
 
-AbstractShape.defaultStyle.strokeThickness = 0;
-AbstractShape.defaultStyle.fillColor = "#006699";
+Sequence.fromStatement("repeat 2,1 AS BOOL", seed);
+Sequence.fromStatement("repeat 2,1 AS BOOL2", seed);
+Sequence.fromStatement("repeat 2,1 AS BOOL3", seed);
+Sequence.fromStatement("random 40,70,70,100,130 AS BW", seed);
+Sequence.fromStatement("repeat 80,130,80,130,80 AS BH", seed);
+Sequence.fromStatement("repeat 80,80,80,80,80 AS BH2", seed);
+Sequence.fromStatement("repeat 18,24,18,24,18 AS WH", seed);
+Sequence.fromStatement("random 1,2,2,3,4 AS NWX", seed);
+Sequence.fromStatement("repeat 2,3,2,3,2 AS NWY", seed);
+Sequence.fromStatement("repeat 0,0,1 AS DOFF", seed);
+Sequence.fromStatement("random 0,15,15,0,45 AS DX", seed);
 
-const func = (perc: number) => {
-  let pt = new Point(0, 0);
-  pt.y =
-    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.125) * 8 +
-    Math.cos(perc * Math.PI * 10 + stepNum * 14.7) * 7;
-  pt.x = perc * 650;
-  return pt;
-};
+Sequence.fromStatement("repeat 35,50,40,45 AS TH", 22);
+Sequence.fromStatement("random 70,100,100 AS CW", seed);
+Sequence.fromStatement("random 2,3,3 AS CNWX", seed);
+Sequence.fromStatement("random 0,1,1 AS CARCH", seed);
+Sequence.fromStatement("repeat -30,0,30 AS STEEPLEX", seed);
+Sequence.fromStatement("repeat 60,50,40 AS STEEPLEH", seed);
+Sequence.fromStatement("repeat 15,20,30 AS CH", seed);
+Sequence.fromStatement("repeat 0,1 AS T1", seed);
+Sequence.fromStatement("repeat 1,0 AS T2", seed);
 
-//SVG.debugMode = true;
-
-function createGeometry() {
-  Sequence.fromStatement("random 0-0 AS XX", 288);
-
-  let tracks: Path[] = [];
-  let step = 4;
-  let r = step * 10;
-
-  let bones = [];
-
-  for (let x = 0; x < bands; x++) {
-    const path = new ParametricPath(func, segs);
-    stepNum = x;
-    let pts: Point[] = path.toPoints();
-    pts.forEach((pt) => {
-      let offsetPt = new Point(Sequence.resolve("XX()") * 1, 0);
-      //let ang = GeomUtil.angleBetween(cen, pt);
-      //GeomUtil.rotatePoint(offsetPt, 0 - ang);
-      pt.x += offsetPt.x * 0.5;
-      pt.y += offsetPt.y + x * 40;
-      let tmp = pt.x;
-      pt.x = pt.y;
-      pt.y = tmp;
-    });
-    let path2 = new Path(pts);
-    bones.push(path2);
-    r += step * 4;
-  }
-
-  for (let x = 1; x < bands; x++) {
-    let pA = bones[x - 1];
-    let pB = bones[x];
-    if (x >= minBand) {
-      tracks.push(pA);
-    }
-    for (let d = 1; d < blendSteps; d++) {
-      const pts: Point[] = [];
-      pA.points.forEach((ptA, idx) => {
-        let ptB = pB.points[idx];
-        const pt = GeomHelpers.lerpPoints(ptA, ptB, d / blendSteps);
-        pts.push(pt);
-      });
-    }
-  }
-
-  tracks.forEach((path) => {
-    const pts = GeomHelpers.smoothLine(path.points, 6, 0.25, false);
-    path.points = pts;
-  });
-
-  for (let x = 1; x < tracks.length; x++) {
-    let trackA = tracks[x - 1].clone();
-    let trackB = tracks[x].clone();
-    const paPoints = trackA.toPoints();
-    const pbPoints = trackB.toPoints();
-
-    paths.push(trackA);
-
-    if (x == tracks.length - 1) {
-      break;
-    }
-
-    let parentPoly: Polygon;
-
-    if (x % 2 === 1) {
-      const outline = trackA
-        .toPoints()
-        .concat(trackB.toPoints().reverse())
-        .map((pt) => pt.toRay());
-
-      parentPoly = new Polygon(new Ray(0, 0), outline);
-      shapes.push(parentPoly);
-    }
-
-    let score = 0;
-    let segIdx = 0;
-    let ptB;
-    let step = 25;
-
-    paPoints.forEach((ptA, idx) => {
-      if (idx == 0 || idx >= paPoints.length - 8) {
-        return;
-      }
-      ptB = pbPoints[idx];
-      if (!ptB) {
-        return;
-      }
-
-      let segScore = 1 / (GeomHelpers.distanceBetweenPoints(ptA, ptB) / step);
-      score += segScore;
-
-      if (score > maxScore) {
-        const midPt = GeomHelpers.lerpPoints(ptA, ptB, 0.5);
-        const center = new Ray(midPt.x, midPt.y, 0);
-        const radius = GeomHelpers.distanceBetweenPoints(ptA, ptB) / 2 - inset;
-        const shape = new Circle(center, radius);
-        if (parentPoly) {
-          parentPoly.addChild(shape);
-        } else {
-          shapes.push(shape);
-        }
-        const segs = shape.toSegments();
-        const pts = segs.map((seg) => seg.a);
-        pts.push(segs[1].a.clone());
-        const p = new Path(pts);
-        paths.push(p);
-        score = 0;
-        segIdx++;
-      }
-    });
-  }
-
-  const acc: Point[] = [];
-  const tracksPts = tracks.reduce(
-    (acc, path) => acc.concat(path.toPoints()),
-    acc,
-  );
-  let bb = GeomHelpers.pointsBoundingBox(tracksPts);
-  bb.x += 23;
-  bb.y += 100;
-  bb.width = 3.6 * 96 * 0.5;
-  bb.height = 10.6 * 96 * 0.5;
-}
+Sequence.fromStatement("random 80,80,110,140 AS STW", seed);
+Sequence.fromStatement("repeat 120,80,120,80 AS STH", seed);
+Sequence.fromStatement("random 2,2,3,4 AS STNWX", seed);
+Sequence.fromStatement("repeat 2,1,2,1 AS STNWY", seed);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
-  createGeometry();
-  shapes.forEach((shape) => drawShape(ctx, shape));
-  //paths.forEach((path) => drawPath(ctx, path));
+  //AbstractShape.defaultStyle.strokeThickness = 0;
+  const rect = new Rectangle(new Ray(w / 2, h / 2, 0), 100, 200);
+  const arch = new Arch(new Ray(w / 2, h / 2, 0), 100, 50);
+
+  const stamp = new Stamp(new Ray(w / 2, h / 2, 0), ShapeAlignment.CENTER)
+    .rectangle({ width: 100, height: 10 })
+    .arch({ width: 100, sweepAngle: 30, divisions: 16, offsetY: 100 });
+
+  // draw as single shape
+  drawShape(ctx, rect);
+  drawShape(ctx, arch);
+  //drawShape(ctx, stamp);
+
+  // draw children
+  //city.children().forEach((child) => drawShape(ctx, child));
 };
 
 document.onkeydown = function (e) {
   // if enter
   if (e.keyCode === 13) {
+    // reset Sequences
+    Sequence.resetAll();
     // export the canvas as SVG
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
     // draw the boundary
-    ctx2.backgroundColor = "#000";
+    //ctx2.backgroundColor = "#000";
 
     // draw the shapes
     draw(ctx2);
@@ -211,14 +105,7 @@ document.onkeydown = function (e) {
 async function main() {
   await ClipperHelpers.init();
   const now = new Date().getTime();
-  const drawFrame = (t) => {
-    draw(ctx);
-    iter += step;
-    if (animate) {
-      requestAnimationFrame(drawFrame);
-    }
-  };
-  requestAnimationFrame(drawFrame);
+  draw(ctx);
   console.log(`${new Date().getTime() - now}ms`);
 }
 
