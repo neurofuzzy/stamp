@@ -1,4 +1,5 @@
 import { makeCircle } from "../lib/smallest-enclosing-circle";
+import { GeomHelpers } from "./helpers";
 
 export enum Heading {
   UP = 0,
@@ -121,6 +122,59 @@ export class Segment {
     this.a.fromString(a);
     this.b.fromString(b);
     return this;
+  }
+}
+
+export class SegmentGroup {
+  segments: Segment[];
+  constructor(segments: Segment[]) {
+    this.segments = segments;
+  }
+  toSegments() {
+    return this.segments;
+  }
+  clone() {
+    return new SegmentGroup(this.segments.map((s) => s.clone()));
+  }
+  toString() {
+    return `${this.segments.map((s) => s.toString()).join("|")}`;
+  }
+  fromString(s: string) {
+    const segments = s
+      .slice(1, -1)
+      .split(", ")
+      .map((str) => {
+        return new Segment(new Point(0, 0), new Point(0, 0)).fromString(str);
+      });
+    this.segments = segments;
+    return this;
+  }
+}
+
+export class DottedLine extends SegmentGroup {
+  a: Point;
+  b: Point;
+  spacing: number;
+  constructor(a: Point, b: Point, spacing: number) {
+    super([]);
+    this.a = a;
+    this.b = b;
+    this.spacing = spacing;
+    let start = a.clone();
+    const dist = GeomHelpers.distanceBetweenPoints(a, b);
+    let num = Math.floor(dist / spacing);
+    if (num % 2 === 0) {
+      num++;
+    }
+    const frequency = dist / num;
+    GeomHelpers.subdividePointsByDistanceExact(a, b, frequency).forEach(
+      (pt, idx) => {
+        if (idx % 2 === 1) {
+          this.segments.push(new Segment(start, pt));
+        }
+        start = pt;
+      },
+    );
   }
 }
 

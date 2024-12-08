@@ -7,6 +7,7 @@ import {
   Point,
   Ray,
   Path,
+  SegmentGroup,
 } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 import { Sequence } from "./sequence";
@@ -223,6 +224,21 @@ export function drawRay(ctx: CanvasRenderingContext2D, r: Ray) {
   );
   ctx.strokeStyle = "#39f";
   ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+export function drawSegmentGroup(
+  ctx: CanvasRenderingContext2D,
+  group: SegmentGroup,
+  color = "#999999",
+) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  group.segments.forEach((seg) => {
+    ctx.moveTo(seg.a.x, seg.a.y);
+    ctx.lineTo(seg.b.x, seg.b.y);
+  });
   ctx.stroke();
 }
 
