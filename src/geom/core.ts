@@ -155,11 +155,13 @@ export class DottedLine extends SegmentGroup {
   a: Point;
   b: Point;
   spacing: number;
-  constructor(a: Point, b: Point, spacing: number) {
+  inverse: boolean;
+  constructor(a: Point, b: Point, spacing: number, inverse = false) {
     super([]);
     this.a = a;
     this.b = b;
     this.spacing = spacing;
+    this.inverse = inverse;
     let start = a.clone();
     const dist = GeomHelpers.distanceBetweenPoints(a, b);
     let num = Math.floor(dist / spacing);
@@ -169,7 +171,8 @@ export class DottedLine extends SegmentGroup {
     const frequency = dist / num;
     GeomHelpers.subdividePointsByDistanceExact(a, b, frequency).forEach(
       (pt, idx) => {
-        if (idx % 2 === 1) {
+        if (idx === 0) return;
+        if (idx % 2 === (this.inverse ? 0 : 1)) {
           this.segments.push(new Segment(start, pt));
         }
         start = pt;

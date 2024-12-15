@@ -983,7 +983,7 @@ export class TriGridHatchPattern extends HatchPattern {
       });
     });
     if (this.spherify) {
-      PathModifiers.spherify(segments, this.center, radius * 0.7);
+      PathModifiers.spherify(segments, this.center, radius * 0.9);
     }
     return segments;
   }
