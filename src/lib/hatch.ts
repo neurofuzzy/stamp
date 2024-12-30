@@ -220,7 +220,7 @@ export class Hatch {
         );
       case HatchPatternType.WINDING:
         hatchPattern = new WindingHatchPattern(...args);
-        hatchPattern.shape = shape;
+        //hatchPattern.shape = shape;
         break;
       default:
         return null;
@@ -258,6 +258,7 @@ export class Hatch {
 
     const fillShape = ClipperHelpers.polyTreeToHatchFillShape(hatchResult);
     fillShape.style = shape.style;
+    fillShape.doOptimize = hatchPattern.doOptimize;
     return fillShape;
   }
 
@@ -411,7 +412,7 @@ export class Hatch {
                 }
               }
               if (shiftAmount > 0) {
-                paths.forEach((path, idx) => {
+                paths.forEach((path) => {
                   //path.points.push(path.points[0].clone());
                   for (let j = 0; j < shiftAmount; j++) {
                     let pt = path.points.shift();

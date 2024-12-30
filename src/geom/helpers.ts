@@ -310,6 +310,7 @@ export class GeomHelpers {
     closed = false,
     d1 = 0.25,
     d2 = 0.75,
+    optimize = true,
   ) {
     let inn = pts.concat();
     let out = [];
@@ -329,17 +330,19 @@ export class GeomHelpers {
         let p1 = prev[i];
         let p2 = prev[i + 1] || prev[0];
 
-        if (i > 1 && i < len - 2) {
-          let p0 = prev[i - 1];
-          let p3 = prev[i + 2];
-          if (p0 && p1 && p2 && p3) {
-            if (p0.x == p1.x && p1.x == p2.x && p2.x == p3.x) {
-              out.push(p1.clone());
-              continue;
-            }
-            if (p0.y == p1.y && p1.y == p2.y && p2.y == p3.y) {
-              out.push(p1.clone());
-              continue;
+        if (optimize) {
+          if (i > 1 && i < len - 2) {
+            let p0 = prev[i - 1];
+            let p3 = prev[i + 2];
+            if (p0 && p1 && p2 && p3) {
+              if (p0.x == p1.x && p1.x == p2.x && p2.x == p3.x) {
+                out.push(p1.clone());
+                continue;
+              }
+              if (p0.y == p1.y && p1.y == p2.y && p2.y == p3.y) {
+                out.push(p1.clone());
+                continue;
+              }
             }
           }
         }
@@ -369,7 +372,6 @@ export class GeomHelpers {
     } else {
       out.push(inn[inn.length - 1]);
     }
-
     return out;
   }
 

@@ -17,14 +17,13 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 5 * 96;
-const pageHeight = 7 * 96;
+const pageWidth = 8.5 * 96;
+const pageHeight = 8.5 * 96;
 const ratio = 2;
-const zoom = 1;
 canvas.width = pageWidth * ratio;
 canvas.height = pageHeight * ratio;
-canvas.style.width = pageWidth * zoom + "px";
-canvas.style.height = pageHeight * zoom + "px";
+canvas.style.width = pageWidth + "px";
+canvas.style.height = pageHeight + "px";
 const ctx = canvas.getContext("2d")!;
 ctx.scale(ratio, ratio);
 const w = canvas.width / ratio;
@@ -32,20 +31,16 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = "white";
 
-Sequence.seed = 0;
+Sequence.seed = 2;
 
-// 2,7,24,29,32,39,69,78,83,94,96
-const palette = colors[79];
-const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
-Sequence.fromStatement(colorSeq, 122);
+Sequence.fromStatement(
+  "shuffle 11,4,5,8,9, 10,14,15,16,18, 19,20,21,22,23, 24,25,26,27,28, 29,33,34,35,41 AS HATCH",
+);
+Sequence.fromStatement(
+  "shuffle 1,1,1,1,1, 1,1,1,0.85,0.85, 1,1,0.85,0.85,0.75, 0.75,0.85,0.75,0.85,0.75, 1,1,1,1.2,1.2 AS HATCHSCALE",
+);
 
-Sequence.fromStatement("repeat 137.508 AS RANGLE", 0, 5);
-Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
-Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
-Sequence.fromStatement("repeat 1.02 ADD AS RLA");
-//Sequence.fromStatement("repeat 1-35 AS HATCH");
-Sequence.fromStatement("repeat 16,11,10,15,14,12 AS HATCH");
-Sequence.fromStatement("shuffle 30,0,60,45 AS HANG");
+Sequence.fromStatement("repeat 144,72,60,30,45 AS HATCHANGLE");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -54,28 +49,28 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     strokeThickness: 0,
     fillAlpha: 0,
     hatchPattern: "HATCH()",
-    hatchAngle: "HANG()",
-    hatchScale: 0.9,
+    hatchAngle: "HATCHANGLE()",
+    hatchScale: "HATCHSCALE()",
     hatchStrokeColor: "0x999999",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,
-    hatchOffsetY: 1,
+    hatchOffsetY: 0,
     hatchOverflow: 0,
     hatchSpherify: true,
   };
 
   // compound leaf
   const child = new Stamp(new Ray(0, 0)).defaultStyle(style).circle({
-    radius: 85,
+    radius: 96 * 0.75,
   });
 
   const parent = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
-    permutationSequence: Sequence.fromStatement("REPEAT 1-25"),
-    columns: 2,
-    rows: 3,
-    rowSpacing: 190,
-    columnSpacing: 190,
+    permutationSequence: Sequence.fromStatement("REPEAT 6"),
+    columns: 5,
+    rows: 5,
+    rowSpacing: 96 * 1.5,
+    columnSpacing: 96 * 1.5,
   });
 
   parent.children().forEach((child) => {

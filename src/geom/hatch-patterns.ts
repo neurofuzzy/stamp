@@ -8,9 +8,8 @@ const prng = arbit(29374);
 export interface IHatchPattern {
   style: IStyle;
   generate(): Path[];
-  clone(): IHatchPattern;
+  clone(): IHatchPattern | HatchFillShape;
   get doOptimize(): boolean;
-  setShape(shape: IShape): void;
 }
 
 export class HatchPattern implements IHatchPattern {
@@ -58,13 +57,11 @@ export class HatchPattern implements IHatchPattern {
   get doOptimize(): boolean {
     return false;
   }
-  setShape(shape: IShape): void {
-    this.shape = shape;
-  }
 }
 
 export class HatchFillShape implements IHatchPattern {
   protected segments: Path[];
+  protected _doOptimize: boolean = false;
   style: IStyle = {
     hatchStrokeColor: "#ccc",
     hatchStrokeThickness: 0.5,
@@ -86,7 +83,10 @@ export class HatchFillShape implements IHatchPattern {
     this.segments = paths;
   }
   get doOptimize(): boolean {
-    return false;
+    return this._doOptimize;
+  }
+  set doOptimize(doOptimize: boolean) {
+    this._doOptimize = doOptimize;
   }
 }
 
@@ -162,14 +162,16 @@ export class SpiralHatchPattern extends HatchPattern {
     const segments: Path[] = [];
     const hatchStep = this.scale * 15;
     const radius =
-      Math.max(this.width, this.height) * 2 +
+      Math.max(this.width, this.height) / 2 +
       this.overflow +
       Math.max(Math.abs(this.offsetX), Math.abs(this.offsetY));
-    const numSegments = Math.ceil((radius * 2) / hatchStep);
+    const addStep = this.spherify ? 1 : 0;
+    const numSegments = Math.ceil((radius * 2) / hatchStep) + addStep;
     let currentRadius = 0;
-    const step = radius / numSegments;
+    const step = radius / (numSegments - addStep);
     const div = 4;
     const pts: Point[] = [];
+    let maxAtAngle = [];
     for (let j = 0; j < numSegments; j++) {
       for (let i = 0; i < 360; i += div) {
         const angle = (i * Math.PI) / 180;
@@ -180,6 +182,16 @@ export class SpiralHatchPattern extends HatchPattern {
           ),
         );
         currentRadius += step / (360 / div);
+        if (this.spherify) {
+          if (currentRadius > radius - 0.1) {
+            if (maxAtAngle[i]) {
+              pts.splice(pts.length - 60, 60);
+              break;
+            }
+            maxAtAngle[i] = true;
+          }
+          currentRadius = Math.min(radius - 0.1, currentRadius);
+        }
       }
     }
     let p = new Path(pts);
@@ -190,9 +202,11 @@ export class SpiralHatchPattern extends HatchPattern {
         p.y += this.offsetY;
       });
     });
-    if (this.spherify) {
-      PathModifiers.spherify(segments, this.center, radius * 0.5);
-    }
+    segments.forEach((s) => {
+      s.points.forEach((p) =>
+        GeomHelpers.rotatePointAboutOrigin(this.center, p),
+      );
+    });
     return segments;
   }
 }
@@ -540,13 +554,13 @@ export class SinewaveCrossHatchPattern extends HatchPattern {
       this.center.x - Math.round(radius / hatchStep) * hatchStep * 1.5;
     const startY =
       this.center.y - Math.round(radius / hatchStep) * hatchStep * 1.5;
-    const numSegments = Math.ceil((radius * 3) / hatchStep);
+    const numSegments = Math.ceil((radius * 3) / hatchStep / 2);
     const numPoints = Math.max(1, Math.floor(hatchStep / 6));
     for (let i = 0; i < numSegments; i++) {
-      const a = new Point(startX + i * hatchStep, this.center.y - radius);
-      const b = new Point(startX + i * hatchStep, this.center.y + radius);
-      const c = new Point(this.center.x - radius, startY + i * hatchStep);
-      const d = new Point(this.center.x + radius, startY + i * hatchStep);
+      const a = new Point(startX + i * hatchStep * 2, this.center.y - radius);
+      const b = new Point(startX + i * hatchStep * 2, this.center.y + radius);
+      const c = new Point(this.center.x - radius, startY + i * hatchStep * 2);
+      const d = new Point(this.center.x + radius, startY + i * hatchStep * 2);
       const ptsAB = GeomHelpers.subdividePointsByDistance(a, b, numPoints);
       ptsAB.forEach((p, idx) => {
         p.x +=

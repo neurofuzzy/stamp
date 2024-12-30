@@ -17,8 +17,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 5 * 96;
-const pageHeight = 7 * 96;
+const pageWidth = 3.5 * 96;
+const pageHeight = 11 * 96;
 const ratio = 2;
 const zoom = 1;
 canvas.width = pageWidth * ratio;
@@ -32,7 +32,7 @@ const h = canvas.height / ratio;
 
 ctx.fillStyle = "white";
 
-Sequence.seed = 0;
+Sequence.seed = 8;
 
 // 2,7,24,29,32,39,69,78,83,94,96
 const palette = colors[79];
@@ -44,8 +44,18 @@ Sequence.fromStatement("repeat 1 LOG2 AS RSCALE", 0);
 Sequence.fromStatement("repeat 0.5 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
 //Sequence.fromStatement("repeat 1-35 AS HATCH");
-Sequence.fromStatement("repeat 16,11,10,15,14,12 AS HATCH");
-Sequence.fromStatement("shuffle 30,0,60,45 AS HANG");
+Sequence.fromStatement("repeat 13 AS HATCH");
+Sequence.fromStatement("random -15,0,15 AS HANG");
+Sequence.fromStatement("random 0.4,0.6,0.8 AS HS1");
+Sequence.fromStatement("random 0.4,0.6,0.8,1 AS HS2");
+Sequence.fromStatement("random 0.6,0.8,1,1.2 AS HS3");
+Sequence.fromStatement("random 0.8,1,1.2,1.5 AS HS4");
+Sequence.fromStatement("random 1,1.2,1.5,2 AS HS5");
+
+const reps = 30;
+Sequence.fromStatement(
+  `repeat ${"HS5(),".repeat(reps)}${"HS4(),".repeat(reps)}${"HS3(),".repeat(reps)}${"HS2(),".repeat(reps)}${"HS1(),".repeat(reps + 10)}HS1() AS HS`,
+);
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
@@ -55,27 +65,28 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     fillAlpha: 0,
     hatchPattern: "HATCH()",
     hatchAngle: "HANG()",
-    hatchScale: 0.9,
+    hatchScale: "HS()",
     hatchStrokeColor: "0x999999",
     hatchStrokeThickness: 2,
     hatchOffsetX: 0,
-    hatchOffsetY: 1,
+    hatchOffsetY: 0,
     hatchOverflow: 0,
     hatchSpherify: true,
   };
 
   // compound leaf
   const child = new Stamp(new Ray(0, 0)).defaultStyle(style).circle({
-    radius: 85,
+    radius: 20,
   });
 
   const parent = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: child,
-    permutationSequence: Sequence.fromStatement("REPEAT 1-25"),
-    columns: 2,
-    rows: 3,
-    rowSpacing: 190,
-    columnSpacing: 190,
+    permutationSequence: Sequence.fromStatement("RANDOM 1-25"),
+    columns: 7,
+    rows: 21,
+    rowSpacing: 48,
+    columnSpacing: 48,
+    offsetAlternateRows: true,
   });
 
   parent.children().forEach((child) => {

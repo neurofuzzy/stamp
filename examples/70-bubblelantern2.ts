@@ -1,11 +1,11 @@
 import * as C2S from "canvas2svg";
-import { drawShape } from "../src/lib/draw";
+import { drawPath, drawShape } from "../src/lib/draw";
 import { IShape, ParametricPath, Path, Point, Ray } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
-import { AbstractShape, Circle, Polygon } from "../src/geom/shapes";
+import { AbstractShape, Circle, Polygon } from "./geom/shapes";
 
 const backgroundColor = "black";
 
@@ -17,7 +17,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 4 * 96;
-const pageHeight = 8 * 96;
+const pageHeight = 6 * 96;
 const ratio = 2;
 const zoom = 2;
 canvas.width = pageWidth * ratio;
@@ -34,12 +34,14 @@ ctx.fillStyle = "black";
 let stepNum = 0;
 let iter = 919918726;
 const step = 4;
-const bands = 11;
+const bands = 9;
 const blendSteps = 6;
 const segs = 32;
 const minBand = 2;
-const inset = 7;
-const maxScore = 60;
+const inset = 15;
+const maxScore = 39;
+const endPadding = 45;
+const meander = 9;
 const paths: Path[] = [];
 const shapes: IShape[] = [];
 let animate = false;
@@ -49,10 +51,14 @@ AbstractShape.defaultStyle.fillColor = "#006699";
 
 const func = (perc: number) => {
   let pt = new Point(0, 0);
-  pt.y =
-    Math.sin(1.5 + perc * Math.PI * 8 + stepNum * 0.125) * 8 +
-    Math.cos(perc * Math.PI * 10 + stepNum * 14.7) * 7;
-  pt.x = perc * 650;
+  pt.y = Math.sin(1.5 + perc * Math.PI * 5 + stepNum * 4.9) * meander;
+  if (stepNum === 0) {
+    pt.y = 0;
+  }
+  if (stepNum >= bands - 4) {
+    pt.y = 0;
+  }
+  pt.x = perc * 450;
   return pt;
 };
 
@@ -72,11 +78,7 @@ function createGeometry() {
     stepNum = x;
     let pts: Point[] = path.toPoints();
     pts.forEach((pt) => {
-      let offsetPt = new Point(Sequence.resolve("XX()") * 1, 0);
-      //let ang = GeomUtil.angleBetween(cen, pt);
-      //GeomUtil.rotatePoint(offsetPt, 0 - ang);
-      pt.x += offsetPt.x * 0.5;
-      pt.y += offsetPt.y + x * 40;
+      pt.y += (x - 1) * 60;
       let tmp = pt.x;
       pt.x = pt.y;
       pt.y = tmp;
@@ -103,7 +105,15 @@ function createGeometry() {
   }
 
   tracks.forEach((path) => {
-    const pts = GeomHelpers.smoothLine(path.points, 6, 0.25, false);
+    const pts = GeomHelpers.smoothLine(
+      path.points,
+      6,
+      0.25,
+      false,
+      undefined,
+      undefined,
+      false,
+    );
     path.points = pts;
   });
 
@@ -127,17 +137,17 @@ function createGeometry() {
         .concat(trackB.toPoints().reverse())
         .map((pt) => pt.toRay());
 
-      parentPoly = new Polygon(new Ray(0, 0), outline);
-      shapes.push(parentPoly);
+      //parentPoly = new Polygon(new Ray(0, 0), outline);
+      //shapes.push(parentPoly);
     }
 
-    let score = 0;
+    let score = 0; //x % 2 === 0 ? 0 : maxScore / 2;
     let segIdx = 0;
     let ptB;
     let step = 25;
 
     paPoints.forEach((ptA, idx) => {
-      if (idx == 0 || idx >= paPoints.length - 8) {
+      if (idx == 0 || idx >= paPoints.length - endPadding) {
         return;
       }
       ptB = pbPoints[idx];
@@ -184,8 +194,10 @@ function createGeometry() {
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
   createGeometry();
-  shapes.forEach((shape) => drawShape(ctx, shape));
-  //paths.forEach((path) => drawPath(ctx, path));
+  //shapes.forEach((shape) => drawShape(ctx, shape));
+  paths.forEach((path, idx) => {
+    drawPath(ctx, path);
+  });
 };
 
 document.onkeydown = function (e) {
@@ -211,7 +223,7 @@ document.onkeydown = function (e) {
 async function main() {
   await ClipperHelpers.init();
   const now = new Date().getTime();
-  const drawFrame = () => {
+  const drawFrame = (t) => {
     draw(ctx);
     iter += step;
     if (animate) {
