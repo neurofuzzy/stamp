@@ -73,7 +73,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     })
     .circle({ 
       radius: 10,
-      offsetY: "20 - RHEIGHT / 2",
+      offsetY: "RHEIGHT / 2 - 20",
     });
 
   const grid = new Stamp(new Ray(w / 2, h / 2, 0))
