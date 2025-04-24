@@ -1,95 +1,206 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Examples Index</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; background: #f9f9f9; }
-    h1 { color: #333; }
-    ul { list-style: none; padding: 0; }
-    li { margin: 0.5em 0; }
-    a { text-decoration: none; color: #1a73e8; }
-    a:hover { text-decoration: underline; }
-    .src-link { color: #888; margin-left: 1em; font-size: 0.95em; }
+    :root {
+      --bg-main: #181c21;
+      --bg-sidebar: #23272e;
+      --border: #2d3138;
+      --text-main: #f3f6fa;
+      --text-secondary: #a4a9b5;
+      --accent: #4f9cf7;
+      --hover: #232c3a;
+      --button-bg: transparent;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      width: 320px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      padding: 0 0.5em;
+      overflow-y: auto;
+    }
+    .sidebar h1 {
+      font-size: 1.3em;
+      color: var(--accent);
+      margin: 1em 0 0.5em 0.5em;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .sidebar li {
+      margin: 0.25em 0;
+      padding: 0.25em 0.5em;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background 0.13s;
+    }
+    .sidebar li:hover, .sidebar li.selected {
+      background: var(--hover);
+    }
+    .sidebar .src-link {
+      color: var(--text-secondary);
+      margin-left: 0.5em;
+      font-size: 0.95em;
+      text-decoration: none;
+    }
+    .sidebar .src-link:hover {
+      text-decoration: underline;
+      color: var(--accent);
+    }
+    .main {
+      flex: 1;
+      background: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .main iframe {
+      border: none;
+      width: 100%;
+      flex: 1;
+      background: #111;
+    }
+    .example-label {
+      flex: 1;
+      color: var(--accent);
+      text-decoration: underline;
+      cursor: pointer;
+      background: var(--button-bg);
+      border: none;
+      font-size: 1em;
+      text-align: left;
+      padding: 0;
+      outline: none;
+      transition: color 0.13s;
+    }
+    .example-label:focus {
+      color: #fff;
+    }
+    @media (max-width: 700px) {
+      .container { flex-direction: column; }
+      .sidebar { width: 100vw; border-right: none; border-bottom: 1px solid var(--border); }
+      .main { height: 60vh; }
+    }
   </style>
 </head>
 <body>
-  <h1>Examples Index</h1>
-  <ul>
-    <li><a href="01_city.html">01_city.html</a><a class="src-link" href="01_city.ts">[ts]</a></li>
-    <li><a href="02_patchwork.html">02_patchwork.html</a><a class="src-link" href="02_patchwork.ts">[ts]</a></li>
-    <li><a href="03_colors.html">03_colors.html</a><a class="src-link" href="03_colors.ts">[ts]</a></li>
-    <li><a href="04_hatch.html">04_hatch.html</a><a class="src-link" href="04_hatch.ts">[ts]</a></li>
-    <li><a href="05_sticks.html">05_sticks.html</a><a class="src-link" href="05_sticks.ts">[ts]</a></li>
-    <li><a href="06_tree.html">06_tree.html</a><a class="src-link" href="06_tree.ts">[ts]</a></li>
-    <li><a href="07_binarytree.html">07_binarytree.html</a><a class="src-link" href="07_binarytree.ts">[ts]</a></li>
-    <li><a href="08_simpletree.html">08_simpletree.html</a><a class="src-link" href="08_simpletree.ts">[ts]</a></li>
-    <li><a href="09_fractal.html">09_fractal.html</a><a class="src-link" href="09_fractal.ts">[ts]</a></li>
-    <li><a href="10_diamond.html">10_diamond.html</a><a class="src-link" href="10_diamond.ts">[ts]</a></li>
-    <li><a href="11_lattice.html">11_lattice.html</a><a class="src-link" href="11_lattice.ts">[ts]</a></li>
-    <li><a href="12_gridlayout.html">12_gridlayout.html</a><a class="src-link" href="12_gridlayout.ts">[ts]</a></li>
-    <li><a href="14_quad01.html">14_quad01.html</a><a class="src-link" href="14_quad01.ts">[ts]</a></li>
-    <li><a href="15_quad02.html">15_quad02.html</a><a class="src-link" href="15_quad02.ts">[ts]</a></li>
-    <li><a href="16_quad03.html">16_quad03.html</a><a class="src-link" href="16_quad03.ts">[ts]</a></li>
-    <li><a href="17_quad04.html">17_quad04.html</a><a class="src-link" href="17_quad04.ts">[ts]</a></li>
-    <li><a href="18_nine01.html">18_nine01.html</a><a class="src-link" href="18_nine01.ts">[ts]</a></li>
-    <li><a href="19_quad05.html">19_quad05.html</a><a class="src-link" href="19_quad05.ts">[ts]</a></li>
-    <li><a href="20_single01.html">20_single01.html</a><a class="src-link" href="20_single01.ts">[ts]</a></li>
-    <li><a href="21_hex01.html">21_hex01.html</a><a class="src-link" href="21_hex01.ts">[ts]</a></li>
-    <li><a href="22_hex02.html">22_hex02.html</a><a class="src-link" href="22_hex02.ts">[ts]</a></li>
-    <li><a href="23_hex03.html">23_hex03.html</a><a class="src-link" href="23_hex03.ts">[ts]</a></li>
-    <li><a href="24_quad06.html">24_quad06.html</a><a class="src-link" href="24_quad06.ts">[ts]</a></li>
-    <li><a href="25_quad07.html">25_quad07.html</a><a class="src-link" href="25_quad07.ts">[ts]</a></li>
-    <li><a href="26_sixbysix01.html">26_sixbysix01.html</a><a class="src-link" href="26_sixbysix01.ts">[ts]</a></li>
-    <li><a href="27_shapeprovider01.html">27_shapeprovider01.html</a><a class="src-link" href="27_shapeprovider01.ts">[ts]</a></li>
-    <li><a href="28_penline01.html">28_penline01.html</a><a class="src-link" href="28_penline01.ts">[ts]</a></li>
-    <li><a href="29_linkedgrid01.html">29_linkedgrid01.html</a><a class="src-link" href="29_linkedgrid01.ts">[ts]</a></li>
-    <li><a href="30_linkedgrid02.html">30_linkedgrid02.html</a><a class="src-link" href="30_linkedgrid02.ts">[ts]</a></li>
-    <li><a href="31-three-hex.html">31-three-hex.html</a><a class="src-link" href="31-three-hex.ts">[ts]</a></li>
-    <li><a href="31_hextrio.html">31_hextrio.html</a><a class="src-link" href="31_hextrio.ts">[ts]</a></li>
-    <li><a href="32-3x8-hex.html">32-3x8-hex.html</a><a class="src-link" href="32-3x8-hex.ts">[ts]</a></li>
-    <li><a href="32_hextrio.html">32_hextrio.html</a><a class="src-link" href="32_hextrio.ts">[ts]</a></li>
-    <li><a href="33-3x4-penta.html">33-3x4-penta.html</a><a class="src-link" href="33-3x4-penta.ts">[ts]</a></li>
-    <li><a href="34-3x4-penta.html">34-3x4-penta.html</a><a class="src-link" href="34-3x4-penta.ts">[ts]</a></li>
-    <li><a href="35-bouquet.html">35-bouquet.html</a><a class="src-link" href="35-bouquet.ts">[ts]</a></li>
-    <li><a href="36-phyllotaxis.html">36-phyllotaxis.html</a><a class="src-link" href="36-phyllotaxis.ts">[ts]</a></li>
-    <li><a href="37-phyllotaxis.html">37-phyllotaxis.html</a><a class="src-link" href="37-phyllotaxis.ts">[ts]</a></li>
-    <li><a href="38-hearts.html">38-hearts.html</a><a class="src-link" href="38-hearts.ts">[ts]</a></li>
-    <li><a href="39-phyllotaxis.html">39-phyllotaxis.html</a><a class="src-link" href="39-phyllotaxis.ts">[ts]</a></li>
-    <li><a href="40-phyllotaxis.html">40-phyllotaxis.html</a><a class="src-link" href="40-phyllotaxis.ts">[ts]</a></li>
-    <li><a href="41-boom.html">41-boom.html</a><a class="src-link" href="41-boom.ts">[ts]</a></li>
-    <li><a href="42-hatches.html">42-hatches.html</a><a class="src-link" href="42-hatches.ts">[ts]</a></li>
-    <li><a href="43-hatches.html">43-hatches.html</a><a class="src-link" href="43-hatches.ts">[ts]</a></li>
-    <li><a href="44-linkedgrid-hatches.html">44-linkedgrid-hatches.html</a><a class="src-link" href="44-linkedgrid-hatches.ts">[ts]</a></li>
-    <li><a href="45-lanterns.html">45-lanterns.html</a><a class="src-link" href="45-lanterns.ts">[ts]</a></li>
-    <li><a href="46-maze.html">46-maze.html</a><a class="src-link" href="46-maze.ts">[ts]</a></li>
-    <li><a href="47-hatches-print.html">47-hatches-print.html</a><a class="src-link" href="47-hatches-print.ts">[ts]</a></li>
-    <li><a href="48-2x3-penta.html">48-2x3-penta.html</a><a class="src-link" href="48-2x3-penta.ts">[ts]</a></li>
-    <li><a href="49-3x5-penta.html">49-3x5-penta.html</a><a class="src-link" href="49-3x5-penta.ts">[ts]</a></li>
-    <li><a href="50-4x2-penta.html">50-4x2-penta.html</a><a class="src-link" href="50-4x2-penta.ts">[ts]</a></li>
-    <li><a href="51-4x2-penta.html">51-4x2-penta.html</a><a class="src-link" href="51-4x2-penta.ts">[ts]</a></li>
-    <li><a href="52-spiro01.html">52-spiro01.html</a><a class="src-link" href="52-spiro01.ts">[ts]</a></li>
-    <li><a href="53-spiro02.html">53-spiro02.html</a><a class="src-link" href="53-spiro02.ts">[ts]</a></li>
-    <li><a href="54-crochet01.html">54-crochet01.html</a><a class="src-link" href="54-crochet01.ts">[ts]</a></li>
-    <li><a href="55-crochet02.html">55-crochet02.html</a><a class="src-link" href="55-crochet02.ts">[ts]</a></li>
-    <li><a href="56-crochet03.html">56-crochet03.html</a><a class="src-link" href="56-crochet03.ts">[ts]</a></li>
-    <li><a href="57-splat01.html">57-splat01.html</a><a class="src-link" href="57-splat01.ts">[ts]</a></li>
-    <li><a href="58-crochet-lantern-01.html">58-crochet-lantern-01.html</a><a class="src-link" href="58-crochet-lantern-01.ts">[ts]</a></li>
-    <li><a href="59-crochet-lantern-top-01.html">59-crochet-lantern-top-01.html</a><a class="src-link" href="59-crochet-lantern-top-01.ts">[ts]</a></li>
-    <li><a href="60-citygrid.html">60-citygrid.html</a><a class="src-link" href="60-citygrid.ts">[ts]</a></li>
-    <li><a href="61-snowflakes.html">61-snowflakes.html</a><a class="src-link" href="61-snowflakes.ts">[ts]</a></li>
-    <li><a href="62-flowers.html">62-flowers.html</a><a class="src-link" href="62-flowers.ts">[ts]</a></li>
-    <li><a href="63-wavelantern.html">63-wavelantern.html</a><a class="src-link" href="63-wavelantern.ts">[ts]</a></li>
-    <li><a href="64-wavelantern2.html">64-wavelantern2.html</a><a class="src-link" href="64-wavelantern2.ts">[ts]</a></li>
-    <li><a href="65-wavelantern2b.html">65-wavelantern2b.html</a><a class="src-link" href="65-wavelantern2b.ts">[ts]</a></li>
-    <li><a href="66-bubblelantern.html">66-bubblelantern.html</a><a class="src-link" href="66-bubblelantern.ts">[ts]</a></li>
-    <li><a href="67-paperbox01.html">67-paperbox01.html</a><a class="src-link" href="67-paperbox01.ts">[ts]</a></li>
-    <li><a href="68-christmas-card.html">68-christmas-card.html</a><a class="src-link" href="68-christmas-card.ts">[ts]</a></li>
-    <li><a href="69-curls.html">69-curls.html</a><a class="src-link" href="69-curls.ts">[ts]</a></li>
-    <li><a href="70-bubblelantern2.html">70-bubblelantern2.html</a><a class="src-link" href="70-bubblelantern2.ts">[ts]</a></li>
-    <li><a href="71-hatches-5x5.html">71-hatches-5x5.html</a><a class="src-link" href="71-hatches-5x5.ts">[ts]</a></li>
-    <!-- Add more as needed, or script this for updates -->
-  </ul>
-  <p style="margin-top:2em;color:#888;font-size:0.95em;">This index lists all example HTML files with links to their TypeScript sources.</p>
+  <div class="container">
+    <nav class="sidebar">
+      <h1>Examples</h1>
+      <ul id="example-list">
+        <li><button class="example-label" onclick="loadExample('01_city.html', this)" tabindex="0">01_city.html</button><a class="src-link" href="01_city.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('02_patchwork.html', this)">02_patchwork.html</button><a class="src-link" href="02_patchwork.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('03_colors.html', this)">03_colors.html</button><a class="src-link" href="03_colors.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('04_hatch.html', this)">04_hatch.html</button><a class="src-link" href="04_hatch.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('05_sticks.html', this)">05_sticks.html</button><a class="src-link" href="05_sticks.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('06_tree.html', this)">06_tree.html</button><a class="src-link" href="06_tree.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('07_binarytree.html', this)">07_binarytree.html</button><a class="src-link" href="07_binarytree.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('08_simpletree.html', this)">08_simpletree.html</button><a class="src-link" href="08_simpletree.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('09_fractal.html', this)">09_fractal.html</button><a class="src-link" href="09_fractal.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('10_diamond.html', this)">10_diamond.html</button><a class="src-link" href="10_diamond.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('11_lattice.html', this)">11_lattice.html</button><a class="src-link" href="11_lattice.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('12_gridlayout.html', this)">12_gridlayout.html</button><a class="src-link" href="12_gridlayout.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('14_quad01.html', this)">14_quad01.html</button><a class="src-link" href="14_quad01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('15_quad02.html', this)">15_quad02.html</button><a class="src-link" href="15_quad02.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('16_quad03.html', this)">16_quad03.html</button><a class="src-link" href="16_quad03.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('17_quad04.html', this)">17_quad04.html</button><a class="src-link" href="17_quad04.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('18_nine01.html', this)">18_nine01.html</button><a class="src-link" href="18_nine01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('19_quad05.html', this)">19_quad05.html</button><a class="src-link" href="19_quad05.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('20_single01.html', this)">20_single01.html</button><a class="src-link" href="20_single01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('21_hex01.html', this)">21_hex01.html</button><a class="src-link" href="21_hex01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('22_hex02.html', this)">22_hex02.html</button><a class="src-link" href="22_hex02.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('23_hex03.html', this)">23_hex03.html</button><a class="src-link" href="23_hex03.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('24_quad06.html', this)">24_quad06.html</button><a class="src-link" href="24_quad06.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('25_quad07.html', this)">25_quad07.html</button><a class="src-link" href="25_quad07.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('26_sixbysix01.html', this)">26_sixbysix01.html</button><a class="src-link" href="26_sixbysix01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('27_shapeprovider01.html', this)">27_shapeprovider01.html</button><a class="src-link" href="27_shapeprovider01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('28_penline01.html', this)">28_penline01.html</button><a class="src-link" href="28_penline01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('29_linkedgrid01.html', this)">29_linkedgrid01.html</button><a class="src-link" href="29_linkedgrid01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('30_linkedgrid02.html', this)">30_linkedgrid02.html</button><a class="src-link" href="30_linkedgrid02.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('31-three-hex.html', this)">31-three-hex.html</button><a class="src-link" href="31-three-hex.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('31_hextrio.html', this)">31_hextrio.html</button><a class="src-link" href="31_hextrio.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('32-3x8-hex.html', this)">32-3x8-hex.html</button><a class="src-link" href="32-3x8-hex.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('32_hextrio.html', this)">32_hextrio.html</button><a class="src-link" href="32_hextrio.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('33-3x4-penta.html', this)">33-3x4-penta.html</button><a class="src-link" href="33-3x4-penta.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('34-3x4-penta.html', this)">34-3x4-penta.html</button><a class="src-link" href="34-3x4-penta.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('35-bouquet.html', this)">35-bouquet.html</button><a class="src-link" href="35-bouquet.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('36-phyllotaxis.html', this)">36-phyllotaxis.html</button><a class="src-link" href="36-phyllotaxis.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('37-phyllotaxis.html', this)">37-phyllotaxis.html</button><a class="src-link" href="37-phyllotaxis.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('38-hearts.html', this)">38-hearts.html</button><a class="src-link" href="38-hearts.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('39-phyllotaxis.html', this)">39-phyllotaxis.html</button><a class="src-link" href="39-phyllotaxis.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('40-phyllotaxis.html', this)">40-phyllotaxis.html</button><a class="src-link" href="40-phyllotaxis.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('41-boom.html', this)">41-boom.html</button><a class="src-link" href="41-boom.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('42-hatches.html', this)">42-hatches.html</button><a class="src-link" href="42-hatches.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('43-hatches.html', this)">43-hatches.html</button><a class="src-link" href="43-hatches.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('44-linkedgrid-hatches.html', this)">44-linkedgrid-hatches.html</button><a class="src-link" href="44-linkedgrid-hatches.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('45-lanterns.html', this)">45-lanterns.html</button><a class="src-link" href="45-lanterns.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('46-maze.html', this)">46-maze.html</button><a class="src-link" href="46-maze.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('47-hatches-print.html', this)">47-hatches-print.html</button><a class="src-link" href="47-hatches-print.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('48-2x3-penta.html', this)">48-2x3-penta.html</button><a class="src-link" href="48-2x3-penta.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('49-3x5-penta.html', this)">49-3x5-penta.html</button><a class="src-link" href="49-3x5-penta.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('50-4x2-penta.html', this)">50-4x2-penta.html</button><a class="src-link" href="50-4x2-penta.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('51-4x2-penta.html', this)">51-4x2-penta.html</button><a class="src-link" href="51-4x2-penta.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('52-spiro01.html', this)">52-spiro01.html</button><a class="src-link" href="52-spiro01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('53-spiro02.html', this)">53-spiro02.html</button><a class="src-link" href="53-spiro02.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('54-crochet01.html', this)">54-crochet01.html</button><a class="src-link" href="54-crochet01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('55-crochet02.html', this)">55-crochet02.html</button><a class="src-link" href="55-crochet02.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('56-crochet03.html', this)">56-crochet03.html</button><a class="src-link" href="56-crochet03.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('57-splat01.html', this)">57-splat01.html</button><a class="src-link" href="57-splat01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('58-crochet-lantern-01.html', this)">58-crochet-lantern-01.html</button><a class="src-link" href="58-crochet-lantern-01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('59-crochet-lantern-top-01.html', this)">59-crochet-lantern-top-01.html</button><a class="src-link" href="59-crochet-lantern-top-01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('60-citygrid.html', this)">60-citygrid.html</button><a class="src-link" href="60-citygrid.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('61-snowflakes.html', this)">61-snowflakes.html</button><a class="src-link" href="61-snowflakes.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('62-flowers.html', this)">62-flowers.html</button><a class="src-link" href="62-flowers.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('63-wavelantern.html', this)">63-wavelantern.html</button><a class="src-link" href="63-wavelantern.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('64-wavelantern2.html', this)">64-wavelantern2.html</button><a class="src-link" href="64-wavelantern2.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('65-wavelantern2b.html', this)">65-wavelantern2b.html</button><a class="src-link" href="65-wavelantern2b.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('66-bubblelantern.html', this)">66-bubblelantern.html</button><a class="src-link" href="66-bubblelantern.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('67-paperbox01.html', this)">67-paperbox01.html</button><a class="src-link" href="67-paperbox01.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('68-christmas-card.html', this)">68-christmas-card.html</button><a class="src-link" href="68-christmas-card.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('69-curls.html', this)">69-curls.html</button><a class="src-link" href="69-curls.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('70-bubblelantern2.html', this)">70-bubblelantern2.html</button><a class="src-link" href="70-bubblelantern2.ts" target="_blank">[ts]</a></li>
+        <li><button class="example-label" onclick="loadExample('71-hatches-5x5.html', this)">71-hatches-5x5.html</button><a class="src-link" href="71-hatches-5x5.ts" target="_blank">[ts]</a></li>
+      </ul>
+    </nav>
+    <main class="main">
+      <iframe id="example-frame" title="Example Preview" src="about:blank"></iframe>
+    </main>
+  </div>
+  <script>
+    // Highlight selected item and load example
+    function loadExample(filename, btn) {
+      document.getElementById('example-frame').src = filename;
+      // Highlight selected
+      const lis = document.querySelectorAll('.sidebar li');
+      lis.forEach(li => li.classList.remove('selected'));
+      if (btn && btn.parentElement) btn.parentElement.classList.add('selected');
+    }
+    // Auto-select the first example on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const firstBtn = document.querySelector('.sidebar li .example-label');
+      if (firstBtn) firstBtn.click();
+    });
+  </script>
 </body>
 </html>
