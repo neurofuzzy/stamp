@@ -703,7 +703,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -741,7 +741,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -820,7 +820,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -858,7 +858,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    //this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -897,7 +897,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    //this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -938,7 +938,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -978,7 +978,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -1020,7 +1020,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    //this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -1054,7 +1054,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -1088,7 +1088,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
@@ -1122,7 +1122,7 @@ export class Stamp extends AbstractShape {
         shapes.push(s);
       }
     }
-    this._align(shapes, $(params.align));
+    // TODO: this._align(shapes, $(params.align));
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
