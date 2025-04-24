@@ -1,11 +1,11 @@
 import * as C2S from "canvas2svg";
-import { drawPath, drawShape } from "../src/lib/draw";
+import { drawPath } from "../src/lib/draw";
 import { IShape, ParametricPath, Path, Point, Ray } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
-import { AbstractShape, Circle, Polygon } from "./geom/shapes";
+import { AbstractShape, Circle, Polygon } from "../src/geom/shapes";
 
 const backgroundColor = "black";
 

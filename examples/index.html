@@ -195,11 +195,33 @@
       const lis = document.querySelectorAll('.sidebar li');
       lis.forEach(li => li.classList.remove('selected'));
       if (btn && btn.parentElement) btn.parentElement.classList.add('selected');
+      // Focus the button for accessibility
+      if (btn) btn.focus();
     }
     // Auto-select the first example on page load
     window.addEventListener('DOMContentLoaded', () => {
       const firstBtn = document.querySelector('.sidebar li .example-label');
       if (firstBtn) firstBtn.click();
+    });
+
+    // Keyboard navigation for example list
+    document.addEventListener('keydown', function(e) {
+      const sidebar = document.querySelector('.sidebar');
+      if (!sidebar.contains(document.activeElement)) return;
+      const buttons = Array.from(document.querySelectorAll('.sidebar .example-label'));
+      const active = document.activeElement;
+      let idx = buttons.indexOf(active);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (idx < buttons.length - 1) {
+          buttons[idx + 1].click();
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (idx > 0) {
+          buttons[idx - 1].click();
+        }
+      }
     });
   </script>
 </body>
