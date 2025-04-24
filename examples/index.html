@@ -5,68 +5,90 @@
   <title>Examples Index</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-main: #181c21;
-      --bg-sidebar: #23272e;
-      --border: #2d3138;
+      --bg-sidebar: #20232a;
+      --border: #232c3a;
       --text-main: #f3f6fa;
       --text-secondary: #a4a9b5;
       --accent: #4f9cf7;
       --hover: #232c3a;
       --button-bg: transparent;
+      --shadow: 0 2px 24px 0 #000a, 0 1.5px 4px 0 #0002;
+      --radius: 12px;
+      --sidebar-width: 340px;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', Arial, sans-serif;
       background: var(--bg-main);
       color: var(--text-main);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
     .container {
       display: flex;
       height: 100vh;
+      box-sizing: border-box;
     }
     .sidebar {
-      width: 320px;
+      width: var(--sidebar-width);
       background: var(--bg-sidebar);
       border-right: 1px solid var(--border);
-      padding: 0 0.5em;
+      box-shadow: var(--shadow);
+      padding: 0 0.5em 1em 0.5em;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
     }
     .sidebar h1 {
-      font-size: 1.3em;
+      font-size: 1.45em;
       color: var(--accent);
-      margin: 1em 0 0.5em 0.5em;
+      font-weight: 600;
+      margin: 1.2em 0 0.7em 0.7em;
+      letter-spacing: 0.01em;
     }
     .sidebar ul {
       list-style: none;
-      padding: 0;
+      padding: 0 0 1em 0;
       margin: 0;
+      flex: 1;
     }
     .sidebar li {
-      margin: 0.25em 0;
-      padding: 0.25em 0.5em;
-      border-radius: 4px;
+      margin: 0.18em 0;
+      padding: 0.18em 0.5em;
+      border-radius: var(--radius);
       cursor: pointer;
       display: flex;
       align-items: center;
-      transition: background 0.13s;
+      transition: background 0.13s, box-shadow 0.13s;
+      box-shadow: none;
+      position: relative;
     }
-    .sidebar li:hover, .sidebar li.selected {
+    .sidebar li.selected, .sidebar li:hover {
       background: var(--hover);
+      box-shadow: 0 1px 4px 0 #0005;
     }
     .sidebar .src-link {
       color: var(--text-secondary);
       margin-left: 0.5em;
-      font-size: 0.95em;
+      font-size: 0.97em;
       text-decoration: none;
+      opacity: 0.8;
+      transition: color 0.13s, opacity 0.13s;
     }
     .sidebar .src-link:hover {
       text-decoration: underline;
       color: var(--accent);
+      opacity: 1;
     }
     .main {
       flex: 1;
@@ -74,12 +96,19 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      box-sizing: border-box;
+      overflow: hidden;
+      position: relative;
     }
     .main iframe {
       border: none;
       width: 100%;
       flex: 1;
-      background: #111;
+      background: transparent;
+      border-radius: 0;
+      margin: 0;
+      box-shadow: none;
+      min-height: 0;
     }
     .example-label {
       flex: 1;
@@ -88,19 +117,36 @@
       cursor: pointer;
       background: var(--button-bg);
       border: none;
-      font-size: 1em;
+      font-size: 1.04em;
       text-align: left;
-      padding: 0;
+      padding: 0.14em 0 0.14em 0;
       outline: none;
+      font-family: inherit;
+      letter-spacing: 0.01em;
       transition: color 0.13s;
+      border-radius: var(--radius);
     }
     .example-label:focus {
       color: #fff;
+      background: #262c37;
     }
-    @media (max-width: 700px) {
+    .sidebar::-webkit-scrollbar {
+      width: 10px;
+      background: #1a1d22;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #232c3a;
+      border-radius: 5px;
+    }
+    @media (max-width: 900px) {
       .container { flex-direction: column; }
-      .sidebar { width: 100vw; border-right: none; border-bottom: 1px solid var(--border); }
+      .sidebar { width: 100vw; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; }
       .main { height: 60vh; }
+      .main iframe { margin: 1em 0.5em; }
+    }
+    @media (max-width: 600px) {
+      .sidebar { padding-left: 0.3em; }
+      .main iframe { margin: 0.5em 0.2em; }
     }
   </style>
 </head>
