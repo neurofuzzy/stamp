@@ -197,11 +197,24 @@
       if (btn && btn.parentElement) btn.parentElement.classList.add('selected');
       // Focus the button for accessibility
       if (btn) btn.focus();
+      // Store selection in localStorage
+      try {
+        localStorage.setItem('lastExample', filename);
+      } catch (e) {}
     }
-    // Auto-select the first example on page load
+    // Auto-select the last example or the first example on page load
     window.addEventListener('DOMContentLoaded', () => {
-      const firstBtn = document.querySelector('.sidebar li .example-label');
-      if (firstBtn) firstBtn.click();
+      let last = null;
+      try {
+        last = localStorage.getItem('lastExample');
+      } catch (e) {}
+      const buttons = Array.from(document.querySelectorAll('.sidebar li .example-label'));
+      let btnToSelect = null;
+      if (last) {
+        btnToSelect = buttons.find(btn => btn.textContent === last);
+      }
+      if (!btnToSelect && buttons.length > 0) btnToSelect = buttons[0];
+      if (btnToSelect) btnToSelect.click();
     });
 
     // Keyboard navigation for example list
