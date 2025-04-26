@@ -35,40 +35,167 @@ monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
 
 // Add custom library definitions
 const libSource = `
+  interface IShapeParams {
+    angle?: number | string;
+    divisions?: number | string;
+    align?: number | string;
+    numX?: number | string;
+    numY?: number | string;
+    spacingX?: number | string;
+    spacingY?: number | string;
+    outlineThickness?: number | string;
+    scale?: number | string;
+    offsetX?: number | string;
+    offsetY?: number | string;
+    skip?: number | string;
+    style?: IStyle;
+    tag?: string;
+  }
+
+  interface ICircleParams extends IShapeParams {
+    radius: number | string;
+    innerRadius?: number | string;
+  }
+
+  interface IArchParams extends IShapeParams {
+    width: number | string;
+    sweepAngle?: number | string;
+  }
+
+  interface IEllipseParams extends IShapeParams {
+    radiusX: number | string;
+    radiusY: number | string;
+  }
+
+  interface ILeafShapeParams extends IShapeParams {
+    radius: number | string;
+    splitAngle: number | string;
+    splitAngle2?: number | string;
+    serration?: number | string;
+  }
+
+  interface IRectangleParams extends IShapeParams {
+    width: number | string;
+    height: number | string;
+  }
+
+  interface IRoundedRectangleParams extends IShapeParams {
+    width: number | string;
+    height: number | string;
+    cornerRadius: number | string;
+  }
+
+  interface IPolygonParams extends IShapeParams {
+    rays: Ray[];
+    rayStrings?: string[];
+  }
+
+  interface IStampParams extends IShapeParams {
+    subStamp: Stamp | any;
+    subStampString?: string;
+    providerIndex?: number;
+  }
+
+  interface ITangramParams extends IShapeParams {
+    width: number | string;
+    height: number | string;
+    type: number | string;
+  }
+
+  interface ITrapezoidParams extends IShapeParams {
+    width: number | string;
+    height: number | string;
+    taper: number | string;
+  }
+
+  interface IBoneParams extends IShapeParams {
+    length: number | string;
+    bottomRadius: number | string;
+    topRadius: number | string;
+  }
+
+  interface IStyle {
+    fillColor?: string;
+    strokeColor?: string;
+    strokeThickness?: number;
+    hatchPattern?: number;
+    hatchAngle?: number;
+    hatchScale?: number;
+  }
+
   declare class Stamp {
     constructor(center?: Ray, alignment?: number, reverse?: boolean);
-    rectangle(params: any): Stamp;
-    circle(params: any): Stamp;
-    ellipse(params: any): Stamp;
-    polygon(params: any): Stamp;
-    arch(params: any): Stamp;
-    leafShape(params: any): Stamp;
-    trapezoid(params: any): Stamp;
-    roundedRectangle(params: any): Stamp;
-    stamp(params: any): Stamp;
-    tangram(params: any): Stamp;
-    roundedTangram(params: any): Stamp;
-    bone(params: any): Stamp;
+    
+    // Shape methods
+    rectangle(params: IRectangleParams): Stamp;
+    circle(params: ICircleParams): Stamp;
+    ellipse(params: IEllipseParams): Stamp;
+    polygon(params: IPolygonParams): Stamp;
+    arch(params: IArchParams): Stamp;
+    leafShape(params: ILeafShapeParams): Stamp;
+    trapezoid(params: ITrapezoidParams): Stamp;
+    roundedRectangle(params: IRoundedRectangleParams): Stamp;
+    stamp(params: IStampParams): Stamp;
+    tangram(params: ITangramParams): Stamp;
+    roundedTangram(params: ITangramParams): Stamp;
+    bone(params: IBoneParams): Stamp;
+    
+    // Positioning methods
     moveTo(x: number | string, y: number | string): Stamp;
     move(x: number | string, y: number | string): Stamp;
     rotateTo(angle: number | string): Stamp;
     rotate(angle: number | string): Stamp;
+    forward(distance: number): Stamp;
+    
+    // Boolean operations
     add(): Stamp;
     subtract(): Stamp;
     intersect(): Stamp;
     boolean(type: number | string): Stamp;
     breakApart(): Stamp;
+    
+    // Other methods
     children(): any[];
     boundingBox(): any;
     boundingCircle(): any;
     clone(): Stamp;
+    bake(rebake?: boolean): Stamp;
+    
+    // Constants
+    static readonly UNION: number;
+    static readonly SUBTRACT: number;
+    static readonly INTERSECT: number;
+    static readonly NONE: number;
   }
   
   declare class Sequence {
     static fromStatement(stmt: string, seed?: number, binaryLength?: number): Sequence | null;
     static resetAll(seed?: number, skipSequeces?: (Sequence | null | undefined)[]): void;
+    static reset(alias: string): void;
+    static updateSeed(alias: string, seed: number): void;
+    static updateSeedAll(seed: number): void;
+    
+    // Sequence types
+    static readonly ONCE: string;
+    static readonly REVERSE: string;
+    static readonly REPEAT: string;
+    static readonly YOYO: string;
+    static readonly SHUFFLE: string;
+    static readonly RANDOM: string;
+    static readonly BINARY: string;
+    
+    // Accumulation types
+    static readonly REPLACE: string;
+    static readonly ADD: string;
+    static readonly SUBTRACT: string;
+    static readonly MULTIPLY: string;
+    static readonly DIVIDE: string;
+    
+    // Instance methods
     current(forceRefNext?: boolean): number;
     next(): number;
+    reset(): void;
+    updateSeed(seed: number): void;
   }
   
   declare class Ray {
