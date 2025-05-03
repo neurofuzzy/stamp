@@ -1,0 +1,2 @@
+# Requirements for Stamp Python Port
+# Add pyclipper or other geometry libs if needed

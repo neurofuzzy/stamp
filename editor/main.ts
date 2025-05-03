@@ -7,6 +7,13 @@ import { Hatch } from '../src/lib/hatch';
 import { Ray, ShapeAlignment } from "../src/geom/core";
 import * as C2S from 'canvas2svg';
 
+// Add type declaration for Vite's import.meta.glob
+declare global {
+  interface ImportMeta {
+    glob: (pattern: string, options?: { as: string }) => Record<string, () => Promise<string>>;
+  }
+}
+
 // Initialize the Monaco editor
 let editor;
 let currentCode = '';
@@ -247,8 +254,57 @@ editor = monaco.editor.create(document.getElementById('editor'), {
 // Set up keyboard shortcut for running code (Ctrl+Enter)
 editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
 
-// Load example files
-loadExamples();
+// Add Ctrl+S shortcut to run code as well
+editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, (e) => {
+  e.preventDefault(); // Prevent the browser's save dialog
+  runCode();
+});
+
+// Function to load examples
+async function loadExamples() {
+  try {
+    // Use Vite's import.meta.glob to get example files
+    const exampleModules = import.meta.glob('../examples/*.ts', { as: 'raw' });
+    
+    // Sort the file paths
+    const filePaths = Object.keys(exampleModules).sort();
+    
+    // Populate the dropdown
+    const selector = document.getElementById('example-selector') as HTMLSelectElement;
+    if (!selector) return;
+    
+    // Clear existing options except the first one
+    while (selector.options.length > 1) {
+      selector.remove(1);
+    }
+    
+    for (const path of filePaths) {
+      const fileName = path.split('/').pop();
+      if (fileName) {
+        const option = document.createElement('option');
+        option.value = path;
+        option.textContent = fileName.replace('.ts', '');
+        selector.appendChild(option);
+      }
+    }
+    
+    // Add event listener for example selection
+    selector.addEventListener('change', async function(this: HTMLSelectElement) {
+      if (this.value) {
+        try {
+          // Use the module loader function to get the content
+          const code = await exampleModules[this.value]();
+          editor.setValue(convertTsToJs(code));
+          runCode();
+        } catch (error) {
+          console.error('Error loading example:', error);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error loading examples:', error);
+  }
+}
 
 // Function to run the code
 async function runCode() {
@@ -256,6 +312,12 @@ async function runCode() {
     currentCode = editor.getValue();
     
     // Clear the canvas
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('Could not get canvas context');
+      return;
+    }
+    
     ctx.clearRect(0, 0, w, h);
     
     // Reset sequences
@@ -286,7 +348,7 @@ async function runCode() {
 }
 
 // Function to save the canvas as SVG
-document.getElementById('save-button').addEventListener('click', function() {
+document.getElementById('save-button')?.addEventListener('click', function() {
   try {
     // Create a Canvas2SVG context
     const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
@@ -321,6 +383,47 @@ document.getElementById('save-button').addEventListener('click', function() {
     console.error('Error saving SVG:', error);
   }
 });
+
+// Function to convert TypeScript code to JavaScript
+function convertTsToJs(tsCode: string): string {
+  try {
+    // Extract the draw function
+    const drawFunctionMatch = tsCode.match(/const\s+draw\s*=\s*\(\s*ctx\s*:.*?\)\s*=>\s*{[\s\S]*?}/);
+    let drawFunction = '';
+    
+    if (drawFunctionMatch) {
+      drawFunction = drawFunctionMatch[0]
+        // Remove TypeScript type annotations
+        .replace(/:\s*\w+RenderingContext2D/g, '')
+        .replace(/:\s*\w+/g, '')
+        .replace(/\(\s*ctx\s*:.*?\)/g, '(ctx)');
+    } else {
+      console.error('Could not find draw function in example');
+      return getDefaultCode();
+    }
+    
+    // Extract sequence definitions
+    const sequenceMatches = tsCode.match(/Sequence\.fromStatement\(.*?\)/g) || [];
+    const sequences = sequenceMatches.join('\n');
+    
+    // Extract seed definition
+    const seedMatch = tsCode.match(/let\s+seed\s*=\s*\d+/);
+    const seedDefinition = seedMatch ? seedMatch[0] : 'let seed = 10;';
+    
+    // Combine everything
+    return `// Converted from example
+${seedDefinition}
+
+// Sequence definitions
+${sequences}
+
+// Draw function
+${drawFunction}`;
+  } catch (error) {
+    console.error('Error converting TypeScript to JavaScript:', error);
+    return getDefaultCode();
+  }
+}
 
 // Function to get default code
 function getDefaultCode() {
@@ -372,75 +475,8 @@ function draw(ctx) {
 }`;
 }
 
-// Function to load examples
-async function loadExamples() {
-  try {
-    // Get the list of example files using Vite's import.meta.glob
-    const exampleModules = import.meta.glob('/examples/*.ts', { as: 'raw' });
-    
-    // Populate the dropdown
-    const selector = document.getElementById('example-selector');
-    
-    // Sort the file paths
-    const filePaths = Object.keys(exampleModules).sort();
-    
-    for (const path of filePaths) {
-      const fileName = path.split('/').pop();
-      if (fileName) {
-        const option = document.createElement('option');
-        option.value = path;
-        option.textContent = fileName.replace('.ts', '');
-        selector.appendChild(option);
-      }
-    }
-    
-    // Add event listener for example selection
-    selector.addEventListener('change', async function() {
-      if (this.value) {
-        try {
-          const code = await exampleModules[this.value]();
-          editor.setValue(convertTsToJs(code));
-          runCode();
-        } catch (error) {
-          console.error('Error loading example:', error);
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error loading examples:', error);
-  }
-}
-
-// Function to convert TypeScript code to JavaScript
-function convertTsToJs(tsCode) {
-  // Simple conversion - remove imports and convert to our format
-  let jsCode = tsCode
-    .replace(/import.*?;/g, '') // Remove import statements
-    .replace(/export default/g, '') // Remove export statements
-    .replace(/const canvas.*?ctx\.scale.*?\n/gs, '') // Remove canvas setup
-    .replace(/document\.onkeydown.*?};/gs, ''); // Remove SVG export code
-  
-  // Extract the draw function
-  const drawMatch = jsCode.match(/const draw.*?\n}/s);
-  if (drawMatch) {
-    jsCode = drawMatch[0];
-  }
-  
-  // Extract sequence definitions
-  const sequenceMatches = tsCode.match(/Sequence\.fromStatement\(.*?\)/g) || [];
-  const sequences = sequenceMatches.join('\n');
-  
-  // Combine everything
-  return `// Extracted from example
-let seed = 10;
-
-${sequences}
-
-${jsCode}`;
-}
-
 // Run button event listener
-document.getElementById('run-button').addEventListener('click', runCode);
+document.getElementById('run-button')?.addEventListener('click', runCode);
 
 // Initialize the playground
 window.onload = async function() {
@@ -448,6 +484,7 @@ window.onload = async function() {
     await ClipperHelpers.init();
     // Run the default code when the page loads
     setTimeout(runCode, 1000); // Give Monaco editor time to initialize
+    await loadExamples();
   } catch (error) {
     console.error('Error initializing playground:', error);
   }

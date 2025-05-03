@@ -1,0 +1,16 @@
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>Stamp Generative Art</name>
+  <id>stamp.generative.art</id>
+  <param name="circle-radius" type="float" min="1" max="1000" _gui-text="Circle Radius">50</param>
+  <param name="circle-x" type="float" min="0" max="10000" _gui-text="Circle X">100</param>
+  <param name="circle-y" type="float" min="0" max="10000" _gui-text="Circle Y">100</param>
+  <effect>
+    <object-type>all</object-type>
+    <effects-menu>
+     
+    </effects-menu>
+  </effect>
+  <script>
+    <command location="." interpreter="python3">stamp_extension.py</command>
+  </script>
+</inkscape-extension>
