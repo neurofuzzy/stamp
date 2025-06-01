@@ -5,12 +5,12 @@
 This document outlines a general progress-tracking strategy suitable for projects involving AI agents, particularly in software development or complex task execution. The primary objective is to enable effective collaboration, allow agents to seamlessly pick up work, and provide a clear view of progress. This system relies on subdividing work into discrete units and managing them through a defined lifecycle.
 
 This strategy directly complements:
-*   `[Your_Project_Development_Plan.md]`: Provides the high-level tasks and phases for your specific project.
-*   `[Your_Project_Milestones_And_Deliverables.md]`: Defines key integration checkpoints or deliverables.
+*   `[Development_Plan.md]`: Provides the high-level tasks and phases for your specific project.
+*   `[Milestones_And_Deliverables.md]`: Defines key integration checkpoints or deliverables.
 
 ## 2. Core Principle: Task-Based Progress
 
-All development work will be broken down into **Tasks**. These tasks are typically derived from your project's main development plan (e.g., `[Your_Project_Development_Plan.md]`). Each major actionable item in the development plan can be considered an initial candidate for a trackable Task here.
+All development work will be broken down into **Tasks**. These tasks are typically derived from your project's main development plan (e.g., `[Development_Plan.md]`). Each major actionable item in the development plan can be considered an initial candidate for a trackable Task here.
 
 ## 3. Task Granularity and Definition
 
@@ -31,7 +31,7 @@ Tasks should be granular enough for an AI agent (or human team member) to:
 
 ## 4. Task Card Format
 
-Each task should be represented by a "Task Card," ideally in a structured format (e.g., entries in a main tracking file like `[YOUR_PROJECT_TASK_BOARD.md]`, or individual files).
+Each task should be represented by a "Task Card," ideally in a structured format (e.g., entries in a main tracking file like `[TASK_BOARD.md]`, or individual files).
 
 A Task Card should contain the following information:
 
@@ -39,7 +39,7 @@ A Task Card should contain the following information:
 ---
 ID: Unique_Task_ID (e.g., P1.T1.S1 from Phase.Task.SubTask.Sequence)
 Description: Clear, concise description of what needs to be done.
-ParentDevPlanTask: Reference ID from `[Your_Project_Development_Plan.md]` (e.g., "Phase 1, Task 1.2")
+ParentDevPlanTask: Reference ID from `[Development_Plan.md]` (e.g., "Phase 1, Task 1.2")
 DependsOn: [List of Task IDs that must be COMPLETE before this can start, if any]
 State: BACKLOG | IN-PROGRESS | TESTING | INTEGRATION | COMPLETE 
 AssignedTo: [Agent ID/Name | TeamMemberName | "None"]
@@ -48,8 +48,8 @@ AcceptanceCriteria:
   - [Criterion 1: e.g., 'User can register successfully.']
   - [Criterion 2: e.g., 'Registered user can log in with correct credentials.']
   - [Criterion 3: e.g., 'Unit tests for XyzService pass.']
-  - [TestRef: Link to relevant test cases in `[Your_Project_Test_Plan.md]`]
-DeliverableRef: [Link to relevant deliverable in `[Your_Project_Milestones_And_Deliverables.md]` if applicable]
+  - [TestRef: Link to relevant test cases in `[Test_Plan.md]`]
+DeliverableRef: [Link to relevant deliverable in `[Milestones_And_Deliverables.md]` if applicable]
 Notes: [Space for agent/team updates, links to code, discovered issues, decisions made]
 LastUpdated: [Timestamp]
 LastUpdatedBy: [Agent ID/Name | TeamMemberName]
@@ -63,7 +63,7 @@ Tasks progress through the following states:
 
 1.  **BACKLOG:**
     *   **Definition:** The task has been identified and defined but not yet started.
-    *   **Entry Criteria:** Created based on `[Your_Project_Development_Plan.md]`. Dependencies noted.
+    *   **Entry Criteria:** Created based on `[Development_Plan.md]`. Dependencies noted.
     *   **Exit Criteria:** Task is selected and moved to `IN-PROGRESS`.
 
 2.  **IN-PROGRESS:**
@@ -107,7 +107,7 @@ Tasks progress through the following states:
 A shared, version-controlled system is essential. Consider:
 
 *   **Master Task List Markdown File:**
-    *   A single `[YOUR_PROJECT_TASK_BOARD.md]` file.
+    *   A single `[TASK_BOARD.md]` file.
     *   Tasks listed sequentially with full Task Card details.
     *   Agents/team members edit this file. Git for versioning.
     *   **Pros:** Good balance of AI-parsability and human readability.
@@ -138,7 +138,7 @@ A shared, version-controlled system is essential. Consider:
 ## 8. Managing Integration Complexity
 
 *   **Dedicated Integration Tasks:** For significant integration efforts, create specific "Integration Tasks".
-*   **Deliverables as Integration Checkpoints:** Use deliverables from `[Your_Project_Milestones_And_Deliverables.md]` as major integration goals.
+*   **Deliverables as Integration Checkpoints:** Use deliverables from `[Milestones_And_Deliverables.md]` as major integration goals.
 *   **Iterative Integration:** Encourage frequent, smaller integrations.
 
 This strategy aims to provide structure and clarity. Regular "board reviews" can help identify bottlenecks or reprioritize.
@@ -147,7 +147,7 @@ This strategy aims to provide structure and clarity. Regular "board reviews" can
 
 To enhance efficiency if AI agents are involved:
 
-1.  **Consult Task Board & Development Plan:** AI consults `[YOUR_PROJECT_TASK_BOARD.md]` and `[Your_Project_Development_Plan.md]`.
+1.  **Consult Task Board & Development Plan:** AI consults `[TASK_BOARD.md]` and `[Development_Plan.md]`.
 2.  **Identify Suitable Tasks:** Look for "Backlog" tasks matching AI's role and current project phase.
 3.  **Check Dependencies:** Verify prerequisite tasks are "Complete".
 4.  **Prioritization:**
