@@ -1,769 +1,319 @@
-# Generative Art IDE: Complete Software Blueprint
+# Generative Art IDE: Visual Programming Blueprint
 
-## Executive Summary
+## Vision
 
-A visual programming environment that transforms the neurofuzzy/stamp library into an intuitive, bidirectional design tool. This IDE provides **complete sequence integration**, **bidirectional selection**, and **direct manipulation** while maintaining 100% feature parity with the underlying stamp library.
+A touch-enabled visual programming environment that transforms the neurofuzzy/stamp library into an intuitive creative tool. This IDE makes generative art accessible through direct manipulation while providing robust keyboard support as a fallback, preserving the mathematical sophistication of the underlying system.
 
-## Core Architecture Principles
+## Core Design Principles
 
-### 1. **Universal Sequence Integration**
-```typescript
-// EVERY parameter can accept sequences or expressions
-interface UniversalParameter {
-  type: 'static' | 'sequence' | 'expression';
-  staticValue?: any;
-  sequenceRef?: string;           // "MYSEQ()" or "MYSEQ"  
-  expression?: string;            // "WIDTH() * 0.5 + OFFSET()"
-  bindingMode: 'current' | 'next'; // sequence() vs sequence
-}
+### Touch-Enabled Interface
+Every interaction optimized for finger and stylus input with keyboard shortcuts as reliable fallbacks. Large touch targets, gesture-based navigation, and haptic feedback create a natural creative flow. The interface adapts seamlessly between desktop mouse, trackpad, touch input, and traditional keyboard workflows.
 
-// Examples of universal sequence binding:
-circle({ 
-  radius: "RADIUS_SEQ()",           // Sequence
-  numX: "GRID_SIZE",                // Sequence reference
-  offsetX: "BASE() + VARIATION()",  // Expression
-  skip: "depth > 3 ? 1 : 0"        // Conditional expression
-})
-```
+### Bidirectional Selection (Core Workflow)
+**Critical user workflow element**: Selecting shapes on canvas automatically highlights corresponding nodes in the graph, and vice versa. This bidirectional selection system forms the foundation of user understanding, allowing immediate navigation between visual results and their underlying logic. Selection state synchronizes across all interface views with clear visual indicators.
 
-### 2. **Bidirectional Selection System**
-```typescript
-interface SelectionManager {
-  // Node → Canvas selection
-  selectNode(nodeId: string): void;
-  highlightShapes(nodeId: string): ShapeInstance[];
-  
-  // Canvas → Node selection  
-  selectShape(shapeId: string): void;
-  highlightNodes(shapeId: string): string[];
-  
-  // Multi-selection support
-  selectMultipleNodes(nodeIds: string[]): void;
-  selectMultipleShapes(shapeIds: string[]): void;
-  
-  // Selection synchronization
-  syncSelection(): void;
-}
-```
+### Zero Keyboard Requirement with Keyboard Enhancement
+Complete functionality through visual interaction alone, with keyboard shortcuts enhancing efficiency for power users. Parameter adjustment via sliders, dials, and direct manipulation. Text input available for naming, expressions, and advanced operations, but never required for core functionality.
 
-### 3. **Direct Manipulation System**
-```typescript
-interface ManipulationHandle {
-  parameter: string;              // Which parameter this controls
-  handleType: 'move' | 'resize' | 'rotate' | 'corner' | 'anchor';
-  position: Point;                // Handle screen position
-  value: number;                  // Current parameter value
-  constraint?: 'horizontal' | 'vertical' | 'radial';
-  
-  onDrag(delta: Point): void;     // Update parameter via dragging
-  onCommit(value: number): void;  // Commit change to node
-}
-```
+### Intuitive Discovery
+Features reveal themselves through interaction. Hover/touch states show available actions. Progressive disclosure guides users from simple to complex functionality naturally.
+
+### Immediate Feedback
+Every action provides instant visual response. Parameter changes update the canvas in real-time. No compilation delays or waiting states during creative flow.
+
+### Dark Mode Interface with Flexible Canvas
+Interface defaults to dark mode for reduced eye strain during extended creative sessions. Canvas background supports black, white, or dark grey options to accommodate different artistic needs and output requirements while maintaining optimal contrast for UI elements.
 
 ## System Architecture
 
-### Core Components
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Application Shell                       │
-├─────────────┬─────────────────────────────┬─────────────────┤
-│             │                             │                 │
-│ Node Graph  │     Infinite Canvas         │   Property      │
-│ Editor      │                             │   Inspector     │
-│             │   ┌─────────────────────┐   │                 │
-│ ┌─────────┐ │   │ Shape Instances     │   │ ┌─────────────┐ │
-│ │  Node   │ │   │ + Transform Handles │   │ │ Parameters  │ │
-│ │ ┌─────┐ │ │   │ + Selection Overlay │   │ │ + Sequences │ │
-│ │ │Shape│ │◄────┤ + Visual Feedback   │───┤ │ + Bindings  │ │
-│ │ └─────┘ │ │   │                     │   │ │ + Real-time │ │
-│ │  ┌───┐  │ │   └─────────────────────┘   │ └─────────────┘ │
-│ │  │Seq│  │ │                             │                 │
-│ │  └───┘  │ │   Real-time Rendering       │ Live Parameter  │
-│ └─────────┘ │   + Shape Compilation       │ Adjustment      │
-│             │   + Handle Rendering        │                 │
-└─────────────┴─────────────────────────────┴─────────────────┘
-```
+```plantuml
+@startuml
+!theme plain
 
-## Detailed Component Specifications
-
-### 1. **Universal Parameter System**
-
-#### **Parameter Input Component**
-```typescript
-interface ParameterInput {
-  name: string;
-  type: 'number' | 'string' | 'color' | 'boolean' | 'enum';
-  
-  // Current value state
-  mode: 'static' | 'sequence' | 'expression';
-  value: any;
-  
-  // Sequence integration
-  availableSequences: SequenceDefinition[];
-  sequenceRef?: string;
-  bindingMode?: 'current' | 'next';
-  
-  // Expression support
-  expression?: string;
-  expressionContext: Record<string, any>; // Available variables
-  
-  // UI configuration
-  min?: number;
-  max?: number;
-  step?: number;
-  options?: string[];
-  
-  // Direct manipulation
-  hasHandle?: boolean;
-  handleType?: 'move' | 'resize' | 'rotate';
-  
-  // Callbacks
-  onChange: (value: any) => void;
-  onModeChange: (mode: string) => void;
-  onExpressionChange: (expr: string) => void;
-}
-```
-
-#### **Parameter Editor UI**
-```jsx
-<ParameterEditor parameter="radius">
-  <ModeSelector>
-    <Tab active={mode === 'static'}>Static</Tab>
-    <Tab active={mode === 'sequence'}>Sequence</Tab>
-    <Tab active={mode === 'expression'}>Expression</Tab>
-  </ModeSelector>
-  
-  {mode === 'static' && (
-    <NumberInput value={50} min={0} max={200} />
-  )}
-  
-  {mode === 'sequence' && (
-    <SequenceSelector>
-      <SequenceDropdown sequences={availableSequences} />
-      <BindingToggle>() | (next)</BindingToggle>
-      <SequenceEditor onEdit={openSequenceEditor} />
-    </SequenceSelector>
-  )}
-  
-  {mode === 'expression' && (
-    <ExpressionEditor>
-      <CodeEditor 
-        value="WIDTH() * 0.5 + OFFSET()"
-        autocomplete={expressionContext}
-        syntax="javascript"
-      />
-      <VariableList>{Object.keys(expressionContext)}</VariableList>
-    </ExpressionEditor>
-  )}
-</ParameterEditor>
-```
-
-### 2. **Bidirectional Selection System**
-
-#### **Selection State Management**
-```typescript
-class SelectionManager {
-  private nodeSelection = new Set<string>();
-  private shapeSelection = new Set<string>();
-  private nodeToShapes = new Map<string, string[]>();
-  private shapeToNodes = new Map<string, string[]>();
-  
-  // Build mapping when compilation changes
-  updateMappings(compilationResult: CompilationResult) {
-    this.nodeToShapes.clear();
-    this.shapeToNodes.clear();
-    
-    for (const result of compilationResult.shapes) {
-      const { nodeId, shapeInstances } = result;
-      
-      // Map node to its generated shapes
-      this.nodeToShapes.set(nodeId, shapeInstances.map(s => s.id));
-      
-      // Map each shape back to its source node
-      for (const shape of shapeInstances) {
-        this.shapeToNodes.set(shape.id, [nodeId]);
-      }
-    }
-  }
-  
-  // Node selection triggers shape highlighting
-  selectNode(nodeId: string) {
-    this.nodeSelection.clear();
-    this.nodeSelection.add(nodeId);
-    
-    // Highlight corresponding shapes
-    const shapeIds = this.nodeToShapes.get(nodeId) || [];
-    this.highlightShapes(shapeIds);
-    
-    this.emitSelectionChange();
-  }
-  
-  // Shape selection triggers node highlighting  
-  selectShape(shapeId: string) {
-    this.shapeSelection.clear();
-    this.shapeSelection.add(shapeId);
-    
-    // Highlight corresponding nodes
-    const nodeIds = this.shapeToNodes.get(shapeId) || [];
-    this.highlightNodes(nodeIds);
-    
-    this.emitSelectionChange();
-  }
-  
-  // Multi-selection support
-  selectMultipleShapes(shapeIds: string[]) {
-    this.shapeSelection = new Set(shapeIds);
-    
-    // Find all corresponding nodes
-    const nodeIds = new Set<string>();
-    for (const shapeId of shapeIds) {
-      const nodes = this.shapeToNodes.get(shapeId) || [];
-      nodes.forEach(id => nodeIds.add(id));
-    }
-    
-    this.highlightNodes(Array.from(nodeIds));
-    this.emitSelectionChange();
-  }
-}
-```
-
-#### **Visual Selection Feedback**
-```typescript
-// Canvas selection overlay
-interface SelectionOverlay {
-  selectedShapes: ShapeInstance[];
-  highlightedShapes: ShapeInstance[];
-  
-  render() {
-    // Selected shapes: solid outline
-    for (const shape of this.selectedShapes) {
-      this.renderSelectionBorder(shape, { 
-        color: '#0066ff', 
-        width: 2, 
-        style: 'solid' 
-      });
-    }
-    
-    // Highlighted shapes: dashed outline  
-    for (const shape of this.highlightedShapes) {
-      this.renderSelectionBorder(shape, { 
-        color: '#00ff88', 
-        width: 1, 
-        style: 'dashed' 
-      });
-    }
-  }
+package "Application Core" {
+  [Node Graph Engine]
+  [Sequence System]
+  [Compilation Pipeline]
+  [Bidirectional Selection Manager]
 }
 
-// Node editor selection feedback
-interface NodeSelectionState {
-  selectedNodes: Set<string>;
-  highlightedNodes: Set<string>;
-  
-  getNodeStyle(nodeId: string): NodeStyle {
-    if (this.selectedNodes.has(nodeId)) {
-      return { border: '2px solid #0066ff', background: '#0066ff20' };
-    }
-    if (this.highlightedNodes.has(nodeId)) {
-      return { border: '1px dashed #00ff88', background: '#00ff8810' };
-    }
-    return { border: '1px solid #666', background: '#333' };
-  }
+package "User Interface" {
+  [Touch Interface]
+  [Keyboard Interface]
+  [Canvas Renderer]
+  [Parameter Controls]
+  [Node Editor]
 }
+
+package "Manipulation System" {
+  [Transform Handles]
+  [Direct Edit Tools]
+  [Gesture Recognition]
+  [Haptic Feedback]
+}
+
+package "Export Pipeline" {
+  [SVG Generator]
+  [Path Optimizer]
+  [Format Converters]
+  [Print Preparation]
+}
+
+[Touch Interface] --> [Node Graph Engine]
+[Keyboard Interface] --> [Node Graph Engine]
+[Canvas Renderer] --> [Compilation Pipeline]
+[Parameter Controls] --> [Sequence System]
+[Transform Handles] --> [Bidirectional Selection Manager]
+[Node Editor] --> [Node Graph Engine]
+[Direct Edit Tools] --> [Compilation Pipeline]
+
+[Node Graph Engine] --> [Compilation Pipeline]
+[Sequence System] --> [Compilation Pipeline]
+[Bidirectional Selection Manager] --> [Canvas Renderer]
+[Compilation Pipeline] --> [SVG Generator]
+
+@enduml
 ```
 
-### 3. **Direct Manipulation System**
+## Interface Layout
 
-#### **Transform Handle System**
-```typescript
-interface TransformHandle {
-  id: string;
-  type: 'move' | 'resize-corner' | 'resize-edge' | 'rotate' | 'anchor';
-  position: Point;
-  parameter: string;        // Which parameter this controls
-  nodeId: string;          // Source node
-  shapeId: string;         // Target shape
-  constraint?: 'horizontal' | 'vertical' | 'radial' | 'angular';
-  
-  // Visual appearance
-  size: number;
-  color: string;
-  shape: 'circle' | 'square' | 'diamond' | 'arrow';
-  
-  // Interaction
-  onDragStart(event: MouseEvent): void;
-  onDrag(delta: Point, event: MouseEvent): void;
-  onDragEnd(): void;
+```plantuml
+@startuml
+!theme plain
+skinparam rectangle {
+  BackgroundColor #2a2a2a
+  BorderColor #666666
 }
 
-class DirectManipulationManager {
-  private handles: TransformHandle[] = [];
-  private activeHandle?: TransformHandle;
+rectangle "Main Interface" {
+  rectangle "Tool Palette\n(Collapsible)" as tools #1a1a1a
+  rectangle "Infinite Canvas\n+ Transform Handles\n+ Selection Overlay\n+ Bidirectional Highlights" as canvas #0a0a0a
+  rectangle "Properties Panel\n(Context Sensitive)" as props #1a1a1a
   
-  // Generate handles for selected shapes
-  generateHandles(selectedShapes: ShapeInstance[]): TransformHandle[] {
-    const handles: TransformHandle[] = [];
-    
-    for (const shape of selectedShapes) {
-      const node = this.getSourceNode(shape.id);
-      if (!node) continue;
-      
-      // Position handles (for moveTo, move, offsetX/Y)
-      if (this.hasPositionParameters(node)) {
-        handles.push(this.createMoveHandle(shape, node));
-      }
-      
-      // Size handles (for width, height, radius)
-      if (this.hasSizeParameters(node)) {
-        handles.push(...this.createResizeHandles(shape, node));
-      }
-      
-      // Rotation handle (for angle, rotation)
-      if (this.hasRotationParameters(node)) {
-        handles.push(this.createRotationHandle(shape, node));
-      }
-      
-      // Custom handles for specific shapes
-      handles.push(...this.createCustomHandles(shape, node));
-    }
-    
-    return handles;
-  }
-  
-  // Handle parameter mapping
-  private createMoveHandle(shape: ShapeInstance, node: NodeInstance): TransformHandle {
-    return {
-      id: `${shape.id}-move`,
-      type: 'move',
-      position: shape.center,
-      parameter: 'offsetX,offsetY', // Can control multiple parameters
-      nodeId: node.id,
-      shapeId: shape.id,
-      
-      onDrag: (delta: Point) => {
-        // Update node parameters directly
-        this.updateNodeParameter(node.id, 'offsetX', node.data.offsetX + delta.x);
-        this.updateNodeParameter(node.id, 'offsetY', node.data.offsetY + delta.y);
-        
-        // Trigger real-time recompilation
-        this.recompileFromNode(node.id);
-      }
-    };
-  }
-  
-  private createResizeHandles(shape: ShapeInstance, node: NodeInstance): TransformHandle[] {
-    const handles: TransformHandle[] = [];
-    
-    if (node.type === 'circle') {
-      // Radius handle
-      handles.push({
-        id: `${shape.id}-radius`,
-        type: 'resize-edge',
-        position: { x: shape.center.x + shape.radius, y: shape.center.y },
-        parameter: 'radius',
-        constraint: 'radial',
-        
-        onDrag: (delta: Point) => {
-          const distance = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
-          const newRadius = Math.max(1, shape.radius + distance);
-          this.updateNodeParameter(node.id, 'radius', newRadius);
-        }
-      });
-    }
-    
-    if (node.type === 'rectangle') {
-      // Corner handles for width/height
-      const bounds = shape.boundingBox;
-      handles.push(
-        {
-          id: `${shape.id}-corner-se`,
-          type: 'resize-corner',
-          position: { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
-          parameter: 'width,height',
-          
-          onDrag: (delta: Point) => {
-            this.updateNodeParameter(node.id, 'width', bounds.width + delta.x);
-            this.updateNodeParameter(node.id, 'height', bounds.height + delta.y);
-          }
-        }
-        // ... other corner handles
-      );
-    }
-    
-    return handles;
-  }
+  rectangle "Node Graph\n(Expandable Overlay)\n+ Vertical Layout Option\n+ Selection Sync" as nodes #333333
+  rectangle "Sequence Editor\n(Modal)" as sequences #444444
 }
+
+tools -right-> canvas
+canvas -right-> props
+canvas -down-> nodes
+nodes -up-> sequences
+
+@enduml
 ```
 
-#### **Parameter-Handle Binding System**
-```typescript
-// Define which parameters can be directly manipulated
-const MANIPULABLE_PARAMETERS = {
-  // Position
-  'offsetX': { handle: 'move', axis: 'x' },
-  'offsetY': { handle: 'move', axis: 'y' },
-  'x': { handle: 'move', axis: 'x' },
-  'y': { handle: 'move', axis: 'y' },
-  
-  // Size  
-  'radius': { handle: 'resize-radial', constraint: 'radial' },
-  'width': { handle: 'resize-horizontal', axis: 'x' },
-  'height': { handle: 'resize-vertical', axis: 'y' },
-  'radiusX': { handle: 'resize-horizontal', axis: 'x' },
-  'radiusY': { handle: 'resize-vertical', axis: 'y' },
-  
-  // Rotation
-  'angle': { handle: 'rotate', constraint: 'angular' },
-  'rotation': { handle: 'rotate', constraint: 'angular' },
-  
-  // Shape-specific
-  'cornerRadius': { handle: 'corner-radius', constraint: 'radial' },
-  'sweepAngle': { handle: 'arc-sweep', constraint: 'angular' },
-  'taper': { handle: 'trapezoid-taper', axis: 'x' }
-};
+## Core Modules
 
-// Handle generation based on node parameters
-function generateHandlesForNode(node: NodeInstance): TransformHandle[] {
-  const handles: TransformHandle[] = [];
-  
-  for (const [param, config] of Object.entries(MANIPULABLE_PARAMETERS)) {
-    if (node.data.hasOwnProperty(param)) {
-      const paramValue = node.data[param];
-      
-      // Only create handles for static values (not sequences/expressions)
-      if (typeof paramValue === 'number') {
-        handles.push(createHandleForParameter(node, param, config));
-      }
-    }
-  }
-  
-  return handles;
-}
-```
+### Bidirectional Selection Manager
+**Core system orchestrating the primary user workflow**: Maintains synchronized selection state between canvas shapes and graph nodes. Provides immediate visual feedback when selections change in either view. Handles multi-selection scenarios with clear hierarchy indicators. Updates transform handles and property panels based on current selection context.
 
-### 4. **Real-time Compilation Engine**
+### Node Graph Engine
+Manages the visual programming graph connecting shape creation, transformations, and boolean operations. **Supports both horizontal and vertical node layout options** to accommodate different screen orientations and user preferences. Handles node connections, dependency tracking, and execution order. Provides visual feedback for data flow and parameter binding with clear selection synchronization.
 
-#### **Incremental Compilation**
-```typescript
-class IncrementalCompiler {
-  private compilationCache = new Map<string, CompilationResult>();
-  private dependencyGraph = new Map<string, Set<string>>();
-  
-  // Only recompile affected subgraphs
-  recompileFromNode(changedNodeId: string): CompilationResult {
-    // Find all nodes affected by this change
-    const affectedNodes = this.findAffectedNodes(changedNodeId);
-    
-    // Invalidate cache for affected nodes
-    for (const nodeId of affectedNodes) {
-      this.compilationCache.delete(nodeId);
-    }
-    
-    // Recompile in dependency order
-    const result = this.compileNodes(affectedNodes);
-    
-    // Update visual representation
-    this.updateCanvas(result);
-    this.updateHandles(result);
-    
-    return result;
-  }
-  
-  // Track sequence dependencies
-  private buildDependencyGraph(nodes: NodeInstance[]) {
-    this.dependencyGraph.clear();
-    
-    for (const node of nodes) {
-      const dependencies = this.extractSequenceDependencies(node);
-      this.dependencyGraph.set(node.id, dependencies);
-    }
-  }
-  
-  private extractSequenceDependencies(node: NodeInstance): Set<string> {
-    const deps = new Set<string>();
-    
-    // Check all parameters for sequence references
-    for (const [key, value] of Object.entries(node.data)) {
-      if (typeof value === 'string') {
-        // Parse sequence references: "MYSEQ()", "WIDTH() + HEIGHT()"
-        const seqRefs = this.parseSequenceReferences(value);
-        seqRefs.forEach(ref => deps.add(ref));
-      }
-    }
-    
-    return deps;
-  }
-}
-```
+### Universal Parameter System
+Every parameter accepts static values, sequence references, or mathematical expressions. Provides consistent interface for binding any value to procedural sources. Automatically detects parameter types and offers appropriate input methods including touch controls and keyboard shortcuts.
 
-### 5. **Enhanced Sequence Integration**
+### Touch-Enabled Interface Manager
+Orchestrates all touch interactions with keyboard fallbacks including multi-touch gestures, pressure sensitivity, and palm rejection. Provides consistent touch targets sized for finger input while maintaining keyboard accessibility. Handles gesture recognition for pan, zoom, rotate, and selection operations with corresponding hotkey alternatives.
 
-#### **Sequence-Aware Parameter Editor**
-```jsx
-function ParameterEditor({ parameter, value, onChange }) {
-  const [mode, setMode] = useState(getParameterMode(value));
-  const availableSequences = useSequences();
-  
-  return (
-    <div className="parameter-editor">
-      <ParameterLabel>{parameter}</ParameterLabel>
-      
-      <ModeToggle>
-        <Button 
-          active={mode === 'static'} 
-          onClick={() => setMode('static')}
-        >
-          123
-        </Button>
-        <Button 
-          active={mode === 'sequence'} 
-          onClick={() => setMode('sequence')}
-        >
-          f(x)
-        </Button>
-        <Button 
-          active={mode === 'expression'} 
-          onClick={() => setMode('expression')}
-        >
-          {...}
-        </Button>
-      </ModeToggle>
-      
-      {mode === 'static' && (
-        <NumberInput 
-          value={typeof value === 'number' ? value : 0}
-          onChange={onChange}
-        />
-      )}
-      
-      {mode === 'sequence' && (
-        <SequenceBinding>
-          <SequenceSelector 
-            sequences={availableSequences}
-            value={value}
-            onChange={onChange}
-          />
-          <SequenceBindingToggle>
-            <Button>current</Button>
-            <Button>next()</Button>
-          </SequenceBindingToggle>
-        </SequenceBinding>
-      )}
-      
-      {mode === 'expression' && (
-        <ExpressionEditor
-          value={value}
-          context={availableSequences}
-          onChange={onChange}
-        />
-      )}
-    </div>
-  );
-}
-```
+### Canvas Renderer
+High-performance rendering engine supporting thousands of shapes with smooth zoom and pan. Implements level-of-detail rendering for complex scenes. **Renders bidirectional selection highlights** connecting shapes to their corresponding nodes. Provides real-time preview of all parameter changes with sub-frame latency.
 
-#### **Live Sequence Preview**
-```typescript
-// Show sequence values in real-time
-interface SequencePreview {
-  sequence: SequenceInstance;
-  currentValue: number;
-  valueHistory: number[];
-  nextValues: number[];
-  
-  render() {
-    return (
-      <div className="sequence-preview">
-        <div className="current-value">{this.currentValue}</div>
-        <div className="value-timeline">
-          {this.valueHistory.map((value, i) => (
-            <span key={i} className="history-value">{value}</span>
-          ))}
-          <span className="current-marker">●</span>
-          {this.nextValues.map((value, i) => (
-            <span key={i} className="future-value">{value}</span>
-          ))}
-        </div>
-      </div>
-    );
-  }
-}
-```
+### Transform Handle System
+Generates contextual manipulation handles for selected shapes with keyboard shortcut alternatives. Provides direct editing of position, size, rotation, and shape-specific parameters. Updates source node parameters in real-time during manipulation with **immediate node graph synchronization**. Includes constraint systems for precise editing accessible via both touch and keyboard.
 
-## Technical Implementation Stack
+### Sequence Engine Integration
+Visual interface for creating and editing the stamp library's powerful sequence system. Provides drag-and-drop sequence building with keyboard navigation support, timeline scrubbing, and live value preview. Handles complex sequence dependencies and mathematical expressions with full keyboard editing capabilities.
 
-### **Frontend Architecture**
-```typescript
-// React + TypeScript + Zustand state management
-const useAppStore = create<AppState>((set, get) => ({
-  // Node graph state
-  nodes: [],
-  connections: [],
-  
-  // Canvas state  
-  shapes: [],
-  selection: new SelectionManager(),
-  viewport: { x: 0, y: 0, zoom: 1 },
-  
-  // Sequence state
-  sequences: new Map<string, SequenceInstance>(),
-  
-  // Compilation state
-  compilationResult: null,
-  isCompiling: false,
-  
-  // Actions
-  addNode: (node) => set(state => ({ 
-    nodes: [...state.nodes, node] 
-  })),
-  
-  updateNodeParameter: (nodeId, param, value) => {
-    // Update node data
-    const node = get().nodes.find(n => n.id === nodeId);
-    if (node) {
-      node.data[param] = value;
-      
-      // Trigger incremental recompilation
-      get().recompileFromNode(nodeId);
-    }
-  },
-  
-  recompileFromNode: async (nodeId) => {
-    const compiler = get().compiler;
-    const result = await compiler.recompileFromNode(nodeId);
-    set({ compilationResult: result });
-  }
-}));
-```
+### Compilation Pipeline
+Converts node graphs into executable stamp operations with incremental compilation for performance. Tracks dependencies to minimize recomputation. Provides visual feedback during compilation and error reporting with selection context awareness.
 
-### **Core Libraries**
-- **React Flow**: Node editor foundation
-- **Konva.js**: High-performance canvas rendering
-- **Zustand**: State management
-- **Monaco Editor**: Code editing (sequences/expressions)
-- **Framer Motion**: UI animations
-- **stamp-core**: Existing stamp/sequence computation engine
+### Export System
+Generates production-ready output in multiple formats. Optimizes paths for plotting and fabrication. Supports batch generation with parameter variations. Maintains export history and version control with keyboard-accessible controls.
 
-### **Performance Optimization**
-```typescript
-// WebGL-accelerated rendering for complex scenes
-class WebGLRenderer {
-  private gl: WebGLRenderingContext;
-  private shapeBuffers = new Map<string, WebGLBuffer>();
-  
-  // Batch render thousands of shapes efficiently
-  renderShapes(shapes: ShapeInstance[]) {
-    // Group by material/style
-    const batches = this.groupShapesByMaterial(shapes);
-    
-    for (const batch of batches) {
-      this.renderBatch(batch);
-    }
-  }
-  
-  // Update only changed shapes
-  updateShape(shapeId: string, newGeometry: Geometry) {
-    const buffer = this.shapeBuffers.get(shapeId);
-    if (buffer) {
-      this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, newGeometry.vertices);
-    }
-  }
-}
+## Interface Design
 
-// Worker thread for heavy computation
-class CompilationWorker {
-  // Run stamp compilation off main thread
-  async compileStamp(nodes: NodeInstance[]): Promise<CompilationResult> {
-    return new Promise((resolve) => {
-      this.worker.postMessage({ type: 'compile', nodes });
-      this.worker.onmessage = (e) => {
-        if (e.data.type === 'compilation-complete') {
-          resolve(e.data.result);
-        }
-      };
-    });
-  }
-}
-```
+### Tool Palette
+**Collapsible sidebar** containing shape primitives, operations, and utilities. **Large touch-friendly icons** with keyboard shortcuts displayed. **Drag-and-drop** to canvas or node graph with keyboard alternatives. **Organized categories** with smooth expand/collapse animations and hotkey navigation.
 
-## Development Roadmap
+**Shape Tools**: Circle, Rectangle, Polygon, Arch, Bone, Leaf, Tangram variants
+**Operations**: Union, Subtract, Intersect, Transform tools  
+**Layouts**: Grid, Scatter, Path-based arrangements
+**Utilities**: Sequences, Variables, Export nodes
 
-### **Phase 1: Foundation (4 months)**
-**Month 1-2: Core Infrastructure**
-- [ ] Node editor with basic shape nodes
-- [ ] Infinite canvas with pan/zoom  
-- [ ] Basic parameter system (static values only)
-- [ ] Simple compilation pipeline
-- [ ] Canvas-node selection sync
+### Infinite Canvas
+**Boundless workspace** with smooth pan and zoom via touch and keyboard. **Multi-touch support** with WASD/arrow key navigation. **Shape instances** render with high-fidelity preview and **bidirectional selection indicators** connecting to node graph. **Selection overlays** show active elements with animated borders synchronized across all views. **Canvas background** switchable between black, white, or dark grey to suit artistic requirements while maintaining interface dark mode.
 
-**Month 3-4: Sequence Integration**
-- [ ] Universal parameter sequence binding
-- [ ] Basic sequence types (random, repeat, range)
-- [ ] Sequence editor UI
-- [ ] Expression parser integration
+**Direct manipulation handles** appear on selection:
+- **Move handles** at shape centers (keyboard: arrow keys)
+- **Resize handles** at corners and edges (keyboard: Shift+arrows)
+- **Rotation handles** with circular gesture areas (keyboard: R+drag or angle input)
+- **Custom handles** for shape-specific parameters (keyboard: context-sensitive shortcuts)
 
-### **Phase 2: Direct Manipulation (3 months)**
-**Month 5-6: Transform Handles**
-- [ ] Handle generation system
-- [ ] Move, resize, rotate handles
-- [ ] Real-time parameter updates
-- [ ] Handle-parameter binding
+**Visual feedback** includes:
+- **Connection lines** showing bidirectional node-to-shape relationships
+- **Ghosting** for drag operations
+- **Snap guides** for alignment (keyboard: hold Shift)
+- **Grid overlay** when needed (keyboard: G to toggle)
+- **Canvas background controls** for switching between black, white, and dark grey (keyboard: B to cycle)
 
-**Month 7: Advanced Selection**
-- [ ] Multi-selection support  
-- [ ] Advanced selection feedback
-- [ ] Selection-based handle filtering
-- [ ] Context-sensitive tools
+### Properties Panel
+**Context-sensitive panel** adapting to current selection with keyboard navigation. **Touch-optimized controls** with keyboard input alternatives. **Real-time parameter adjustment** with immediate visual feedback and **node graph synchronization**.
 
-### **Phase 3: Professional Features (4 months)**
-**Month 8-9: Advanced Sequences**
-- [ ] Complete sequence type support
-- [ ] Sequence dependency graphs
-- [ ] Advanced expression editor
-- [ ] Sequence debugging tools
+**Parameter Types**:
+- **Sliders** for numeric ranges with drag, tap, and direct keyboard input
+- **Dials** for rotational values with gesture support and number key input
+- **Color wells** with palette and picker integration (keyboard: hex entry)
+- **Toggle switches** for boolean values (keyboard: spacebar)
+- **Dropdown selectors** for enumerated options (keyboard: up/down arrows)
 
-**Month 10-11: Export & Optimization**
-- [ ] Multi-format export pipeline
-- [ ] Performance optimization
-- [ ] WebGL rendering
-- [ ] Worker thread compilation
+**Advanced Parameters**:
+- **Sequence binding** with visual connection indicators and keyboard shortcuts
+- **Expression editor** with autocomplete, syntax highlighting, and full keyboard support
+- **Grid controls** for layout parameters with numeric input
+- **Style inheritance** visualization with keyboard navigation
 
-### **Phase 4: Collaboration & Polish (2 months)**
-**Month 12-13: Final Polish**
-- [ ] Cloud synchronization
-- [ ] Template marketplace
-- [ ] Performance profiling
-- [ ] User testing & refinement
+### Node Graph Overlay
+**Expandable overlay** revealing the visual programming graph with keyboard toggle (N key). **Smooth slide-up animation** from canvas bottom. **Touch-friendly nodes** with large connection ports and **vertical layout option** for portrait orientations or user preference.
 
-## Success Metrics
+**Node Visualization**:
+- **Shape nodes** with preview thumbnails and **bidirectional selection highlights**
+- **Operation nodes** with symbolic representations
+- **Sequence nodes** with live value displays
+- **Connection wires** showing data flow with selection-aware highlighting
 
-### **Technical Performance**
-- **Compilation speed**: <100ms for 1000+ node graphs
-- **Render performance**: 60fps with 10,000+ shapes visible
-- **Memory usage**: <2GB for complex projects
-- **Export speed**: <5s for complex SVG generation
+**Layout Options**:
+- **Horizontal layout** (default): Traditional left-to-right node flow
+- **Vertical layout**: Top-to-bottom arrangement for mobile/portrait screens
+- **Automatic layout**: Adapts based on screen orientation and available space
 
-### **User Experience**
-- **Learning curve**: New users productive within 30 minutes
-- **Feature discoverability**: 80% of features findable without documentation
-- **Selection accuracy**: <1px precision for handle manipulation
-- **Real-time feedback**: <50ms parameter update latency
+**Interaction**:
+- **Drag connections** between compatible ports (keyboard: Tab to navigate, Enter to connect)
+- **Node selection** syncs with canvas selection with clear visual feedback
+- **Parameter editing** through direct manipulation and keyboard input
+- **Collapse/expand** for complex subgraphs (keyboard: +/- keys)
 
-### **Business Goals**
-- **User engagement**: 30+ minute average session length
-- **Project completion**: 70% of started projects exported
-- **User retention**: 40% monthly active user retention
-- **Revenue targets**: $50k MRR by month 18
+### Sequence Editor
+**Modal interface** for building complex sequences with full keyboard support. **Timeline visualization** showing value progression. **Drag-and-drop** sequence building with keyboard alternatives and visual flow.
 
-## Conclusion
+**Components**:
+- **Value generators** (ranges, lists, mathematical functions)
+- **Playback modes** (repeat, yoyo, shuffle, random)
+- **Transformers** (scale, offset, accumulate)
+- **Combiners** (mathematical expressions, conditionals)
 
-This blueprint creates a **truly revolutionary** generative art tool that honors the mathematical sophistication of the stamp library while making it accessible through visual programming. The key innovations are:
+**Preview System**:
+- **Live value display** showing current sequence output
+- **Timeline scrubber** for exploring sequence behavior (keyboard: left/right arrows)
+- **Dependency graph** showing sequence relationships with **bidirectional selection**
+- **Value history** with graphical representation
 
-1. **Universal sequence integration** - every parameter can be procedural
-2. **Bidirectional selection** - seamless node-canvas synchronization  
-3. **Direct manipulation** - graphical editing of parametric values
-4. **Real-time feedback** - immediate visual results from parameter changes
+## Touch and Keyboard Interaction Patterns
 
-The result is a tool that scales from simple shape creation to complex generative systems, serving both beginners learning generative art and professionals creating sophisticated parametric designs for fabrication.
+### Canvas Navigation
+**Touch**:
+- **Two-finger pan** for smooth navigation
+- **Pinch zoom** with momentum and bounce
+- **Double-tap** to fit selection or zoom to specific areas
+- **Three-finger tap** to reset view
 
-By maintaining **100% feature parity** with the stamp library while adding intuitive visual workflows, this IDE becomes the definitive tool for procedural 2D art creation.
+**Keyboard**:
+- **WASD or arrow keys** for panning
+- **+/- or scroll wheel** for zooming
+- **F** to fit selection to view
+- **0** to reset view to origin
+- **B** to cycle canvas background (black/white/dark grey)
+
+### Shape Manipulation
+**Touch**:
+- **Single tap** to select individual shapes
+- **Multi-tap** to add to selection
+- **Long press** for context menus
+- **Drag** to move selected objects
+- **Pinch on selection** to resize proportionally
+- **Rotate gesture** around selection center
+
+**Keyboard**:
+- **Click** to select with **immediate node synchronization**
+- **Ctrl+click** to add to selection
+- **Right-click** for context menus
+- **Arrow keys** to move selection
+- **Shift+arrows** to resize
+- **R+drag** or angle input for rotation
+
+### Bidirectional Selection Workflow
+**Primary user interaction**: Selecting any shape immediately highlights its corresponding node(s) with animated connection lines. Selecting any node immediately highlights its output shape(s) on canvas. Multi-selections maintain synchronization across both views with clear visual hierarchy.
+
+**Visual Indicators**:
+- **Shape selection borders** with color-coded node connections
+- **Node selection highlights** with animated pulses to corresponding shapes
+- **Connection path animation** showing data flow during selection
+- **Hierarchy indicators** for complex multi-node selections
+
+### Handle Interaction
+**Touch**:
+- **Tap handle** to activate with haptic feedback
+- **Drag handle** for precise parameter adjustment with **real-time node updates**
+- **Double-tap handle** to enter specific value
+- **Constrained dragging** with visual feedback for locked axes
+
+**Keyboard**:
+- **Tab** to cycle through available handles
+- **Enter** to activate numerical input
+- **Shift** to constrain transformations
+- **Escape** to cancel operations
+
+### Node Graph
+**Touch**:
+- **Tap node** to select and sync canvas with **bidirectional highlighting**
+- **Drag nodes** to reorganize graph layout
+- **Tap ports** to initiate connections
+- **Swipe nodes** for quick parameter access
+- **Pinch graph** to zoom node view
+- **Rotate gesture** to switch between horizontal and vertical layouts
+
+**Keyboard**:
+- **Tab** to navigate between nodes
+- **Enter** to select node and sync canvas
+- **Spacebar** to initiate connections
+- **Delete** to remove selected nodes
+- **V** to toggle vertical/horizontal layout
+- **Numbers** for quick parameter input
+
+## Development Phases
+
+### Phase 1: Foundation
+Core touch-enabled interface with keyboard fallbacks for basic shapes and canvas navigation. **Bidirectional selection system implementation**. Simple parameter adjustment through sliders, handles, and keyboard input. **Vertical node layout option**. Basic selection and direct manipulation. Essential export functionality.
+
+### Phase 2: Node System Enhancement
+Advanced visual programming graph with optimized touch and keyboard interactions. **Complete bidirectional selection synchronization** with visual feedback systems. Basic sequence integration. Transform handle system completion with keyboard alternatives.
+
+### Phase 3: Advanced Sequences
+Complete sequence editor with visual building blocks and full keyboard support. Mathematical expression support with syntax highlighting. Complex parameter binding. Advanced selection and manipulation features with **enhanced bidirectional workflow**.
+
+### Phase 4: Professional Tools
+Performance optimization for complex scenes. Advanced export formats and batch processing. Template system and asset management. Touch gesture refinement, haptic feedback, and comprehensive keyboard shortcut system.
+
+## Success Criteria
+
+### Usability Goals
+- **New users** create their first generative art within 5 minutes using either touch or keyboard
+- **Complex operations** achievable entirely through touch with keyboard enhancement options
+- **Parameter discovery** through natural interface exploration
+- **Bidirectional selection workflow** becomes intuitive within first use session
+- **Creative flow** maintained without technical interruptions across input methods
+
+### Technical Performance
+- **60fps rendering** with thousands of visible shapes and selection synchronization
+- **Real-time compilation** under 100ms for typical graphs with bidirectional updates
+- **Responsive input** with sub-20ms latency for both touch and keyboard
+- **Smooth animations** throughout the interface including selection transitions
+
+### Accessibility
+- **Touch targets** minimum 44pt for comfortable finger use
+- **Keyboard navigation** for all primary functions
+- **Visual feedback** for all interactive elements including selection states
+- **Progressive disclosure** preventing interface overwhelm
+- **Input method alternatives** for all core workflows
+
+This blueprint creates an intuitive visual programming environment that honors the mathematical power of generative art while making it accessible through natural, touch-enabled interaction enhanced by comprehensive keyboard support. The bidirectional selection system ensures users always understand the relationship between their visual results and underlying logic, forming the foundation of an effective creative workflow.
