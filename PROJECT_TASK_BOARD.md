@@ -42,7 +42,7 @@ ID: P1.1.1.S4
 Description: Set up dark mode as default with theme system
 ParentDevPlanTask: Phase 1, Story 1.1.1
 DependsOn: [P1.1.1.S2]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: Medium
 ---
@@ -105,7 +105,7 @@ ID: P1.1.2.S5
 Description: Implement basic selection overlay system
 ParentDevPlanTask: Phase 1, Story 1.1.2
 DependsOn: [P1.1.2.S1]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: Medium
 ---
@@ -228,7 +228,7 @@ ID: P1.3.1.S1
 Description: Implement canvas-to-node selection synchronization
 ParentDevPlanTask: Phase 1, Story 1.3.1
 DependsOn: [P1.1.2.S5, P1.1.3.S1]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: High
 ---
@@ -238,7 +238,7 @@ ID: P1.3.1.S2
 Description: Create node-to-canvas highlight mapping
 ParentDevPlanTask: Phase 1, Story 1.3.1
 DependsOn: [P1.3.1.S1]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: Medium
 ---
@@ -248,7 +248,7 @@ ID: P1.3.1.S3
 Description: Add animation for selection state changes
 ParentDevPlanTask: Phase 1, Story 1.3.1
 DependsOn: [P1.3.1.S1]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: Medium
 ---
@@ -261,7 +261,7 @@ ID: P1.3.2.S1
 Description: Generate contextual handles for selected shapes
 ParentDevPlanTask: Phase 1, Story 1.3.2
 DependsOn: [P1.1.2.S5]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: Medium
 ---
@@ -271,7 +271,7 @@ ID: P1.3.2.S2
 Description: Implement move, resize, rotate handles with touch support
 ParentDevPlanTask: Phase 1, Story 1.3.2
 DependsOn: [P1.3.2.S1]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: High
 ---
@@ -281,7 +281,7 @@ ID: P1.3.2.S3
 Description: Add keyboard alternatives (arrow keys, Shift+arrows, R+drag)
 ParentDevPlanTask: Phase 1, Story 1.3.2
 DependsOn: [P1.3.2.S1, P1.2.1.S4]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: Medium
 ---
@@ -291,7 +291,7 @@ ID: P1.3.2.S4
 Description: Provide real-time node parameter updates during manipulation
 ParentDevPlanTask: Phase 1, Story 1.3.2
 DependsOn: [P1.1.3.S1, P1.3.2.S2]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: High
 ---
@@ -301,7 +301,7 @@ ID: P1.3.2.S5
 Description: Include constraint systems for precise editing (Shift to constrain)
 ParentDevPlanTask: Phase 1, Story 1.3.2
 DependsOn: [P1.3.2.S2]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: Medium
 ---
