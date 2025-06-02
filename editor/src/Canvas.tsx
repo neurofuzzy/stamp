@@ -9,6 +9,8 @@ type CanvasProps = {
 
 const Canvas: React.FC<CanvasProps> = ({ width, height, onSelectionChange }) => {
   const [selectedObjects, setSelectedObjects] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   useEffect(() => {
@@ -154,12 +156,60 @@ const Canvas: React.FC<CanvasProps> = ({ width, height, onSelectionChange }) => 
     });
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (selectedObjects.length > 0) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
+    }
+  };
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      
+      // Update object positions
+      const objects = getObjects().map(obj => 
+        selectedObjects.includes(obj.id)
+          ? { ...obj, x: obj.x + dx, y: obj.y + dy }
+          : obj
+      );
+      
+      // Clear canvas
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      
+      // Render objects
+      renderObjects(canvasRef.current?.getContext('2d') as CanvasRenderingContext2D);
+      
+      // Render selection indicators
+      if (selectedObjects.length > 0) {
+        renderSelection(canvasRef.current?.getContext('2d') as CanvasRenderingContext2D, selectedObjects);
+      }
+      
+      setDragStart({ x: e.clientX, y: e.clientY });
+    }
+  };
+  
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   return (
     <canvas 
       ref={canvasRef}
       width={width}
       height={height}
       onClick={handleCanvasClick}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
       className="bg-gray-900 touch-manipulation"
       aria-label="Generative art canvas"
     />

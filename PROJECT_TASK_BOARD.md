@@ -607,7 +607,7 @@ ID: P2.2.2.S3
 Description: Add drag-and-drop sequence building
 ParentDevPlanTask: Phase 2, Story 2.2.2
 DependsOn: [P2.2.2.S1, P1.2.2.S3]
-State: BACKLOG
+State: DONE
 AssignedTo: AI Agent SWE
 EstComplexity: High
 ---
