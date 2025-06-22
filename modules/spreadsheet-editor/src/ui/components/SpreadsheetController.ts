@@ -105,7 +105,7 @@ export class SpreadsheetController {
     private handleCellFocus(cell: HTMLElement): void {
         const commandIndex = parseInt(cell.dataset.commandIndex!);
         const paramIndex = parseInt(cell.dataset.paramIndex!) || 0;
-        const cellType = cell.dataset.cellType!;
+        const cellType = cell.dataset.cellType! as 'command' | 'param-key' | 'param-value';
         
         this.model.setFocus(commandIndex, paramIndex, cellType);
         
@@ -195,19 +195,68 @@ export class SpreadsheetController {
     }
 
     private navigateUp(cells: HTMLElement[], currentIndex: number): void {
-        this.focusCellAt(cells, Math.max(0, currentIndex - 3));
+        const currentFocus = this.model.getFocus();
+        const { commandIndex, paramIndex, cellType } = currentFocus;
+
+        if (cellType === 'command') {
+            // From command, go to previous command
+            if (commandIndex > 0) {
+                this.model.setFocus(commandIndex - 1, 0, 'command');
+            }
+        } else {
+            // From param cell, go to previous param or command
+            if (paramIndex > 0) {
+                this.model.setFocus(commandIndex, paramIndex - 1, cellType);
+            } else {
+                this.model.setFocus(commandIndex, 0, 'command');
+            }
+        }
+        this.view.focusCell(this.model);
     }
 
     private navigateDown(cells: HTMLElement[], currentIndex: number): void {
-        this.focusCellAt(cells, Math.min(cells.length - 1, currentIndex + 3));
+        const currentFocus = this.model.getFocus();
+        const { commandIndex, paramIndex, cellType } = currentFocus;
+
+        if (cellType === 'command') {
+            // From command, go to next command
+            if (commandIndex < this.model.commands.length - 1) {
+                this.model.setFocus(commandIndex + 1, 0, 'command');
+            }
+        } else {
+            // From param cell, go to next param or next command
+            const currentCommand = this.model.commands[commandIndex];
+            if (paramIndex < currentCommand.parameters.length - 1) {
+                this.model.setFocus(commandIndex, paramIndex + 1, cellType);
+            } else if (commandIndex < this.model.commands.length - 1) {
+                this.model.setFocus(commandIndex + 1, 0, 'command');
+            }
+        }
+        this.view.focusCell(this.model);
     }
 
     private navigateLeft(cells: HTMLElement[], currentIndex: number): void {
-        this.focusCellAt(cells, Math.max(0, currentIndex - 1));
+        const currentFocus = this.model.getFocus();
+        const { commandIndex, paramIndex, cellType } = currentFocus;
+
+        if (cellType === 'param-value') {
+            this.model.setFocus(commandIndex, paramIndex, 'param-key');
+        } else if (cellType === 'param-key' && paramIndex === 0) {
+            this.model.setFocus(commandIndex, 0, 'command');
+        }
+        this.view.focusCell(this.model);
     }
 
     private navigateRight(cells: HTMLElement[], currentIndex: number): void {
-        this.focusCellAt(cells, Math.min(cells.length - 1, currentIndex + 1));
+        const currentFocus = this.model.getFocus();
+        const { commandIndex, paramIndex, cellType } = currentFocus;
+
+        if (cellType === 'command') {
+            this.model.setFocus(commandIndex, 0, 'param-key');
+        } else if (cellType === 'param-key') {
+            this.model.setFocus(commandIndex, paramIndex, 'param-value');
+        }
+        this.view.focusCell(this.model);
     }
 
     private navigateTab(cells: HTMLElement[], currentIndex: number, reverse: boolean): void {
@@ -220,7 +269,7 @@ export class SpreadsheetController {
         if (cell) {
             const commandIndex = parseInt(cell.dataset.commandIndex!);
             const paramIndex = parseInt(cell.dataset.paramIndex!) || 0;
-            const cellType = cell.dataset.cellType!;
+            const cellType = cell.dataset.cellType! as 'command' | 'param-key' | 'param-value';
             
             this.model.setFocus(commandIndex, paramIndex, cellType);
             this.view.focusCell(this.model);
