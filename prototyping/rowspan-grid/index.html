@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rowspan Grid</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1e1e1e;
+            color: #ffffff;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 14px;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .left-panel {
+            width: 400px;
+            height: 100vh;
+            background: #1a1a1a;
+            border-right: 1px solid #404040;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666666;
+            font-style: italic;
+        }
+
+        .grid-container {
+            flex: 1;
+            overflow: auto;
+            padding: 8px;
+        }
+
+        .grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .cell {
+            border: 1px solid #404040;
+            padding: 8px 12px;
+            vertical-align: top;
+            outline: none;
+            min-height: 40px;
+            line-height: 24px;
+        }
+
+        .cell:focus {
+            background: #2d2d2d;
+            border: 2px solid #4fc3f7;
+        }
+
+        .cell.locked:focus {
+            background: inherit;
+        }
+
+        .cell.locked:focus::selection {
+            background: #4fc3f7;
+            color: #ffffff;
+        }
+
+        .command-cell {
+            width: 120px;
+            font-weight: bold;
+            color: #4fc3f7;
+            background: #242424;
+        }
+
+        .param-key {
+            width: 120px;
+            color: #ffb74d;
+            background: #282828;
+        }
+
+        .param-value {
+            color: #81c784;
+            background: #1e1e1e;
+        }
+
+        .cell[contenteditable="true"]:empty::before {
+            content: attr(data-placeholder);
+            color: #666666;
+            font-style: italic;
+        }
+
+        .cell.blink {
+            animation: blink-warning 0.5s ease-in-out;
+        }
+
+        @keyframes blink-warning {
+            0% { background-color: inherit; }
+            50% { background-color: #ff6b6b; }
+            100% { background-color: inherit; }
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="grid-container">
+                <table class="grid" id="grid">
+                    <!-- Rows will be generated dynamically -->
+                </table>
+            </div>
+        </div>
+        <div class="right-panel">
+            Generated code will appear here...
+        </div>
+    </div>
+
+    <script>
+        class RowspanGrid {
+            constructor(container) {
+                this.container = container;
+                this.currentFocus = null;
+                this.cursorPosition = 0;
+                this.isExpanding = false;
+                this.commands = [
+                    {
+                        name: '', // Always have empty command
+                        nameIsLocked: false,
+                        parameters: [
+                            { key: '', value: '', keyIsLocked: false }
+                        ]
+                    }
+                ];
+                
+                this.render();
+                this.setupEventListeners();
+                
+                // Focus first cell
+                setTimeout(() => {
+                    const firstCell = this.container.querySelector('.cell');
+                    if (firstCell) {
+                        firstCell.focus();
+                        this.currentFocus = firstCell;
+                    }
+                }, 100);
+            }
+
+            render() {
+                let html = '';
+                this.commands.forEach((command, commandIndex) => {
+                    const paramCount = command.parameters.length;
+                    
+                    // First parameter row with command cell
+                    html += `
+                        <tr>
+                            <td class="cell command-cell ${command.nameIsLocked ? 'locked' : ''}" 
+                                rowspan="${paramCount}"
+                                contenteditable="true" 
+                                data-command-index="${commandIndex}"
+                                data-placeholder="${command.name ? command.name : 'Try: circle, rectangle, moveTo'}">${command.name}</td>
+                            <td class="cell param-key ${command.parameters[0].keyIsLocked ? 'locked' : ''}" 
+                                contenteditable="true" 
+                                data-command-index="${commandIndex}"
+                                data-param-index="0"
+                                data-placeholder="${command.parameters[0].key ? command.parameters[0].key : 'radius, width, x, y...'}">${command.parameters[0].key}</td>
+                            <td class="cell param-value" 
+                                contenteditable="true" 
+                                data-command-index="${commandIndex}"
+                                data-param-index="0"
+                                data-placeholder="${command.parameters[0].value ? command.parameters[0].value : '10, 100, 50...'}">${command.parameters[0].value}</td>
+                        </tr>
+                    `;
+
+                    // Additional parameter rows
+                    for (let paramIndex = 1; paramIndex < paramCount; paramIndex++) {
+                        const param = command.parameters[paramIndex];
+                        html += `
+                            <tr>
+                                <td class="cell param-key ${param.keyIsLocked ? 'locked' : ''}" 
+                                    contenteditable="true" 
+                                    data-command-index="${commandIndex}"
+                                    data-param-index="${paramIndex}"
+                                    data-placeholder="${param.key ? param.key : 'parameter name'}">${param.key}</td>
+                                <td class="cell param-value" 
+                                    contenteditable="true" 
+                                    data-command-index="${commandIndex}"
+                                    data-param-index="${paramIndex}"
+                                    data-placeholder="${param.value ? param.value : 'value'}">${param.value}</td>
+                            </tr>
+                        `;
+                    }
+                });
+                
+                this.container.innerHTML = html;
+            }
+
+            setupEventListeners() {
+                this.container.addEventListener('input', (e) => {
+                    if (e.target.classList.contains('cell')) {
+                        // Check if cell is locked before allowing input
+                        if (this.isLockedCell(e.target)) {
+                            e.preventDefault();
+                            this.preventEditAndBlink(e.target);
+                            return;
+                        }
+                        this.saveCursorPosition();
+                        this.handleCellInput(e.target);
+                    }
+                });
+
+                this.container.addEventListener('keypress', (e) => {
+                    if (e.target.classList.contains('cell') && this.isLockedCell(e.target)) {
+                        // Prevent typing in locked cells
+                        if (e.key.length === 1) { // Only prevent printable characters
+                            e.preventDefault();
+                            this.preventEditAndBlink(e.target);
+                        }
+                    }
+                });
+
+                this.container.addEventListener('keydown', (e) => {
+                    this.handleKeydown(e);
+                });
+
+                this.container.addEventListener('focus', (e) => {
+                    if (e.target.classList.contains('cell')) {
+                        this.currentFocus = e.target;
+                        this.handleCellFocus(e.target);
+                    }
+                }, true);
+
+                this.container.addEventListener('blur', (e) => {
+                    if (!e.target.classList.contains('cell')) return;
+                    
+                    // Don't auto-lock during expansion to prevent the blur->lock issue
+                    if (this.isExpanding) return;
+                    
+                    // Only auto-lock if the cell has content and isn't already locked
+                    if ((e.target.classList.contains('command-cell') || e.target.classList.contains('param-key')) 
+                        && e.target.textContent.trim() 
+                        && !this.isLockedCell(e.target)) {
+                        this.lockCell(e.target);
+                    }
+                }, true);
+            }
+
+            handleKeydown(e) {
+                if (!this.currentFocus) return;
+
+                const cells = Array.from(this.container.querySelectorAll('.cell'));
+                const currentIndex = cells.indexOf(this.currentFocus);
+                const isLockedCell = this.isLockedCell(this.currentFocus);
+
+                switch (e.key) {
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.navigateUp(cells, currentIndex);
+                        break;
+                    
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.navigateDown(cells, currentIndex);
+                        break;
+                    
+                    case 'ArrowLeft':
+                        if (isLockedCell || this.getCursorPosition() === 0) {
+                            e.preventDefault();
+                            this.navigateLeft(cells, currentIndex);
+                        }
+                        break;
+                    
+                    case 'ArrowRight':
+                        if (isLockedCell || this.getCursorPosition() === this.currentFocus.textContent.length) {
+                            e.preventDefault();
+                            this.navigateRight(cells, currentIndex);
+                        }
+                        break;
+                    
+                    case 'Tab':
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            this.focusCell(cells, Math.max(0, currentIndex - 1));
+                        } else {
+                            this.focusCell(cells, Math.min(cells.length - 1, currentIndex + 1));
+                        }
+                        break;
+                    
+                    case 'Enter':
+                        e.preventDefault();
+                        if (isLockedCell) {
+                            // Unlock cell and enter edit mode
+                            this.unlockCell(this.currentFocus);
+                            this.enterEditMode(this.currentFocus);
+                        } else if (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key')) {
+                            // Lock cell but stay in place
+                            if (this.currentFocus.textContent.trim()) {
+                                this.lockCell(this.currentFocus);
+                                // Ensure text is selected to show blue background
+                                setTimeout(() => {
+                                    this.selectAllText(this.currentFocus);
+                                }, 0);
+                            }
+                        } else {
+                            // Regular navigation for param-value cells
+                            this.navigateDown(cells, currentIndex);
+                        }
+                        break;
+                        
+                    case 'Backspace':
+                    case 'Delete':
+                        if (isLockedCell) {
+                            e.preventDefault();
+                            this.unlockAndClearCell(this.currentFocus);
+                        }
+                        break;
+                }
+            }
+
+            navigateUp(cells, currentIndex) {
+                // Find cell above in same column
+                const currentCell = cells[currentIndex];
+                for (let i = currentIndex - 1; i >= 0; i--) {
+                    if (this.isInSameColumn(currentCell, cells[i])) {
+                        this.focusCell(cells, i);
+                        return;
+                    }
+                }
+            }
+
+            navigateDown(cells, currentIndex) {
+                // Find cell below in same column
+                const currentCell = cells[currentIndex];
+                for (let i = currentIndex + 1; i < cells.length; i++) {
+                    if (this.isInSameColumn(currentCell, cells[i])) {
+                        this.focusCell(cells, i);
+                        return;
+                    }
+                }
+            }
+
+            navigateLeft(cells, currentIndex) {
+                const currentCell = cells[currentIndex];
+                
+                // Special case: from any parameter key, go to the associated command cell
+                if (currentCell.classList.contains('param-key')) {
+                    const commandIndex = parseInt(currentCell.dataset.commandIndex);
+                    
+                    // Find the command cell for this command group
+                    const commandCell = cells.find(cell => 
+                        cell.classList.contains('command-cell') && 
+                        parseInt(cell.dataset.commandIndex) === commandIndex
+                    );
+                    
+                    if (commandCell) {
+                        const commandCellIndex = cells.indexOf(commandCell);
+                        this.focusCell(cells, commandCellIndex);
+                        return;
+                    }
+                }
+                
+                // Default behavior: Move to previous cell in same row
+                for (let i = currentIndex - 1; i >= 0; i--) {
+                    if (this.isInSameRow(currentCell, cells[i])) {
+                        this.focusCell(cells, i);
+                        return;
+                    }
+                }
+            }
+
+            navigateRight(cells, currentIndex) {
+                // Move to next cell in same row
+                const currentCell = cells[currentIndex];
+                for (let i = currentIndex + 1; i < cells.length; i++) {
+                    if (this.isInSameRow(currentCell, cells[i])) {
+                        this.focusCell(cells, i);
+                        return;
+                    }
+                }
+            }
+
+            isInSameColumn(cell1, cell2) {
+                // Simple heuristic: same class indicates same column
+                return (cell1.classList.contains('command-cell') && cell2.classList.contains('command-cell')) ||
+                       (cell1.classList.contains('param-key') && cell2.classList.contains('param-key')) ||
+                       (cell1.classList.contains('param-value') && cell2.classList.contains('param-value'));
+            }
+
+            isInSameRow(cell1, cell2) {
+                // Check if cells are in same table row
+                return cell1.closest('tr') === cell2.closest('tr');
+            }
+
+            focusCell(cells, index) {
+                if (index >= 0 && index < cells.length) {
+                    const cell = cells[index];
+                    cell.focus();
+                    this.currentFocus = cell;
+                    
+                    // Ensure proper selection for locked cells
+                    if (this.isLockedCell(cell)) {
+                        setTimeout(() => {
+                            this.selectAllText(cell);
+                        }, 0);
+                    }
+                }
+            }
+
+            getCursorPosition() {
+                const selection = window.getSelection();
+                return selection.anchorOffset;
+            }
+
+            saveCursorPosition() {
+                if (this.currentFocus) {
+                    this.cursorPosition = this.getCursorPosition();
+                }
+            }
+
+            restoreCursorPosition(cell) {
+                if (!cell) return;
+                
+                // Set cursor position
+                const range = document.createRange();
+                const textNode = cell.firstChild;
+                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                    const position = Math.min(this.cursorPosition, textNode.textContent.length);
+                    range.setStart(textNode, position);
+                    range.setEnd(textNode, position);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
+
+            handleCellInput(cell) {
+                const commandIndex = parseInt(cell.dataset.commandIndex);
+                const paramIndex = parseInt(cell.dataset.paramIndex);
+                
+                if (cell.classList.contains('command-cell')) {
+                    // Update command name
+                    this.commands[commandIndex].name = cell.textContent;
+                    
+                    // If this is the last command and now has content, ensure we have an empty command after it
+                    if (commandIndex === this.commands.length - 1 && cell.textContent.trim()) {
+                        this.isExpanding = true;
+                        this.commands.push({
+                            name: '',
+                            nameIsLocked: false,
+                            parameters: [
+                                { key: '', value: '', keyIsLocked: false }
+                            ]
+                        });
+                        this.render();
+                        this.restoreFocus();
+                        this.isExpanding = false;
+                    }
+                } else if (cell.classList.contains('param-key')) {
+                    // Update parameter key
+                    this.commands[commandIndex].parameters[paramIndex].key = cell.textContent;
+                    
+                    // If this is the last parameter and now has content, ensure we have an empty parameter after it
+                    const command = this.commands[commandIndex];
+                    if (paramIndex === command.parameters.length - 1 && cell.textContent.trim()) {
+                        this.isExpanding = true;
+                        command.parameters.push({ key: '', value: '', keyIsLocked: false });
+                        this.render();
+                        this.restoreFocus();
+                        this.isExpanding = false;
+                    }
+                } else if (cell.classList.contains('param-value')) {
+                    // Update parameter value
+                    this.commands[commandIndex].parameters[paramIndex].value = cell.textContent;
+                }
+            }
+
+            restoreFocus() {
+                // Find the cell that should have focus based on current position
+                if (this.currentFocus) {
+                    const commandIndex = this.currentFocus.dataset.commandIndex;
+                    const paramIndex = this.currentFocus.dataset.paramIndex;
+                    
+                    let selector;
+                    if (this.currentFocus.classList.contains('command-cell')) {
+                        selector = `[data-command-index="${commandIndex}"].command-cell`;
+                    } else if (this.currentFocus.classList.contains('param-key')) {
+                        selector = `[data-command-index="${commandIndex}"][data-param-index="${paramIndex}"].param-key`;
+                    } else {
+                        selector = `[data-command-index="${commandIndex}"][data-param-index="${paramIndex}"].param-value`;
+                    }
+                    
+                    const newCell = this.container.querySelector(selector);
+                    if (newCell) {
+                        newCell.focus();
+                        this.currentFocus = newCell;
+                        this.restoreCursorPosition(newCell);
+                    }
+                }
+            }
+
+            handleCellFocus(cell) {
+                if (this.isLockedCell(cell)) {
+                    // Select all text in locked cell to show blue background
+                    setTimeout(() => {
+                        this.selectAllText(cell);
+                    }, 0);
+                }
+            }
+
+            lockCell(cell) {
+                const commandIndex = parseInt(cell.dataset.commandIndex);
+                
+                if (cell.classList.contains('command-cell')) {
+                    this.commands[commandIndex].nameIsLocked = true;
+                } else if (cell.classList.contains('param-key')) {
+                    const paramIndex = parseInt(cell.dataset.paramIndex);
+                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = true;
+                }
+                
+                cell.classList.add('locked');
+                cell.style.userSelect = 'all';
+            }
+
+            unlockCell(cell) {
+                const commandIndex = parseInt(cell.dataset.commandIndex);
+                
+                if (cell.classList.contains('command-cell')) {
+                    this.commands[commandIndex].nameIsLocked = false;
+                } else if (cell.classList.contains('param-key')) {
+                    const paramIndex = parseInt(cell.dataset.paramIndex);
+                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = false;
+                }
+                
+                cell.classList.remove('locked');
+                cell.style.userSelect = '';
+            }
+
+            unlockAndClearCell(cell) {
+                const commandIndex = parseInt(cell.dataset.commandIndex);
+                
+                if (cell.classList.contains('command-cell')) {
+                    this.commands[commandIndex].name = '';
+                    this.commands[commandIndex].nameIsLocked = false;
+                } else if (cell.classList.contains('param-key')) {
+                    const paramIndex = parseInt(cell.dataset.paramIndex);
+                    this.commands[commandIndex].parameters[paramIndex].key = '';
+                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = false;
+                }
+                
+                cell.textContent = '';
+                cell.classList.remove('locked');
+                cell.style.userSelect = '';
+            }
+
+            enterEditMode(cell) {
+                // Place cursor at end of text for natural editing
+                setTimeout(() => {
+                    const range = document.createRange();
+                    const textNode = cell.firstChild;
+                    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                        range.setStart(textNode, textNode.textContent.length);
+                        range.setEnd(textNode, textNode.textContent.length);
+                    } else {
+                        range.selectNodeContents(cell);
+                        range.collapse(false); // Collapse to end
+                    }
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }, 0);
+            }
+
+            preventEditAndBlink(cell) {
+                // Add blink class and remove it after animation
+                cell.classList.add('blink');
+                setTimeout(() => {
+                    cell.classList.remove('blink');
+                }, 500);
+            }
+
+
+
+
+
+            isLockedCell(cell) {
+                if (!cell.classList.contains('command-cell') && !cell.classList.contains('param-key')) {
+                    return false;
+                }
+                
+                const commandIndex = parseInt(cell.dataset.commandIndex);
+                
+                if (cell.classList.contains('command-cell')) {
+                    return this.commands[commandIndex].nameIsLocked;
+                } else if (cell.classList.contains('param-key')) {
+                    const paramIndex = parseInt(cell.dataset.paramIndex);
+                    return this.commands[commandIndex].parameters[paramIndex].keyIsLocked;
+                }
+                
+                return false;
+            }
+
+            selectAllText(cell) {
+                const range = document.createRange();
+                range.selectNodeContents(cell);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+
+        // Initialize the grid
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('grid');
+            new RowspanGrid(grid);
+        });
+    </script>
+</body>
+</html> 

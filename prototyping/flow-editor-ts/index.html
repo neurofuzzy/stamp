@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowBuilder TypeScript Port - Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ff3300;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #858585;
+            font-size: 1.2em;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            max-height: calc(100vh - 140px);
+        }
+
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .editor-section {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+            min-height: 300px;
+        }
+
+        .editor-section h3 {
+            color: #cccc00;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .code-editor {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 60px;
+            font-family: inherit;
+            font-size: 16px;
+            line-height: 1.4;
+            color: #d4d4d4;
+            outline: none;
+            resize: vertical;
+            width: 100%;
+        }
+
+        .rendered-output {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 60px;
+            font-size: 16px;
+            line-height: 1.4;
+            margin-top: 10px;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .examples {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .examples h3 {
+            color: #66aaee;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .example {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .example:hover {
+            background: #2d2d30;
+            border-color: #007acc;
+        }
+
+        .example-title {
+            color: #9cdcfe;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .example-code {
+            color: #d4d4d4;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .status {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 15px;
+            height: fit-content;
+        }
+
+        .status h3 {
+            color: #dd8866;
+            margin-bottom: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .status-label {
+            color: #858585;
+        }
+
+        .status-value {
+            color: #d4d4d4;
+        }
+
+        .status-value.error {
+            color: #f48771;
+        }
+
+        .status-value.success {
+            color: #4fc1b9;
+        }
+
+        /* Flow Language Syntax Highlighting */
+        .flow-rendered span[data-context="0"] { color: #ff3300; } /* triggers */
+        .flow-rendered span[data-context="1"] { color: #cccc00; } /* conditions */
+        .flow-rendered span[data-context="2"] { color: #dd8866; } /* actions */
+        .flow-rendered span[data-context="3"] { color: #cc33cc; } /* contexts */
+        .flow-rendered span[data-context="4"] { color: #66aaee; } /* delays */
+        .flow-rendered span[data-context="5"] { color: #00cc99; } /* flowcontrol */
+        
+        .flow-rendered .error {
+            background-color: #5a1a1a;
+            color: #f48771;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FlowBuilder TypeScript Port</h1>
+        <p>Direct port of FlowBuilderArea.js with modern tooling</p>
+    </div>
+
+    <div class="container">
+        <div class="left-panel">
+            <div class="editor-section">
+                <h3>Flow Language Editor</h3>
+                <textarea id="codeInput" class="code-editor" 
+                          placeholder="Type your flow statements here...&#10;Example: ON collision THEN do goto player">ON collision THEN do goto player</textarea>
+                
+                <h4 style="color: #858585; margin: 15px 0 5px 0;">Rendered Output:</h4>
+                <div id="renderedOutput" class="rendered-output flow-rendered"></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="examples">
+                <h3>Example Flow Statements</h3>
+                
+                <div class="example" data-code="ON collision THEN do goto player">
+                    <div class="example-title">Basic Collision Response</div>
+                    <div class="example-code">ON collision THEN do goto player</div>
+                </div>
+
+                <div class="example" data-code="IF health > 10 THEN do changeHealth -5 ELSE do destroy">
+                    <div class="example-title">Conditional Health Check</div>
+                    <div class="example-code">IF health > 10 THEN do changeHealth -5 ELSE do destroy</div>
+                </div>
+
+                <div class="example" data-code="ON start THEN do create projectile">
+                    <div class="example-title">Create Projectile on Start</div>
+                    <div class="example-code">ON start THEN do create projectile</div>
+                </div>
+
+                <div class="example" data-code="IF playerHas key THEN do turnOn">
+                    <div class="example-title">Key-based Activation</div>
+                    <div class="example-code">IF playerHas key THEN do turnOn</div>
+                </div>
+
+                <div class="example" data-code="DO showText 'Hello Player!'">
+                    <div class="example-title">Display Text Message</div>
+                    <div class="example-code">DO showText "Hello Player!"</div>
+                </div>
+
+                <div class="example" data-code="WAIT 1000 THEN do teleportTo player">
+                    <div class="example-title">Delayed Teleport</div>
+                    <div class="example-code">WAIT 1000 THEN do teleportTo player</div>
+                </div>
+
+                <div class="example" data-code="ON nearIn THEN do watchB">
+                    <div class="example-title">Proximity Detection</div>
+                    <div class="example-code">ON nearIn THEN do watchB</div>
+                </div>
+            </div>
+
+            <div class="status">
+                <h3>Parse Status</h3>
+                <div class="status-item">
+                    <span class="status-label">Valid Syntax:</span>
+                    <span id="validStatus" class="status-value">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Error Word:</span>
+                    <span id="errorWord" class="status-value">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Context:</span>
+                    <span id="contextInfo" class="status-value">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Tests Passing:</span>
+                    <span class="status-value success">34/35 (97%)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./src/demo.js"></script>
+</body>
+</html> 
