@@ -76,7 +76,7 @@
         }
 
         .cell.locked:focus::selection {
-            background: #4fc3f7;
+            background: #006699;
             color: #ffffff;
         }
 
@@ -173,17 +173,17 @@
                                 rowspan="${paramCount}"
                                 contenteditable="true" 
                                 data-command-index="${commandIndex}"
-                                data-placeholder="${command.name ? command.name : 'Try: circle, rectangle, moveTo'}">${command.name}</td>
+                                data-placeholder="${command.name ? command.name : 'command...'}">${command.name}</td>
                             <td class="cell param-key ${command.parameters[0].keyIsLocked ? 'locked' : ''}" 
                                 contenteditable="true" 
                                 data-command-index="${commandIndex}"
                                 data-param-index="0"
-                                data-placeholder="${command.parameters[0].key ? command.parameters[0].key : 'radius, width, x, y...'}">${command.parameters[0].key}</td>
+                                data-placeholder="${command.parameters[0].key ? command.parameters[0].key : 'param...'}">${command.parameters[0].key}</td>
                             <td class="cell param-value" 
                                 contenteditable="true" 
                                 data-command-index="${commandIndex}"
                                 data-param-index="0"
-                                data-placeholder="${command.parameters[0].value ? command.parameters[0].value : '10, 100, 50...'}">${command.parameters[0].value}</td>
+                                data-placeholder="${command.parameters[0].value ? command.parameters[0].value : 'value...'}">${command.parameters[0].value}</td>
                         </tr>
                     `;
 
@@ -196,12 +196,12 @@
                                     contenteditable="true" 
                                     data-command-index="${commandIndex}"
                                     data-param-index="${paramIndex}"
-                                    data-placeholder="${param.key ? param.key : 'parameter name'}">${param.key}</td>
+                                    data-placeholder="${param.key ? param.key : 'param...'}">${param.key}</td>
                                 <td class="cell param-value" 
                                     contenteditable="true" 
                                     data-command-index="${commandIndex}"
                                     data-param-index="${paramIndex}"
-                                    data-placeholder="${param.value ? param.value : 'value'}">${param.value}</td>
+                                    data-placeholder="${param.value ? param.value : 'value...'}">${param.value}</td>
                             </tr>
                         `;
                     }
