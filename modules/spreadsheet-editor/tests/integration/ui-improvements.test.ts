@@ -61,10 +61,10 @@ describe('UI Improvements', () => {
       const commandCell = container.querySelector('[data-cell-type="command"]') as HTMLElement;
       
       view.showAutocomplete(commandCell, autocomplete);
-      expect(document.querySelector('.autocomplete-ghost')).toBeTruthy();
+      expect(document.querySelector('.autocomplete-overlay')).toBeTruthy();
       
       view.hideAutocomplete();
-      expect(document.querySelector('.autocomplete-ghost')).toBeFalsy();
+      expect(document.querySelector('.autocomplete-overlay')).toBeFalsy();
     });
 
     it('should handle empty autocomplete results gracefully', () => {
@@ -75,7 +75,7 @@ describe('UI Improvements', () => {
       const commandCell = container.querySelector('[data-cell-type="command"]') as HTMLElement;
       
       view.showAutocomplete(commandCell, autocomplete);
-      expect(document.querySelector('.autocomplete-ghost')).toBeFalsy();
+      expect(document.querySelector('.autocomplete-overlay')).toBeFalsy();
     });
   });
 

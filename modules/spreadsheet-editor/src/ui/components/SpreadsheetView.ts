@@ -182,53 +182,56 @@ export class SpreadsheetView {
     const completion = firstMatch.substring(currentText.length);
     
     if (completion) {
-      // Create simple absolute positioned ghost text
-      this.autocompleteElement = document.createElement('div');
-      this.autocompleteElement.className = 'autocomplete-ghost';
-      this.autocompleteElement.textContent = completion;
-      
-      // Position it after the current text
-      this.positionGhostText(cell, currentText);
-      
-      document.body.appendChild(this.autocompleteElement);
+      this.createOverlayGhostText(cell, currentText, completion);
     }
   }
 
-  private positionGhostText(cell: HTMLElement, currentText: string): void {
-    if (!this.autocompleteElement) return;
-    
+  private createOverlayGhostText(cell: HTMLElement, currentText: string, completion: string): void {
     const rect = cell.getBoundingClientRect();
     const styles = window.getComputedStyle(cell);
     
-    // Create invisible measuring element
-    const measure = document.createElement('span');
-    measure.style.cssText = `
-      position: absolute;
-      visibility: hidden;
-      white-space: pre;
-      font-family: ${styles.fontFamily};
-      font-size: ${styles.fontSize};
-      font-weight: ${styles.fontWeight};
-      padding: ${styles.paddingLeft};
-    `;
-    measure.textContent = currentText;
-    document.body.appendChild(measure);
+    // Create overlay div that exactly matches the cell
+    this.autocompleteElement = document.createElement('div');
+    this.autocompleteElement.className = 'autocomplete-overlay';
     
-    const textWidth = measure.getBoundingClientRect().width;
-    document.body.removeChild(measure);
-    
-    // Position ghost text
+    // Copy all relevant styles from the cell
     this.autocompleteElement.style.cssText = `
       position: fixed;
-      left: ${rect.left + parseInt(styles.paddingLeft) + textWidth}px;
-      top: ${rect.top + parseInt(styles.paddingTop)}px;
+      left: ${rect.left}px;
+      top: ${rect.top}px;
+      width: ${rect.width}px;
+      height: ${rect.height}px;
+      padding: ${styles.padding};
+      border: ${styles.border};
+      border-color: transparent;
       font-family: ${styles.fontFamily};
       font-size: ${styles.fontSize};
       font-weight: ${styles.fontWeight};
-      color: #999;
+      line-height: ${styles.lineHeight};
+      text-align: ${styles.textAlign};
+      white-space: ${styles.whiteSpace};
+      box-sizing: ${styles.boxSizing};
       pointer-events: none;
       z-index: 1000;
+      overflow: hidden;
     `;
+    
+    // Create invisible spacer span for current text
+    const spacerSpan = document.createElement('span');
+    spacerSpan.style.visibility = 'hidden';
+    spacerSpan.textContent = currentText;
+    
+    // Create visible ghost text span
+    const ghostSpan = document.createElement('span');
+    ghostSpan.className = 'ghost-completion';
+    ghostSpan.style.color = '#aaa';
+    ghostSpan.style.opacity = '0.8';
+    ghostSpan.textContent = completion;
+    
+    this.autocompleteElement.appendChild(spacerSpan);
+    this.autocompleteElement.appendChild(ghostSpan);
+    
+    document.body.appendChild(this.autocompleteElement);
   }
 
   hideAutocomplete(): void {

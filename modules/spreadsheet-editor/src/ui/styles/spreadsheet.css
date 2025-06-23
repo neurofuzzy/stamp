@@ -62,11 +62,14 @@
 }
 
 /* Autocomplete Styles */
-.autocomplete-ghost {
+.autocomplete-overlay {
   position: fixed;
-  color: #aaa !important;
   pointer-events: none;
   user-select: none;
   z-index: 1000;
+}
+
+.ghost-completion {
+  color: #aaa;
   opacity: 0.8;
 } 
