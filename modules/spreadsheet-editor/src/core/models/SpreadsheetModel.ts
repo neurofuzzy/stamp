@@ -1,13 +1,15 @@
-import type { Command, Parameter, FocusPosition, SpreadsheetState, SpreadsheetConfig } from '@core/types';
+import type { Command, Parameter, FocusPosition, SpreadsheetState, SpreadsheetConfig, DSLProvider, AutocompleteResult } from '@core/types';
 
 export class SpreadsheetModel implements SpreadsheetState {
   commands: Command[];
   focusPosition: FocusPosition;
   cursorPosition: number;
   private config: SpreadsheetConfig;
+  private dsl?: DSLProvider;
 
   constructor(config: SpreadsheetConfig = {}) {
     this.config = { autoExpand: true, lockOnBlur: true, ...config };
+    this.dsl = config.dsl;
     this.commands = config.initialCommands || [this.createEmptyCommand()];
     this.focusPosition = { commandIndex: 0, paramIndex: 0, cellType: 'command' };
     this.cursorPosition = 0;
@@ -136,6 +138,53 @@ export class SpreadsheetModel implements SpreadsheetState {
 
   getCursorPosition(): number {
     return this.cursorPosition;
+  }
+
+  // DSL-related methods
+  getAutocompleteForCommand(input: string): AutocompleteResult {
+    if (!this.dsl) {
+      return { matches: [], prefix: input, hasMatches: false };
+    }
+
+    const matches = (this.dsl as any).findCommandMatches ? 
+      (this.dsl as any).findCommandMatches(input) : 
+      this.dsl.getValidCommands().filter(cmd => 
+        cmd.toLowerCase().startsWith(input.toLowerCase())
+      );
+
+    return {
+      matches,
+      prefix: input,
+      hasMatches: matches.length > 0
+    };
+  }
+
+  getAutocompleteForParameter(commandName: string, input: string): AutocompleteResult {
+    if (!this.dsl) {
+      return { matches: [], prefix: input, hasMatches: false };
+    }
+
+    const matches = (this.dsl as any).findParameterMatches ? 
+      (this.dsl as any).findParameterMatches(commandName, input) : 
+      this.dsl.getValidParameters(commandName).filter(param => 
+        param.toLowerCase().startsWith(input.toLowerCase())
+      );
+
+    return {
+      matches,
+      prefix: input,
+      hasMatches: matches.length > 0
+    };
+  }
+
+  completeCurrentInput(completion: string): void {
+    const { commandIndex, paramIndex, cellType } = this.focusPosition;
+    
+    if (cellType === 'command') {
+      this.commands[commandIndex].name = completion;
+    } else if (cellType === 'param-key') {
+      this.commands[commandIndex].parameters[paramIndex].key = completion;
+    }
   }
 
   // Serialization

@@ -1,10 +1,11 @@
 import { SpreadsheetModel } from '@core/models/SpreadsheetModel';
 import { SpreadsheetView } from '@ui/components/SpreadsheetView';
 import { SpreadsheetController } from '@ui/components/SpreadsheetController';
+import { StampDSL } from '@core/services/StampDSL';
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🚀 Stamp Spreadsheet Editor - TypeScript Module');
+  console.log('🚀 Stamp Spreadsheet Editor - TypeScript Module with DSL');
   
   const gridElement = document.getElementById('grid');
   if (!gridElement) {
@@ -12,10 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
   
-  // Create model with configuration
+  // Create DSL provider
+  const dsl = new StampDSL();
+  
+  // Create model with DSL configuration
   const model = new SpreadsheetModel({
     autoExpand: true,
-    lockOnBlur: true
+    lockOnBlur: true,
+    dsl: dsl
   });
   
   // Create view
@@ -24,8 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create controller (handles all events and coordination)
   const controller = new SpreadsheetController(model, view);
   
-  console.log('✅ Spreadsheet Editor initialized with MVC pattern');
+  console.log('✅ Spreadsheet Editor initialized with MVC pattern and DSL autocomplete');
+  console.log('💡 Available commands:', dsl.getValidCommands());
   
   // Expose for debugging
-  (window as any).stampEditor = { model, view, controller };
+  (window as any).stampEditor = { model, view, controller, dsl };
 }); 

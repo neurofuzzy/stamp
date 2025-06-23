@@ -23,7 +23,26 @@ export interface SpreadsheetState {
 }
 
 export interface SpreadsheetConfig {
-  initialCommands?: Command[];
   autoExpand?: boolean;
   lockOnBlur?: boolean;
+  initialCommands?: Command[];
+  dsl?: DSLProvider;
+}
+
+// DSL Support
+export interface DSLCommand {
+  name: string;
+  parameters: string[];
+}
+
+export interface DSLProvider {
+  getValidCommands(): string[];
+  getValidParameters(commandName: string): string[];
+  getAllCommands(): DSLCommand[];
+}
+
+export interface AutocompleteResult {
+  matches: string[];
+  prefix: string;
+  hasMatches: boolean;
 } 

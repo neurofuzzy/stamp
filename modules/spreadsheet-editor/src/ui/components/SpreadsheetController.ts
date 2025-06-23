@@ -72,14 +72,34 @@ export class SpreadsheetController {
 
         if (cellType === 'command') {
             shouldExpand = this.model.updateCommandName(commandIndex, content);
+            // Show autocomplete for commands
+            this.showAutocompleteForCommand(cell, content);
         } else if (cellType === 'param-key') {
             shouldExpand = this.model.updateParameterKey(commandIndex, paramIndex, content);
+            // Show autocomplete for parameters
+            this.showAutocompleteForParameter(cell, commandIndex, content);
         } else if (cellType === 'param-value') {
             this.model.updateParameterValue(commandIndex, paramIndex, content);
+            this.view.hideAutocomplete();
         }
 
         if (shouldExpand) {
             this.expandAndRender(cellType, commandIndex);
+        }
+    }
+
+    private showAutocompleteForCommand(cell: HTMLElement, input: string): void {
+        const autocomplete = this.model.getAutocompleteForCommand(input);
+        this.view.showAutocomplete(cell, autocomplete);
+    }
+
+    private showAutocompleteForParameter(cell: HTMLElement, commandIndex: number, input: string): void {
+        const commandName = this.model.commands[commandIndex].name;
+        if (commandName) {
+            const autocomplete = this.model.getAutocompleteForParameter(commandName, input);
+            this.view.showAutocomplete(cell, autocomplete);
+        } else {
+            this.view.hideAutocomplete();
         }
     }
 
@@ -124,6 +144,9 @@ export class SpreadsheetController {
         if ((cellType === 'command' || cellType === 'param-key') && hasContent && !isLocked) {
             this.lockCell(cell);
         }
+
+        // Hide autocomplete when losing focus
+        this.view.hideAutocomplete();
     }
 
     private lockCell(cell: HTMLElement): void {
@@ -150,19 +173,33 @@ export class SpreadsheetController {
         const isLocked = this.view.isLockedCell(cell, this.model);
 
         switch (e.key) {
+            case 'Tab':
+                e.preventDefault();
+                if (this.handleTabCompletion(cell)) {
+                    // Tab completion handled
+                    return;
+                } else {
+                    // Regular tab navigation
+                    this.navigateTab(cells, currentIndex, e.shiftKey);
+                }
+                break;
+                
             case 'ArrowUp':
                 e.preventDefault();
+                this.view.hideAutocomplete();
                 this.navigateUp(cells, currentIndex);
                 break;
             
             case 'ArrowDown':
                 e.preventDefault();
+                this.view.hideAutocomplete();
                 this.navigateDown(cells, currentIndex);
                 break;
             
             case 'ArrowLeft':
                 if (isLocked || this.view.getCurrentCursorPosition(cell) === 0) {
                     e.preventDefault();
+                    this.view.hideAutocomplete();
                     this.navigateLeft(cells, currentIndex);
                 }
                 break;
@@ -170,17 +207,14 @@ export class SpreadsheetController {
             case 'ArrowRight':
                 if (isLocked || this.view.getCurrentCursorPosition(cell) === (cell.textContent || '').length) {
                     e.preventDefault();
+                    this.view.hideAutocomplete();
                     this.navigateRight(cells, currentIndex);
                 }
                 break;
             
-            case 'Tab':
-                e.preventDefault();
-                this.navigateTab(cells, currentIndex, e.shiftKey);
-                break;
-            
             case 'Enter':
                 e.preventDefault();
+                this.view.hideAutocomplete();
                 this.handleEnterKey(cell);
                 break;
                 
@@ -191,10 +225,43 @@ export class SpreadsheetController {
                     this.clearAndUnlockCell(cell);
                 }
                 break;
+
+            case 'Escape':
+                this.view.hideAutocomplete();
+                break;
         }
     }
 
-    private navigateUp(cells: HTMLElement[], currentIndex: number): void {
+    private handleTabCompletion(cell: HTMLElement): boolean {
+        const cellType = cell.dataset.cellType!;
+        const content = cell.textContent || '';
+
+        if (cellType === 'command') {
+            const autocomplete = this.model.getAutocompleteForCommand(content);
+            if (autocomplete.hasMatches) {
+                this.model.completeCurrentInput(autocomplete.matches[0]);
+                this.render();
+                this.view.focusCell(this.model);
+                return true;
+            }
+        } else if (cellType === 'param-key') {
+            const commandIndex = parseInt(cell.dataset.commandIndex!);
+            const commandName = this.model.commands[commandIndex].name;
+            if (commandName) {
+                const autocomplete = this.model.getAutocompleteForParameter(commandName, content);
+                if (autocomplete.hasMatches) {
+                    this.model.completeCurrentInput(autocomplete.matches[0]);
+                    this.render();
+                    this.view.focusCell(this.model);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private navigateUp(_cells: HTMLElement[], _currentIndex: number): void {
         const currentFocus = this.model.getFocus();
         const { commandIndex, paramIndex, cellType } = currentFocus;
 
@@ -218,7 +285,7 @@ export class SpreadsheetController {
         this.view.focusCell(this.model);
     }
 
-    private navigateDown(cells: HTMLElement[], currentIndex: number): void {
+    private navigateDown(_cells: HTMLElement[], _currentIndex: number): void {
         const currentFocus = this.model.getFocus();
         const { commandIndex, paramIndex, cellType } = currentFocus;
 
@@ -241,7 +308,7 @@ export class SpreadsheetController {
         this.view.focusCell(this.model);
     }
 
-    private navigateLeft(cells: HTMLElement[], currentIndex: number): void {
+    private navigateLeft(_cells: HTMLElement[], _currentIndex: number): void {
         const currentFocus = this.model.getFocus();
         const { commandIndex, paramIndex, cellType } = currentFocus;
 
@@ -256,7 +323,7 @@ export class SpreadsheetController {
         this.view.focusCell(this.model);
     }
 
-    private navigateRight(cells: HTMLElement[], currentIndex: number): void {
+    private navigateRight(_cells: HTMLElement[], _currentIndex: number): void {
         const currentFocus = this.model.getFocus();
         const { commandIndex, paramIndex, cellType } = currentFocus;
 
