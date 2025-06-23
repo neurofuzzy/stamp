@@ -5,6 +5,7 @@ export class SpreadsheetController {
     private model: SpreadsheetModel;
     private view: SpreadsheetView;
     private isExpanding: boolean = false;
+    private justCleared: boolean = false; // Prevent re-locking after clear
 
     constructor(model: SpreadsheetModel, view: SpreadsheetView) {
         this.model = model;
@@ -66,7 +67,7 @@ export class SpreadsheetController {
         const commandIndex = parseInt(cell.dataset.commandIndex!);
         const paramIndex = parseInt(cell.dataset.paramIndex!) || 0;
         const cellType = cell.dataset.cellType!;
-        const content = cell.textContent || '';
+        const content = cell.textContent || ''; // Back to simple textContent
 
         let shouldExpand = false;
 
@@ -135,14 +136,20 @@ export class SpreadsheetController {
     }
 
     private handleCellBlur(cell: HTMLElement): void {
-        if (this.isExpanding) return;
+        if (this.isExpanding || this.justCleared) return;
         
         const cellType = cell.dataset.cellType!;
         const hasContent = (cell.textContent || '').trim() !== '';
         const isLocked = this.view.isLockedCell(cell, this.model);
         
-        if ((cellType === 'command' || cellType === 'param-key') && hasContent && !isLocked) {
-            this.lockCell(cell);
+        if (cellType === 'command' || cellType === 'param-key') {
+            if (hasContent && !isLocked) {
+                // Cell has content and is not locked -> lock it
+                this.lockCell(cell);
+            } else if (!hasContent && isLocked) {
+                // Cell is empty and is locked -> unlock it
+                this.unlockCell(cell);
+            }
         }
 
         // Hide autocomplete when losing focus
@@ -234,11 +241,12 @@ export class SpreadsheetController {
 
     private handleTabCompletion(cell: HTMLElement): boolean {
         const cellType = cell.dataset.cellType!;
-        const content = cell.textContent || '';
+        const currentText = cell.textContent || ''; // Simple textContent
 
         if (cellType === 'command') {
-            const autocomplete = this.model.getAutocompleteForCommand(content);
+            const autocomplete = this.model.getAutocompleteForCommand(currentText);
             if (autocomplete.hasMatches) {
+                this.view.hideAutocomplete(); // Clean up ghost text first
                 this.model.completeCurrentInput(autocomplete.matches[0]);
                 this.render();
                 this.view.focusCell(this.model);
@@ -248,8 +256,9 @@ export class SpreadsheetController {
             const commandIndex = parseInt(cell.dataset.commandIndex!);
             const commandName = this.model.commands[commandIndex].name;
             if (commandName) {
-                const autocomplete = this.model.getAutocompleteForParameter(commandName, content);
+                const autocomplete = this.model.getAutocompleteForParameter(commandName, currentText);
                 if (autocomplete.hasMatches) {
+                    this.view.hideAutocomplete(); // Clean up ghost text first
                     this.model.completeCurrentInput(autocomplete.matches[0]);
                     this.render();
                     this.view.focusCell(this.model);
@@ -389,15 +398,49 @@ export class SpreadsheetController {
         const commandIndex = parseInt(cell.dataset.commandIndex!);
         const cellType = cell.dataset.cellType!;
         
+        // Set flag to prevent blur from re-locking
+        this.justCleared = true;
+        
         if (cellType === 'command') {
             this.model.clearCommand(commandIndex);
+            this.model.unlockCommand(commandIndex); // Ensure it's unlocked in model
         } else if (cellType === 'param-key') {
             const paramIndex = parseInt(cell.dataset.paramIndex!);
             this.model.clearParameter(commandIndex, paramIndex);
+            this.model.unlockParameter(commandIndex, paramIndex); // Ensure it's unlocked in model
         }
         
+        // Render with unlocked state
         this.render();
-        this.view.focusCell(this.model);
+        
+        // Focus the cell and ensure it's ready for editing
+        setTimeout(() => {
+            this.view.focusCell(this.model);
+            const newCell = this.getCurrentCell();
+            if (newCell) {
+                this.view.setCursorToEnd(newCell);
+            }
+            // Clear the flag after focus cycle is complete
+            setTimeout(() => {
+                this.justCleared = false;
+            }, 10);
+        }, 0);
+    }
+
+    private getCurrentCell(): HTMLElement | null {
+        const focus = this.model.getFocus();
+        const selector = this.buildCellSelector(focus);
+        return this.view.container.querySelector(selector) as HTMLElement;
+    }
+
+    private buildCellSelector(focus: { commandIndex: number; paramIndex: number; cellType: string }): string {
+        const { commandIndex, paramIndex, cellType } = focus;
+        
+        if (cellType === 'command') {
+            return `[data-command-index="${commandIndex}"][data-cell-type="command"]`;
+        } else {
+            return `[data-command-index="${commandIndex}"][data-param-index="${paramIndex}"][data-cell-type="${cellType}"]`;
+        }
     }
 
     private render(): void {

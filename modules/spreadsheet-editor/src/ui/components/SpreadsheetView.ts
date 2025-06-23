@@ -120,6 +120,24 @@ export class SpreadsheetView {
     selection?.addRange(range);
   }
 
+  setCursorToEnd(cell: HTMLElement): void {
+    const range = document.createRange();
+    const textNode = cell.firstChild;
+    
+    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+      const length = textNode.textContent?.length || 0;
+      range.setStart(textNode, length);
+      range.setEnd(textNode, length);
+    } else {
+      range.selectNodeContents(cell);
+      range.collapse(false);
+    }
+    
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }
+
   isLockedCell(cell: HTMLElement, model: SpreadsheetModel): boolean {
     const commandIndex = parseInt(cell.dataset.commandIndex || '0');
     const cellType = cell.dataset.cellType;
@@ -164,27 +182,53 @@ export class SpreadsheetView {
     const completion = firstMatch.substring(currentText.length);
     
     if (completion) {
-      // Create ghost text element
-      this.autocompleteElement = document.createElement('span');
+      // Create simple absolute positioned ghost text
+      this.autocompleteElement = document.createElement('div');
       this.autocompleteElement.className = 'autocomplete-ghost';
       this.autocompleteElement.textContent = completion;
-      this.autocompleteElement.style.cssText = `
-        position: absolute;
-        color: #666;
-        pointer-events: none;
-        font-family: inherit;
-        font-size: inherit;
-      `;
       
       // Position it after the current text
-      const rect = cell.getBoundingClientRect();
-      const textWidth = this.getTextWidth(currentText, cell);
-      
-      this.autocompleteElement.style.left = `${rect.left + textWidth}px`;
-      this.autocompleteElement.style.top = `${rect.top}px`;
+      this.positionGhostText(cell, currentText);
       
       document.body.appendChild(this.autocompleteElement);
     }
+  }
+
+  private positionGhostText(cell: HTMLElement, currentText: string): void {
+    if (!this.autocompleteElement) return;
+    
+    const rect = cell.getBoundingClientRect();
+    const styles = window.getComputedStyle(cell);
+    
+    // Create invisible measuring element
+    const measure = document.createElement('span');
+    measure.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      white-space: pre;
+      font-family: ${styles.fontFamily};
+      font-size: ${styles.fontSize};
+      font-weight: ${styles.fontWeight};
+      padding: ${styles.paddingLeft};
+    `;
+    measure.textContent = currentText;
+    document.body.appendChild(measure);
+    
+    const textWidth = measure.getBoundingClientRect().width;
+    document.body.removeChild(measure);
+    
+    // Position ghost text
+    this.autocompleteElement.style.cssText = `
+      position: fixed;
+      left: ${rect.left + parseInt(styles.paddingLeft) + textWidth}px;
+      top: ${rect.top + parseInt(styles.paddingTop)}px;
+      font-family: ${styles.fontFamily};
+      font-size: ${styles.fontSize};
+      font-weight: ${styles.fontWeight};
+      color: #999;
+      pointer-events: none;
+      z-index: 1000;
+    `;
   }
 
   hideAutocomplete(): void {
@@ -199,11 +243,5 @@ export class SpreadsheetView {
       autocomplete.matches[0] : null;
   }
 
-  private getTextWidth(text: string, element: HTMLElement): number {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d')!;
-    const styles = window.getComputedStyle(element);
-    context.font = `${styles.fontSize} ${styles.fontFamily}`;
-    return context.measureText(text).width;
-  }
+
 } 

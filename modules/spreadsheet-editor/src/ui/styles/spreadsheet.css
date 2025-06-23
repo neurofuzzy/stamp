@@ -63,12 +63,10 @@
 
 /* Autocomplete Styles */
 .autocomplete-ghost {
-  position: absolute;
-  color: #999 !important;
+  position: fixed;
+  color: #aaa !important;
   pointer-events: none;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
+  user-select: none;
   z-index: 1000;
-  opacity: 0.6;
+  opacity: 0.8;
 } 
