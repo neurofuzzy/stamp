@@ -204,11 +204,15 @@ export class SpreadsheetController {
                 this.model.setFocus(commandIndex - 1, 0, 'command');
             }
         } else {
-            // From param cell, go to previous param or command
+            // From param cell, go to previous param in same command OR previous command's last param
             if (paramIndex > 0) {
+                // Go to previous parameter in same command
                 this.model.setFocus(commandIndex, paramIndex - 1, cellType);
-            } else {
-                this.model.setFocus(commandIndex, 0, 'command');
+            } else if (commandIndex > 0) {
+                // Go to previous command's last parameter (same cell type)
+                const prevCommand = this.model.commands[commandIndex - 1];
+                const lastParamIndex = prevCommand.parameters.length - 1;
+                this.model.setFocus(commandIndex - 1, lastParamIndex, cellType);
             }
         }
         this.view.focusCell(this.model);
@@ -224,12 +228,14 @@ export class SpreadsheetController {
                 this.model.setFocus(commandIndex + 1, 0, 'command');
             }
         } else {
-            // From param cell, go to next param or next command
+            // From param cell, go to next param in same command OR next command's first param
             const currentCommand = this.model.commands[commandIndex];
             if (paramIndex < currentCommand.parameters.length - 1) {
+                // Go to next parameter in same command
                 this.model.setFocus(commandIndex, paramIndex + 1, cellType);
             } else if (commandIndex < this.model.commands.length - 1) {
-                this.model.setFocus(commandIndex + 1, 0, 'command');
+                // Go to next command's first parameter (same cell type)
+                this.model.setFocus(commandIndex + 1, 0, cellType);
             }
         }
         this.view.focusCell(this.model);
@@ -240,10 +246,13 @@ export class SpreadsheetController {
         const { commandIndex, paramIndex, cellType } = currentFocus;
 
         if (cellType === 'param-value') {
+            // From param-value, go to param-key in same row
             this.model.setFocus(commandIndex, paramIndex, 'param-key');
-        } else if (cellType === 'param-key' && paramIndex === 0) {
+        } else if (cellType === 'param-key') {
+            // From any param-key, go to command
             this.model.setFocus(commandIndex, 0, 'command');
         }
+        // From command, do nothing (already leftmost)
         this.view.focusCell(this.model);
     }
 
@@ -252,10 +261,13 @@ export class SpreadsheetController {
         const { commandIndex, paramIndex, cellType } = currentFocus;
 
         if (cellType === 'command') {
+            // From command, go to first param-key
             this.model.setFocus(commandIndex, 0, 'param-key');
         } else if (cellType === 'param-key') {
+            // From param-key, go to param-value in same row
             this.model.setFocus(commandIndex, paramIndex, 'param-value');
         }
+        // From param-value, do nothing (already rightmost)
         this.view.focusCell(this.model);
     }
 
