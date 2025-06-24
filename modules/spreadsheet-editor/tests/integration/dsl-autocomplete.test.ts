@@ -1,15 +1,29 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SpreadsheetModel } from '@core/models/SpreadsheetModel';
+import { SpreadsheetEditorState } from '@core/state/SpreadsheetState';
 import { StampDSL } from '@core/services/StampDSL';
 
 describe('DSL Autocomplete Integration', () => {
   let model: SpreadsheetModel;
+  let state: SpreadsheetEditorState;
   let dsl: StampDSL;
 
   beforeEach(() => {
     dsl = new StampDSL();
     model = new SpreadsheetModel({ dsl });
+    state = new SpreadsheetEditorState();
   });
+
+  // Helper function to simulate completion like the controller does
+  const completeCurrentInput = (completion: string) => {
+    const { commandIndex, paramIndex, cellType } = state.getFocus();
+    
+    if (cellType === 'command') {
+      model.updateCommandName(commandIndex, completion);
+    } else if (cellType === 'param-key') {
+      model.updateParameterKey(commandIndex, paramIndex, completion);
+    }
+  };
 
   describe('Command Autocomplete', () => {
     it('should return matches for partial command input', () => {
@@ -61,11 +75,12 @@ describe('DSL Autocomplete Integration', () => {
 
   describe('Tab Completion', () => {
     it('should complete command input', () => {
-      // Set up a command with partial input
+      // Set up a command with partial input and focus
       model.updateCommandName(0, 'cir');
+      state.setFocus(0, 0, 'command');
       
-      // Test completion
-      model.completeCurrentInput('circle');
+      // Test completion using our helper function
+      completeCurrentInput('circle');
       
       expect(model.commands[0].name).toBe('circle');
     });
@@ -73,11 +88,11 @@ describe('DSL Autocomplete Integration', () => {
     it('should complete parameter input', () => {
       // Set up a command and parameter
       model.updateCommandName(0, 'circle');
-      model.setFocus(0, 0, 'param-key');
+      state.setFocus(0, 0, 'param-key');
       model.updateParameterKey(0, 0, 'rad');
       
-      // Test completion  
-      model.completeCurrentInput('radius');
+      // Test completion using our helper function
+      completeCurrentInput('radius');
       
       expect(model.commands[0].parameters[0].key).toBe('radius');
     });

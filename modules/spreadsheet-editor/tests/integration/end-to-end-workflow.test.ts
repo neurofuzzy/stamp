@@ -1,15 +1,29 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SpreadsheetModel } from '@core/models/SpreadsheetModel';
+import { SpreadsheetEditorState } from '@core/state/SpreadsheetState';
 import { StampDSL } from '@core/services/StampDSL';
 
 describe('End-to-End DSL Workflow', () => {
   let model: SpreadsheetModel;
+  let state: SpreadsheetEditorState;
   let dsl: StampDSL;
 
   beforeEach(() => {
     dsl = new StampDSL();
     model = new SpreadsheetModel({ dsl });
+    state = new SpreadsheetEditorState();
   });
+
+  // Helper function to simulate completion like the controller does
+  const completeCurrentInput = (completion: string) => {
+    const { commandIndex, paramIndex, cellType } = state.getFocus();
+    
+    if (cellType === 'command') {
+      model.updateCommandName(commandIndex, completion);
+    } else if (cellType === 'param-key') {
+      model.updateParameterKey(commandIndex, paramIndex, completion);
+    }
+  };
 
   it('should support complete DSL workflow: type, autocomplete, tab-complete, navigate', () => {
     // Start with empty spreadsheet
@@ -25,7 +39,8 @@ describe('End-to-End DSL Workflow', () => {
     expect(commandAutocomplete.matches).toContain('circle');
 
     // 3. Tab-complete the command
-    model.completeCurrentInput('circle');
+    state.setFocus(0, 0, 'command');
+    completeCurrentInput('circle');
     expect(model.commands[0].name).toBe('circle');
     expect(model.commands[0].nameIsLocked).toBe(false);
 
@@ -34,7 +49,7 @@ describe('End-to-End DSL Workflow', () => {
     expect(model.commands[0].nameIsLocked).toBe(true);
 
     // 5. Navigate to parameter and type partial
-    model.setFocus(0, 0, 'param-key');
+    state.setFocus(0, 0, 'param-key');
     model.updateParameterKey(0, 0, 'rad');
 
     // 6. Get parameter autocomplete
@@ -43,24 +58,24 @@ describe('End-to-End DSL Workflow', () => {
     expect(paramAutocomplete.matches).toContain('radius');
 
     // 7. Tab-complete the parameter
-    model.completeCurrentInput('radius');
+    completeCurrentInput('radius');
     expect(model.commands[0].parameters[0].key).toBe('radius');
 
     // 8. Lock parameter and add value
     model.lockParameter(0, 0);
-    model.setFocus(0, 0, 'param-value');
+    state.setFocus(0, 0, 'param-value');
     model.updateParameterValue(0, 0, '10');
     expect(model.commands[0].parameters[0].value).toBe('10');
 
     // 9. Add second parameter (expand first)
     model.expandParameters(0);  // Ensure second parameter exists
-    model.setFocus(0, 1, 'param-key');
+    state.setFocus(0, 1, 'param-key');
     model.updateParameterKey(0, 1, 'inner');
     
     const innerAutocomplete = model.getAutocompleteForParameter('circle', 'inner');
     expect(innerAutocomplete.matches).toContain('innerRadius');
     
-    model.completeCurrentInput('innerRadius');
+    completeCurrentInput('innerRadius');
     expect(model.commands[0].parameters[1].key).toBe('innerRadius');
 
     // 10. Verify final state

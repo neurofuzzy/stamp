@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual TAB Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test-area { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+        .instructions { background: #f9f9f9; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Manual TAB Completion Test</h1>
+    
+    <div class="instructions">
+        <h3>Test Steps:</h3>
+        <ol>
+            <li>Type "circle" in command cell → TAB</li>
+            <li>Type "ra" in parameter cell → TAB</li>
+            <li>Should complete to "radius" and advance</li>
+        </ol>
+    </div>
+    
+    <div class="test-area">
+        <div id="container"></div>
+    </div>
+    
+    <div class="instructions">
+        <h3>Debug Info:</h3>
+        <div id="debug"></div>
+    </div>
+
+    <script type="module">
+        import { SpreadsheetController } from './src/ui/controllers/SpreadsheetController.js';
+        import { SpreadsheetModel } from './src/core/models/SpreadsheetModel.js';
+        import { SpreadsheetView } from './src/ui/views/SpreadsheetView.js';
+        import { StampDSL } from './src/core/services/StampDSL.js';
+
+        const container = document.getElementById('container');
+        const debug = document.getElementById('debug');
+        
+        const dsl = new StampDSL();
+        const model = new SpreadsheetModel({ dsl });
+        const view = new SpreadsheetView(container);
+        const controller = new SpreadsheetController(model, view);
+
+        // Debug logging
+        const originalUpdateCommand = model.updateCommandName.bind(model);
+        model.updateCommandName = function(index, name) {
+            const result = originalUpdateCommand(index, name);
+            debug.innerHTML += `<div>updateCommandName(${index}, "${name}") → expand: ${result}</div>`;
+            return result;
+        };
+
+        const originalUpdateParam = model.updateParameterKey.bind(model);
+        model.updateParameterKey = function(cmdIndex, paramIndex, key) {
+            const result = originalUpdateParam(cmdIndex, paramIndex, key);
+            debug.innerHTML += `<div>updateParameterKey(${cmdIndex}, ${paramIndex}, "${key}") → expand: ${result}</div>`;
+            return result;
+        };
+
+        // Debug TAB events
+        container.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                const cell = e.target;
+                const cellType = cell.dataset.cellType;
+                const content = cell.textContent;
+                debug.innerHTML += `<div><strong>TAB pressed:</strong> ${cellType} = "${content}"</div>`;
+                
+                if (cellType === 'param-key') {
+                    const commandIndex = parseInt(cell.dataset.commandIndex);
+                    const commandName = model.commands[commandIndex].name;
+                    debug.innerHTML += `<div>Command name: "${commandName}"</div>`;
+                    
+                    const hasMatch = model.hasValidAutocompleteMatch(cellType, commandIndex, content);
+                    debug.innerHTML += `<div>hasValidAutocompleteMatch: ${hasMatch}</div>`;
+                    
+                    if (commandName) {
+                        const autocomplete = model.getAutocompleteForParameter(commandName, content);
+                        debug.innerHTML += `<div>Autocomplete: ${JSON.stringify(autocomplete)}</div>`;
+                    }
+                }
+            }
+        });
+
+        debug.innerHTML = '<div>Ready for testing...</div>';
+    </script>
+</body>
+</html> 

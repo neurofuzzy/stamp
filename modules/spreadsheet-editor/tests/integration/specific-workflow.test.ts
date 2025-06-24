@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SpreadsheetModel } from '@core/models/SpreadsheetModel';
-import { SpreadsheetView } from '@ui/components/SpreadsheetView';
-import { SpreadsheetController } from '@ui/components/SpreadsheetController';
+import { SpreadsheetView } from '@ui/views/SpreadsheetView';
+import { SpreadsheetController } from '@ui/controllers/SpreadsheetController';
 import { StampDSL } from '@core/services/StampDSL';
 
 describe('Specific Workflow: Type, Enter, Backspace', () => {

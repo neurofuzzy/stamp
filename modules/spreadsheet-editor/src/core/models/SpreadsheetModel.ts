@@ -1,9 +1,7 @@
-import type { Command, Parameter, FocusPosition, SpreadsheetState, SpreadsheetConfig, DSLProvider, AutocompleteResult } from '@core/types';
+import type { Command, Parameter, SpreadsheetData, SpreadsheetConfig, DSLProvider, AutocompleteResult } from '@core/types';
 
-export class SpreadsheetModel implements SpreadsheetState {
+export class SpreadsheetModel implements SpreadsheetData {
   commands: Command[];
-  focusPosition: FocusPosition;
-  cursorPosition: number;
   private config: SpreadsheetConfig;
   private dsl?: DSLProvider;
 
@@ -11,8 +9,6 @@ export class SpreadsheetModel implements SpreadsheetState {
     this.config = { autoExpand: true, lockOnBlur: true, ...config };
     this.dsl = config.dsl;
     this.commands = config.initialCommands || [this.createEmptyCommand()];
-    this.focusPosition = { commandIndex: 0, paramIndex: 0, cellType: 'command' };
-    this.cursorPosition = 0;
   }
 
   createEmptyCommand(): Command {
@@ -123,23 +119,6 @@ export class SpreadsheetModel implements SpreadsheetState {
     return this.commands[commandIndex]?.parameters[paramIndex]?.keyIsLocked || false;
   }
 
-  // Focus management
-  setFocus(commandIndex: number, paramIndex: number, cellType: FocusPosition['cellType']): void {
-    this.focusPosition = { commandIndex, paramIndex, cellType };
-  }
-
-  getFocus(): FocusPosition {
-    return { ...this.focusPosition };
-  }
-
-  setCursorPosition(position: number): void {
-    this.cursorPosition = position;
-  }
-
-  getCursorPosition(): number {
-    return this.cursorPosition;
-  }
-
   // DSL-related methods
   getAutocompleteForCommand(input: string): AutocompleteResult {
     if (!this.dsl) {
@@ -177,16 +156,6 @@ export class SpreadsheetModel implements SpreadsheetState {
     };
   }
 
-  completeCurrentInput(completion: string): void {
-    const { commandIndex, paramIndex, cellType } = this.focusPosition;
-    
-    if (cellType === 'command') {
-      this.commands[commandIndex].name = completion;
-    } else if (cellType === 'param-key') {
-      this.commands[commandIndex].parameters[paramIndex].key = completion;
-    }
-  }
-
   // New methods to check exact matches
   isValidCommand(input: string): boolean {
     if (!this.dsl || !input.trim()) return false;
@@ -201,23 +170,23 @@ export class SpreadsheetModel implements SpreadsheetState {
   hasValidAutocompleteMatch(cellType: string, commandIndex: number, input: string): boolean {
     if (cellType === 'command') {
       const autocomplete = this.getAutocompleteForCommand(input);
-      return autocomplete.hasMatches;
+      // Only return true if we have matches AND the input is not an exact match
+      return autocomplete.hasMatches && autocomplete.matches.some(match => match !== input);
     } else if (cellType === 'param-key') {
       const commandName = this.commands[commandIndex].name;
       if (commandName) {
         const autocomplete = this.getAutocompleteForParameter(commandName, input);
-        return autocomplete.hasMatches;
+        // Only return true if we have matches AND the input is not an exact match
+        return autocomplete.hasMatches && autocomplete.matches.some(match => match !== input);
       }
     }
     return false;
   }
 
   // Serialization
-  toJSON(): SpreadsheetState {
+  toJSON(): SpreadsheetData {
     return {
-      commands: this.commands,
-      focusPosition: this.focusPosition,
-      cursorPosition: this.cursorPosition
+      commands: this.commands
     };
   }
 } 

@@ -16,11 +16,23 @@ export interface FocusPosition {
   cellType: 'command' | 'param-key' | 'param-value';
 }
 
-export interface SpreadsheetState {
-  commands: Command[];
+// Editor state - UI concerns only
+export interface EditorState {
   focusPosition: FocusPosition;
   cursorPosition: number;
+  autocompleteState: {
+    visible: boolean;
+    suggestion: string;
+  };
 }
+
+// Data model state - business data only
+export interface SpreadsheetData {
+  commands: Command[];
+}
+
+// Legacy interface for backwards compatibility during refactor
+export interface SpreadsheetState extends SpreadsheetData, EditorState {}
 
 export interface SpreadsheetConfig {
   autoExpand?: boolean;
