@@ -187,6 +187,31 @@ export class SpreadsheetModel implements SpreadsheetState {
     }
   }
 
+  // New methods to check exact matches
+  isValidCommand(input: string): boolean {
+    if (!this.dsl || !input.trim()) return false;
+    return this.dsl.getValidCommands().includes(input);
+  }
+
+  isValidParameter(commandName: string, input: string): boolean {
+    if (!this.dsl || !input.trim() || !commandName) return false;
+    return this.dsl.getValidParameters(commandName).includes(input);
+  }
+
+  hasValidAutocompleteMatch(cellType: string, commandIndex: number, input: string): boolean {
+    if (cellType === 'command') {
+      const autocomplete = this.getAutocompleteForCommand(input);
+      return autocomplete.hasMatches;
+    } else if (cellType === 'param-key') {
+      const commandName = this.commands[commandIndex].name;
+      if (commandName) {
+        const autocomplete = this.getAutocompleteForParameter(commandName, input);
+        return autocomplete.hasMatches;
+      }
+    }
+    return false;
+  }
+
   // Serialization
   toJSON(): SpreadsheetState {
     return {

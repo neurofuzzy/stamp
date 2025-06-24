@@ -142,11 +142,17 @@ export class SpreadsheetController {
         const hasContent = (cell.textContent || '').trim() !== '';
         const isLocked = this.view.isLockedCell(cell, this.model);
         
+        // Check for invalid DSL content and clear if invalid
         if (cellType === 'command' || cellType === 'param-key') {
-            if (hasContent && !isLocked) {
-                // Cell has content and is not locked -> lock it
+            this.clearCellIfInvalid(cell);
+            
+            // Re-check content after potential clearing
+            const newContent = (cell.textContent || '').trim();
+            
+            if (newContent !== '' && !isLocked) {
+                // Cell has valid content and is not locked -> lock it
                 this.lockCell(cell);
-            } else if (!hasContent && isLocked) {
+            } else if (newContent === '' && isLocked) {
                 // Cell is empty and is locked -> unlock it
                 this.unlockCell(cell);
             }
@@ -183,91 +189,201 @@ export class SpreadsheetController {
             case 'Tab':
                 e.preventDefault();
                 if (this.handleTabCompletion(cell)) {
-                    // Tab completion handled
+                    // Tab completion handled and moved right
                     return;
                 } else {
-                    // Regular tab navigation
+                    // No match - clear cell and move to next
+                    this.clearCellIfInvalid(cell);
                     this.navigateTab(cells, currentIndex, e.shiftKey);
+                }
+                break;
+                
+            case 'Enter':
+                e.preventDefault();
+                if (this.handleEnterCompletion(cell)) {
+                    // Enter completion handled and moved right
+                    return;
+                } else {
+                    // No match - clear cell and stay
+                    this.clearCellIfInvalid(cell);
                 }
                 break;
                 
             case 'ArrowUp':
                 e.preventDefault();
                 this.view.hideAutocomplete();
+                this.clearCellIfInvalid(cell);
                 this.navigateUp(cells, currentIndex);
                 break;
             
             case 'ArrowDown':
                 e.preventDefault();
                 this.view.hideAutocomplete();
+                this.clearCellIfInvalid(cell);
                 this.navigateDown(cells, currentIndex);
                 break;
             
             case 'ArrowLeft':
-                if (isLocked || this.view.getCurrentCursorPosition(cell) === 0) {
-                    e.preventDefault();
-                    this.view.hideAutocomplete();
-                    this.navigateLeft(cells, currentIndex);
-                }
+                e.preventDefault();
+                this.view.hideAutocomplete();
+                this.clearCellIfInvalid(cell);
+                this.navigateLeft(cells, currentIndex);
                 break;
             
             case 'ArrowRight':
-                if (isLocked || this.view.getCurrentCursorPosition(cell) === (cell.textContent || '').length) {
-                    e.preventDefault();
-                    this.view.hideAutocomplete();
-                    this.navigateRight(cells, currentIndex);
-                }
-                break;
-            
-            case 'Enter':
                 e.preventDefault();
                 this.view.hideAutocomplete();
-                this.handleEnterKey(cell);
+                this.clearCellIfInvalid(cell);
+                this.navigateRight(cells, currentIndex);
                 break;
                 
             case 'Backspace':
             case 'Delete':
                 if (isLocked) {
+                    // If cell is locked, clear it and unlock it
                     e.preventDefault();
                     this.clearAndUnlockCell(cell);
                 }
+                // If not locked, let default behavior handle it
                 break;
-
+                
             case 'Escape':
-                this.view.hideAutocomplete();
+                if (isLocked) {
+                    this.unlockCell(cell);
+                    setTimeout(() => this.view.focusCell(this.model), 0);
+                } else {
+                    this.clearAndUnlockCell(cell);
+                }
                 break;
         }
     }
 
     private handleTabCompletion(cell: HTMLElement): boolean {
         const cellType = cell.dataset.cellType!;
-        const currentText = cell.textContent || ''; // Simple textContent
+        const commandIndex = parseInt(cell.dataset.commandIndex!);
+        const currentText = cell.textContent || '';
 
-        if (cellType === 'command') {
-            const autocomplete = this.model.getAutocompleteForCommand(currentText);
-            if (autocomplete.hasMatches) {
-                this.view.hideAutocomplete(); // Clean up ghost text first
+        // Check if there's a valid autocomplete match
+        if (this.model.hasValidAutocompleteMatch(cellType, commandIndex, currentText)) {
+            // Complete the autocomplete
+            if (cellType === 'command') {
+                const autocomplete = this.model.getAutocompleteForCommand(currentText);
+                this.view.hideAutocomplete();
                 this.model.completeCurrentInput(autocomplete.matches[0]);
-                this.render();
-                this.view.focusCell(this.model);
-                return true;
-            }
-        } else if (cellType === 'param-key') {
-            const commandIndex = parseInt(cell.dataset.commandIndex!);
-            const commandName = this.model.commands[commandIndex].name;
-            if (commandName) {
-                const autocomplete = this.model.getAutocompleteForParameter(commandName, currentText);
-                if (autocomplete.hasMatches) {
-                    this.view.hideAutocomplete(); // Clean up ghost text first
+            } else if (cellType === 'param-key') {
+                const commandName = this.model.commands[commandIndex].name;
+                if (commandName) {
+                    const autocomplete = this.model.getAutocompleteForParameter(commandName, currentText);
+                    this.view.hideAutocomplete();
                     this.model.completeCurrentInput(autocomplete.matches[0]);
-                    this.render();
-                    this.view.focusCell(this.model);
-                    return true;
                 }
             }
+            
+            // Re-render and move focus right
+            this.render();
+            this.moveToNextCell();
+            return true;
         }
 
         return false;
+    }
+
+    private handleEnterCompletion(cell: HTMLElement): boolean {
+        const cellType = cell.dataset.cellType!;
+        const commandIndex = parseInt(cell.dataset.commandIndex!);
+        const currentText = cell.textContent || '';
+
+        // Check if there's a valid autocomplete match
+        if (this.model.hasValidAutocompleteMatch(cellType, commandIndex, currentText)) {
+            // Complete the autocomplete
+            if (cellType === 'command') {
+                const autocomplete = this.model.getAutocompleteForCommand(currentText);
+                this.view.hideAutocomplete();
+                this.model.completeCurrentInput(autocomplete.matches[0]);
+            } else if (cellType === 'param-key') {
+                const commandName = this.model.commands[commandIndex].name;
+                if (commandName) {
+                    const autocomplete = this.model.getAutocompleteForParameter(commandName, currentText);
+                    this.view.hideAutocomplete();
+                    this.model.completeCurrentInput(autocomplete.matches[0]);
+                }
+            }
+            
+            // Re-render and move focus right
+            this.render();
+            this.moveToNextCell();
+            return true;
+        }
+
+        return false;
+    }
+
+    private clearCellIfInvalid(cell: HTMLElement): void {
+        const cellType = cell.dataset.cellType!;
+        const commandIndex = parseInt(cell.dataset.commandIndex!);
+        
+        // Read current content from model (more reliable than DOM content)
+        let currentText = '';
+        if (cellType === 'command') {
+            currentText = this.model.commands[commandIndex].name;
+        } else if (cellType === 'param-key') {
+            const paramIndex = parseInt(cell.dataset.paramIndex!);
+            currentText = this.model.commands[commandIndex].parameters[paramIndex].key;
+        }
+
+        // Only check commands and param-keys for DSL validity
+        if (cellType === 'command' || cellType === 'param-key') {
+            let isValid = false;
+
+            if (cellType === 'command') {
+                isValid = this.model.isValidCommand(currentText);
+            } else if (cellType === 'param-key') {
+                const commandName = this.model.commands[commandIndex].name;
+                isValid = this.model.isValidParameter(commandName, currentText);
+            }
+
+            if (!isValid && currentText.trim() !== '') {
+                // Update model state first
+                if (cellType === 'command') {
+                    this.model.clearCommand(commandIndex);
+                } else if (cellType === 'param-key') {
+                    const paramIndex = parseInt(cell.dataset.paramIndex!);
+                    this.model.clearParameter(commandIndex, paramIndex);
+                }
+                
+                // Re-render to sync the UI with the cleared model state
+                this.render();
+                
+                // Re-focus the current cell after clearing
+                this.view.focusCell(this.model);
+            }
+        }
+    }
+
+    private moveToNextCell(): void {
+        const currentFocus = this.model.getFocus();
+        const { commandIndex, paramIndex, cellType } = currentFocus;
+
+        if (cellType === 'command') {
+            // From command, go to first param-key
+            this.model.setFocus(commandIndex, 0, 'param-key');
+        } else if (cellType === 'param-key') {
+            // From param-key, go to param-value in same row
+            this.model.setFocus(commandIndex, paramIndex, 'param-value');
+        } else if (cellType === 'param-value') {
+            // From param-value, go to next param-key or next command
+            const currentCommand = this.model.commands[commandIndex];
+            if (paramIndex < currentCommand.parameters.length - 1) {
+                // Go to next parameter key in same command
+                this.model.setFocus(commandIndex, paramIndex + 1, 'param-key');
+            } else if (commandIndex < this.model.commands.length - 1) {
+                // Go to next command
+                this.model.setFocus(commandIndex + 1, 0, 'command');
+            }
+            // If at the last param-value of the last command, stay put
+        }
+        
+        this.view.focusCell(this.model);
     }
 
     private navigateUp(_cells: HTMLElement[], _currentIndex: number): void {
@@ -364,20 +480,7 @@ export class SpreadsheetController {
         }
     }
 
-    private handleEnterKey(cell: HTMLElement): void {
-        const isLocked = this.view.isLockedCell(cell, this.model);
-        const cellType = cell.dataset.cellType!;
-        
-        if (isLocked) {
-            this.unlockCell(cell);
-            setTimeout(() => this.view.focusCell(this.model), 0);
-        } else if (cellType === 'command' || cellType === 'param-key') {
-            if ((cell.textContent || '').trim()) {
-                this.lockCell(cell);
-                setTimeout(() => this.view.selectAllText(cell), 0);
-            }
-        }
-    }
+
 
     private unlockCell(cell: HTMLElement): void {
         const commandIndex = parseInt(cell.dataset.commandIndex!);

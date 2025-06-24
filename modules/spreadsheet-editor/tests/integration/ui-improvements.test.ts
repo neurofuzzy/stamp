@@ -142,5 +142,194 @@ describe('UI Improvements', () => {
       expect(model.isCommandLocked(0)).toBe(true);
       expect(model.commands[0].name).toBe('rectangle');
     });
+
+    it('should allow editing empty cells after clearing invalid content (regression test)', () => {
+      // This test prevents the regression where cleared cells become uneditable
+      
+      // 1. Start with empty command cell
+      view.render(model);
+      let commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      expect(commandCell).toBeTruthy();
+      expect(commandCell.textContent).toBe('');
+      
+      // 2. Manually set invalid content in model and verify it clears correctly
+      model.updateCommandName(0, 'invalid_command');
+      expect(model.commands[0].name).toBe('invalid_command');
+      expect(model.isValidCommand('invalid_command')).toBe(false);
+      
+      // 3. Re-render to show the invalid content
+      view.render(model);
+      commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      expect(commandCell.textContent).toBe('invalid_command');
+      
+      // 4. Focus the cell and press TAB (this should clear invalid content since no match exists)
+      commandCell.focus();
+      const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
+      commandCell.dispatchEvent(tabEvent);
+      
+      // 5. Verify content was cleared in both model and UI
+      expect(model.commands[0].name).toBe('');
+      commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      expect(commandCell.textContent).toBe('');
+      
+      // 6. CRITICAL: Verify cell is still editable by focusing and typing
+      commandCell.focus();
+      expect(document.activeElement).toBe(commandCell);
+      
+      // 7. Type valid content via input event (simulating user typing)
+      commandCell.textContent = 'cir';
+      commandCell.dispatchEvent(new Event('input', { bubbles: true }));
+      expect(model.commands[0].name).toBe('cir');
+      
+      // 8. The key test: verify that after clearing, we can still type and it updates the model
+      // This confirms the cell is still properly editable and connected to the model
+      expect(model.commands[0].name).toBe('cir'); // Should accept the new valid input
+      
+      // 10. Test the same workflow with parameter cells
+      model.updateParameterKey(0, 0, 'invalid_param');
+      expect(model.commands[0].parameters[0].key).toBe('invalid_param');
+      expect(model.isValidParameter('circle', 'invalid_param')).toBe(false);
+      
+      // 11. Re-render to show invalid param
+      view.render(model);
+      let paramCell = container.querySelector('[data-command-index="0"][data-param-index="0"][data-cell-type="param-key"]') as HTMLElement;
+      expect(paramCell.textContent).toBe('invalid_param');
+      
+      // 12. Focus and press ENTER to clear
+      paramCell.focus();
+      const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+      paramCell.dispatchEvent(enterEvent);
+      
+      // 13. Verify param content was cleared
+      expect(model.commands[0].parameters[0].key).toBe('');
+      paramCell = container.querySelector('[data-command-index="0"][data-param-index="0"][data-cell-type="param-key"]') as HTMLElement;
+      expect(paramCell.textContent).toBe('');
+      
+      // 14. CRITICAL: Verify param cell is still editable
+      paramCell.focus();
+      expect(document.activeElement).toBe(paramCell);
+      
+      // 15. Type valid parameter content and verify editability
+      paramCell.textContent = 'rad';
+      paramCell.dispatchEvent(new Event('input', { bubbles: true }));
+      expect(model.commands[0].parameters[0].key).toBe('rad');
+      
+      // 16. This is the key regression test: after clearing invalid content,
+      // the cell should still be fully editable and update the model properly
+    });
+
+    it('REGRESSION 1: typing in parameter should not clear other cells', () => {
+      // Regression: entering "circle" in command + TAB, then typing in parameter clears command
+      
+      // 1. Set up valid command
+      view.render(model);
+      let commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      
+      // 2. Type "circle" and complete with TAB
+      commandCell.focus();
+      commandCell.textContent = 'circle';
+      commandCell.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
+      commandCell.dispatchEvent(tabEvent);
+      
+      // 3. Verify command is completed and we moved to parameter
+      expect(model.commands[0].name).toBe('circle');
+      
+      // 4. Type in parameter cell
+      let paramCell = container.querySelector('[data-command-index="0"][data-param-index="0"][data-cell-type="param-key"]') as HTMLElement;
+      paramCell.focus();
+      paramCell.textContent = 'radius';
+      paramCell.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // 5. CRITICAL: Command cell should still contain "circle"
+      expect(model.commands[0].name).toBe('circle');
+      expect(model.commands[0].parameters[0].key).toBe('radius');
+    });
+
+    it('REGRESSION 2: arrow right after invalid text should not lock parameter cell', () => {
+      // Regression: entering random text + arrow right clears command (good) but locks parameter (bad)
+      
+      // 1. Start fresh
+      view.render(model);
+      let commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      
+      // 2. Directly set invalid text in model (like what input event does)
+      model.updateCommandName(0, 'randomtext');
+      expect(model.commands[0].name).toBe('randomtext');
+      expect(model.isValidCommand('randomtext')).toBe(false);
+      
+      // 3. Focus the cell that has invalid content
+      commandCell.focus();
+      
+      // 4. Arrow right (should clear invalid command and move to parameter)
+      const rightEvent = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+      commandCell.dispatchEvent(rightEvent);
+      
+      // 5. Verify command was cleared
+      expect(model.commands[0].name).toBe('');
+      
+      // 6. CRITICAL: Parameter cell should NOT be locked
+      let paramCell = container.querySelector('[data-command-index="0"][data-param-index="0"][data-cell-type="param-key"]') as HTMLElement;
+      expect(model.isParameterLocked(0, 0)).toBe(false);
+      expect(view.isLockedCell(paramCell, model)).toBe(false);
+    });
+
+    it('REGRESSION 3: invalid text + arrow right + arrow left should not result in locked empty cell', () => {
+      // Regression: entering "fff" + arrow right + arrow left = empty but locked command cell
+      
+      // 1. Start fresh  
+      view.render(model);
+      let commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      
+      // 2. Type invalid text "fff"
+      commandCell.focus();
+      commandCell.textContent = 'fff';
+      commandCell.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // 3. Arrow right (should clear and move to parameter)
+      const rightEvent = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+      commandCell.dispatchEvent(rightEvent);
+      
+      // 4. Arrow left (should move back to command)
+      const leftEvent = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
+      const activeElement = document.activeElement as HTMLElement;
+      activeElement.dispatchEvent(leftEvent);
+      
+      // 5. CRITICAL: Command cell should be empty AND unlocked
+      commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      expect(model.commands[0].name).toBe('');
+      expect(model.isCommandLocked(0)).toBe(false);
+      expect(view.isLockedCell(commandCell, model)).toBe(false);
+    });
+
+    it('REGRESSION 4: backspace on locked cell should clear but not lock', () => {
+      // Regression: backspace on locked cell should clear content but leave cell unlocked for editing
+      
+      // 1. Set up locked cell with content (simulating completed entry)
+      model.updateCommandName(0, 'circle');
+      model.lockCommand(0);
+      expect(model.commands[0].name).toBe('circle');
+      expect(model.isCommandLocked(0)).toBe(true);
+      
+      // 2. Render and get the locked cell
+      view.render(model);
+      const commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      expect(view.isLockedCell(commandCell, model)).toBe(true);
+      
+      // 3. Focus and press backspace (this should trigger clearAndUnlockCell)
+      commandCell.focus();
+      const backspaceEvent = new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true });
+      commandCell.dispatchEvent(backspaceEvent);
+      
+      // 4. CRITICAL: Cell should be cleared AND unlocked (ready for new input)
+      expect(model.commands[0].name).toBe('');
+      expect(model.isCommandLocked(0)).toBe(false);
+      
+      // 5. Re-check view state (should reflect model changes)
+      view.render(model);
+      const updatedCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      expect(view.isLockedCell(updatedCell, model)).toBe(false);
+    });
   });
 }); 
