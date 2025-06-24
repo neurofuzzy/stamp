@@ -1,5 +1,5 @@
 import { SpreadsheetModel } from '@core/models/SpreadsheetModel';
-import { SpreadsheetView } from './SpreadsheetView';
+import { SpreadsheetView } from '../views/SpreadsheetView';
 
 export class SpreadsheetController {
     private model: SpreadsheetModel;
