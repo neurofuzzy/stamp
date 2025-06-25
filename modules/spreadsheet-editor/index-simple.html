@@ -148,6 +148,167 @@
             }
         };
 
+        // GridCell class to handle common cell behavior
+        class GridCell {
+            constructor(element, commands) {
+                this.element = element;
+                this.commands = commands;
+                this.commandIndex = parseInt(element.dataset.commandIndex);
+                this.paramIndex = parseInt(element.dataset.paramIndex);
+                this.type = this.getType();
+            }
+
+            getType() {
+                if (this.element.classList.contains('command-cell')) return 'command';
+                if (this.element.classList.contains('param-key')) return 'param-key';
+                return 'param-value';
+            }
+
+            isLockable() {
+                return this.type === 'command' || this.type === 'param-key';
+            }
+
+            isLocked() {
+                if (!this.isLockable()) return false;
+                
+                if (this.type === 'command') {
+                    return this.commands[this.commandIndex].nameIsLocked;
+                } else if (this.type === 'param-key') {
+                    return this.commands[this.commandIndex].parameters[this.paramIndex].keyIsLocked;
+                }
+                return false;
+            }
+
+            lock() {
+                if (!this.isLockable()) return;
+                
+                if (this.type === 'command') {
+                    this.commands[this.commandIndex].nameIsLocked = true;
+                } else if (this.type === 'param-key') {
+                    this.commands[this.commandIndex].parameters[this.paramIndex].keyIsLocked = true;
+                }
+                
+                this.element.classList.add('locked');
+                this.element.style.userSelect = 'all';
+            }
+
+            unlock() {
+                if (!this.isLockable()) return;
+                
+                if (this.type === 'command') {
+                    this.commands[this.commandIndex].nameIsLocked = false;
+                } else if (this.type === 'param-key') {
+                    this.commands[this.commandIndex].parameters[this.paramIndex].keyIsLocked = false;
+                }
+                
+                this.element.classList.remove('locked');
+                this.element.style.userSelect = '';
+            }
+
+            clear() {
+                if (this.type === 'command') {
+                    this.commands[this.commandIndex].name = '';
+                } else if (this.type === 'param-key') {
+                    this.commands[this.commandIndex].parameters[this.paramIndex].key = '';
+                }
+                
+                this.element.textContent = '';
+            }
+
+            unlockAndClear() {
+                this.clear();
+                this.unlock();
+            }
+
+            updateModel(content) {
+                if (this.type === 'command') {
+                    this.commands[this.commandIndex].name = content;
+                } else if (this.type === 'param-key') {
+                    this.commands[this.commandIndex].parameters[this.paramIndex].key = content;
+                } else if (this.type === 'param-value') {
+                    this.commands[this.commandIndex].parameters[this.paramIndex].value = content;
+                }
+            }
+
+            isValidContent(content) {
+                if (this.type === 'command') {
+                    return STAMP_DSL.commands.includes(content);
+                } else if (this.type === 'param-key') {
+                    const commandName = this.commands[this.commandIndex].name;
+                    return commandName && STAMP_DSL.parameters[commandName] && 
+                           STAMP_DSL.parameters[commandName].includes(content);
+                }
+                return true; // param-value cells accept any content
+            }
+
+            getAutocompleteSuggestion(content) {
+                if (!content) return null;
+
+                if (this.type === 'command') {
+                    return STAMP_DSL.commands.find(cmd => 
+                        cmd.startsWith(content) && cmd !== content
+                    );
+                } else if (this.type === 'param-key') {
+                    const commandName = this.commands[this.commandIndex].name;
+                    if (commandName && STAMP_DSL.parameters[commandName]) {
+                        return STAMP_DSL.parameters[commandName].find(param => 
+                            param.startsWith(content) && param !== content
+                        );
+                    }
+                }
+                return null;
+            }
+
+            shouldExpandGrid(content) {
+                if (!content.trim()) return false;
+                
+                if (this.type === 'command') {
+                    // Expand if this is the last command
+                    return this.commandIndex === this.commands.length - 1;
+                } else if (this.type === 'param-key') {
+                    // Expand if this is the last parameter
+                    const command = this.commands[this.commandIndex];
+                    return this.paramIndex === command.parameters.length - 1;
+                }
+                return false;
+            }
+
+            expandGrid() {
+                if (this.type === 'command') {
+                    this.commands.push({
+                        name: '',
+                        nameIsLocked: false,
+                        parameters: [
+                            { key: '', value: '', keyIsLocked: false }
+                        ]
+                    });
+                } else if (this.type === 'param-key') {
+                    const command = this.commands[this.commandIndex];
+                    command.parameters.push({ key: '', value: '', keyIsLocked: false });
+                }
+            }
+
+            getPlaceholder() {
+                const defaultPlaceholders = {
+                    'command': 'command...',
+                    'param-key': 'param...',
+                    'param-value': 'value...'
+                };
+
+                if (this.type === 'command') {
+                    return this.commands[this.commandIndex].name || defaultPlaceholders.command;
+                } else if (this.type === 'param-key') {
+                    return this.commands[this.commandIndex].parameters[this.paramIndex].key || defaultPlaceholders['param-key'];
+                } else {
+                    return this.commands[this.commandIndex].parameters[this.paramIndex].value || defaultPlaceholders['param-value'];
+                }
+            }
+
+            resetPlaceholder() {
+                this.element.setAttribute('data-placeholder', this.getPlaceholder());
+            }
+        }
+
         class RowspanGrid {
             constructor(container) {
                 this.container = container;
@@ -241,11 +402,14 @@
                 });
 
                 this.container.addEventListener('keypress', (e) => {
-                    if (e.target.classList.contains('cell') && this.isLockedCell(e.target)) {
-                        // Prevent typing in locked cells
-                        if (e.key.length === 1) { // Only prevent printable characters
-                            e.preventDefault();
-                            this.preventEditAndBlink(e.target);
+                    if (e.target.classList.contains('cell')) {
+                        const gridCell = new GridCell(e.target, this.commands);
+                        if (gridCell.isLocked()) {
+                            // Prevent typing in locked cells
+                            if (e.key.length === 1) { // Only prevent printable characters
+                                e.preventDefault();
+                                this.preventEditAndBlink(e.target);
+                            }
                         }
                     }
                 });
@@ -267,38 +431,20 @@
                     // Don't auto-lock during expansion to prevent the blur->lock issue
                     if (this.isExpanding) return;
                     
+                    const gridCell = new GridCell(e.target, this.commands);
                     const content = e.target.textContent.trim();
                     
-                    // Clear invalid content
-                    if (e.target.classList.contains('command-cell') && content) {
-                        if (!STAMP_DSL.commands.includes(content)) {
-                            // Properly clear contenteditable element and reset placeholder
-                            e.target.innerHTML = '';
-                            e.target.setAttribute('data-placeholder', 'command...');
-                            const commandIndex = parseInt(e.target.dataset.commandIndex);
-                            this.commands[commandIndex].name = '';
-                            return;
-                        }
-                    } else if (e.target.classList.contains('param-key') && content) {
-                        const commandIndex = parseInt(e.target.dataset.commandIndex);
-                        const commandName = this.commands[commandIndex].name;
-                        if (commandName && STAMP_DSL.parameters[commandName] && !STAMP_DSL.parameters[commandName].includes(content)) {
-                            // Properly clear contenteditable element and reset placeholder
-                            e.target.innerHTML = '';
-                            e.target.setAttribute('data-placeholder', 'param...');
-                            const paramIndex = parseInt(e.target.dataset.paramIndex);
-                            this.commands[commandIndex].parameters[paramIndex].key = '';
-                            return;
-                        }
+                    // Clear invalid content for lockable cells
+                    if (gridCell.isLockable() && content && !gridCell.isValidContent(content)) {
+                        e.target.innerHTML = '';
+                        gridCell.resetPlaceholder();
+                        gridCell.clear();
+                        return;
                     }
                     
-
-                    
                     // Only auto-lock if the cell has content and isn't already locked
-                    if ((e.target.classList.contains('command-cell') || e.target.classList.contains('param-key')) 
-                        && content 
-                        && !this.isLockedCell(e.target)) {
-                        this.lockCell(e.target);
+                    if (gridCell.isLockable() && content && !gridCell.isLocked()) {
+                        gridCell.lock();
                     }
                 }, true);
             }
@@ -351,14 +497,16 @@
                     
                     case 'Enter':
                         e.preventDefault();
+                        const currentGridCell = new GridCell(this.currentFocus, this.commands);
+                        
                         if (isLockedCell) {
                             // Unlock cell and enter edit mode
-                            this.unlockCell(this.currentFocus);
+                            currentGridCell.unlock();
                             this.enterEditMode(this.currentFocus);
-                        } else if (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key')) {
+                        } else if (currentGridCell.isLockable()) {
                             // Lock cell but stay in place
                             if (this.currentFocus.textContent.trim()) {
-                                this.lockCell(this.currentFocus);
+                                currentGridCell.lock();
                                 // Ensure text is selected to show blue background
                                 setTimeout(() => {
                                     this.selectAllText(this.currentFocus);
@@ -374,7 +522,8 @@
                     case 'Delete':
                         if (isLockedCell) {
                             e.preventDefault();
-                            this.unlockAndClearCell(this.currentFocus);
+                            const deleteGridCell = new GridCell(this.currentFocus, this.commands);
+                            deleteGridCell.unlockAndClear();
                         }
                         break;
                 }
@@ -500,43 +649,19 @@
             }
 
             handleCellInput(cell) {
-                const commandIndex = parseInt(cell.dataset.commandIndex);
-                const paramIndex = parseInt(cell.dataset.paramIndex);
+                const gridCell = new GridCell(cell, this.commands);
+                const content = cell.textContent;
                 
-                if (cell.classList.contains('command-cell')) {
-                    // Update command name
-                    this.commands[commandIndex].name = cell.textContent;
-                    
-                    // If this is the last command and now has content, ensure we have an empty command after it
-                    if (commandIndex === this.commands.length - 1 && cell.textContent.trim()) {
-                        this.isExpanding = true;
-                        this.commands.push({
-                            name: '',
-                            nameIsLocked: false,
-                            parameters: [
-                                { key: '', value: '', keyIsLocked: false }
-                            ]
-                        });
-                        this.render();
-                        this.restoreFocus();
-                        this.isExpanding = false;
-                    }
-                } else if (cell.classList.contains('param-key')) {
-                    // Update parameter key
-                    this.commands[commandIndex].parameters[paramIndex].key = cell.textContent;
-                    
-                    // If this is the last parameter and now has content, ensure we have an empty parameter after it
-                    const command = this.commands[commandIndex];
-                    if (paramIndex === command.parameters.length - 1 && cell.textContent.trim()) {
-                        this.isExpanding = true;
-                        command.parameters.push({ key: '', value: '', keyIsLocked: false });
-                        this.render();
-                        this.restoreFocus();
-                        this.isExpanding = false;
-                    }
-                } else if (cell.classList.contains('param-value')) {
-                    // Update parameter value
-                    this.commands[commandIndex].parameters[paramIndex].value = cell.textContent;
+                // Update the model
+                gridCell.updateModel(content);
+                
+                // Check if we need to expand the grid
+                if (gridCell.shouldExpandGrid(content)) {
+                    this.isExpanding = true;
+                    gridCell.expandGrid();
+                    this.render();
+                    this.restoreFocus();
+                    this.isExpanding = false;
                 }
             }
 
@@ -567,7 +692,8 @@
             }
 
             handleCellFocus(cell) {
-                if (this.isLockedCell(cell)) {
+                const gridCell = new GridCell(cell, this.commands);
+                if (gridCell.isLocked()) {
                     // Select all text in locked cell to show blue background
                     setTimeout(() => {
                         this.selectAllText(cell);
@@ -576,48 +702,18 @@
             }
 
             lockCell(cell) {
-                const commandIndex = parseInt(cell.dataset.commandIndex);
-                
-                if (cell.classList.contains('command-cell')) {
-                    this.commands[commandIndex].nameIsLocked = true;
-                } else if (cell.classList.contains('param-key')) {
-                    const paramIndex = parseInt(cell.dataset.paramIndex);
-                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = true;
-                }
-                
-                cell.classList.add('locked');
-                cell.style.userSelect = 'all';
+                const gridCell = new GridCell(cell, this.commands);
+                gridCell.lock();
             }
 
             unlockCell(cell) {
-                const commandIndex = parseInt(cell.dataset.commandIndex);
-                
-                if (cell.classList.contains('command-cell')) {
-                    this.commands[commandIndex].nameIsLocked = false;
-                } else if (cell.classList.contains('param-key')) {
-                    const paramIndex = parseInt(cell.dataset.paramIndex);
-                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = false;
-                }
-                
-                cell.classList.remove('locked');
-                cell.style.userSelect = '';
+                const gridCell = new GridCell(cell, this.commands);
+                gridCell.unlock();
             }
 
             unlockAndClearCell(cell) {
-                const commandIndex = parseInt(cell.dataset.commandIndex);
-                
-                if (cell.classList.contains('command-cell')) {
-                    this.commands[commandIndex].name = '';
-                    this.commands[commandIndex].nameIsLocked = false;
-                } else if (cell.classList.contains('param-key')) {
-                    const paramIndex = parseInt(cell.dataset.paramIndex);
-                    this.commands[commandIndex].parameters[paramIndex].key = '';
-                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = false;
-                }
-                
-                cell.textContent = '';
-                cell.classList.remove('locked');
-                cell.style.userSelect = '';
+                const gridCell = new GridCell(cell, this.commands);
+                gridCell.unlockAndClear();
             }
 
             enterEditMode(cell) {
@@ -648,20 +744,8 @@
             }
 
             isLockedCell(cell) {
-                if (!cell.classList.contains('command-cell') && !cell.classList.contains('param-key')) {
-                    return false;
-                }
-                
-                const commandIndex = parseInt(cell.dataset.commandIndex);
-                
-                if (cell.classList.contains('command-cell')) {
-                    return this.commands[commandIndex].nameIsLocked;
-                } else if (cell.classList.contains('param-key')) {
-                    const paramIndex = parseInt(cell.dataset.paramIndex);
-                    return this.commands[commandIndex].parameters[paramIndex].keyIsLocked;
-                }
-                
-                return false;
+                const gridCell = new GridCell(cell, this.commands);
+                return gridCell.isLocked();
             }
 
             selectAllText(cell) {
@@ -675,30 +759,14 @@
 
 
             handleTabCompletion(cell) {
-                if (!cell || this.isLockedCell(cell)) return false;
+                const gridCell = new GridCell(cell, this.commands);
+                
+                if (!cell || gridCell.isLocked()) return false;
 
-                // Get current text content
                 const content = cell.textContent.trim();
                 if (!content) return false;
 
-                let suggestion = null;
-                const commandIndex = parseInt(cell.dataset.commandIndex);
-
-                if (cell.classList.contains('command-cell')) {
-                    suggestion = STAMP_DSL.commands.find(cmd => 
-                        cmd.startsWith(content) && cmd !== content
-                    );
-                } else if (cell.classList.contains('param-key')) {
-                    const commandName = this.commands[commandIndex].name;
-                    if (commandName && STAMP_DSL.parameters[commandName]) {
-                        suggestion = STAMP_DSL.parameters[commandName].find(param => 
-                            param.startsWith(content) && param !== content
-                        );
-                    }
-                } else {
-                    return false; // Don't autocomplete param values
-                }
-
+                const suggestion = gridCell.getAutocompleteSuggestion(content);
                 if (suggestion) {
                     // Complete the suggestion
                     cell.textContent = suggestion;
