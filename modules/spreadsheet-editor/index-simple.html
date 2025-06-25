@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rowspan Grid</title>
+    <title>Clean Rowspan Grid</title>
     <style>
         * {
             margin: 0;
@@ -113,10 +113,6 @@
             50% { background-color: #ff6b6b; }
             100% { background-color: inherit; }
         }
-
-
-
-
     </style>
 </head>
 <body>
@@ -134,7 +130,7 @@
     </div>
 
     <script>
-        // Simple DSL definition
+        // DSL definition with commands and their parameters  
         const STAMP_DSL = {
             commands: ['circle', 'rect', 'line', 'arc', 'text', 'group', 'repeat'],
             parameters: {
@@ -148,168 +144,7 @@
             }
         };
 
-        // GridCell class to handle common cell behavior
-        class GridCell {
-            constructor(element, commands) {
-                this.element = element;
-                this.commands = commands;
-                this.commandIndex = parseInt(element.dataset.commandIndex);
-                this.paramIndex = parseInt(element.dataset.paramIndex);
-                this.type = this.getType();
-            }
-
-            getType() {
-                if (this.element.classList.contains('command-cell')) return 'command';
-                if (this.element.classList.contains('param-key')) return 'param-key';
-                return 'param-value';
-            }
-
-            isLockable() {
-                return this.type === 'command' || this.type === 'param-key';
-            }
-
-            isLocked() {
-                if (!this.isLockable()) return false;
-                
-                if (this.type === 'command') {
-                    return this.commands[this.commandIndex].nameIsLocked;
-                } else if (this.type === 'param-key') {
-                    return this.commands[this.commandIndex].parameters[this.paramIndex].keyIsLocked;
-                }
-                return false;
-            }
-
-            lock() {
-                if (!this.isLockable()) return;
-                
-                if (this.type === 'command') {
-                    this.commands[this.commandIndex].nameIsLocked = true;
-                } else if (this.type === 'param-key') {
-                    this.commands[this.commandIndex].parameters[this.paramIndex].keyIsLocked = true;
-                }
-                
-                this.element.classList.add('locked');
-                this.element.style.userSelect = 'all';
-            }
-
-            unlock() {
-                if (!this.isLockable()) return;
-                
-                if (this.type === 'command') {
-                    this.commands[this.commandIndex].nameIsLocked = false;
-                } else if (this.type === 'param-key') {
-                    this.commands[this.commandIndex].parameters[this.paramIndex].keyIsLocked = false;
-                }
-                
-                this.element.classList.remove('locked');
-                this.element.style.userSelect = '';
-            }
-
-            clear() {
-                if (this.type === 'command') {
-                    this.commands[this.commandIndex].name = '';
-                } else if (this.type === 'param-key') {
-                    this.commands[this.commandIndex].parameters[this.paramIndex].key = '';
-                }
-                
-                this.element.textContent = '';
-            }
-
-            unlockAndClear() {
-                this.clear();
-                this.unlock();
-            }
-
-            updateModel(content) {
-                if (this.type === 'command') {
-                    this.commands[this.commandIndex].name = content;
-                } else if (this.type === 'param-key') {
-                    this.commands[this.commandIndex].parameters[this.paramIndex].key = content;
-                } else if (this.type === 'param-value') {
-                    this.commands[this.commandIndex].parameters[this.paramIndex].value = content;
-                }
-            }
-
-            isValidContent(content) {
-                if (this.type === 'command') {
-                    return STAMP_DSL.commands.includes(content);
-                } else if (this.type === 'param-key') {
-                    const commandName = this.commands[this.commandIndex].name;
-                    return commandName && STAMP_DSL.parameters[commandName] && 
-                           STAMP_DSL.parameters[commandName].includes(content);
-                }
-                return true; // param-value cells accept any content
-            }
-
-            getAutocompleteSuggestion(content) {
-                if (!content) return null;
-
-                if (this.type === 'command') {
-                    return STAMP_DSL.commands.find(cmd => 
-                        cmd.startsWith(content) && cmd !== content
-                    );
-                } else if (this.type === 'param-key') {
-                    const commandName = this.commands[this.commandIndex].name;
-                    if (commandName && STAMP_DSL.parameters[commandName]) {
-                        return STAMP_DSL.parameters[commandName].find(param => 
-                            param.startsWith(content) && param !== content
-                        );
-                    }
-                }
-                return null;
-            }
-
-            shouldExpandGrid(content) {
-                if (!content.trim()) return false;
-                
-                if (this.type === 'command') {
-                    // Expand if this is the last command
-                    return this.commandIndex === this.commands.length - 1;
-                } else if (this.type === 'param-key') {
-                    // Expand if this is the last parameter
-                    const command = this.commands[this.commandIndex];
-                    return this.paramIndex === command.parameters.length - 1;
-                }
-                return false;
-            }
-
-            expandGrid() {
-                if (this.type === 'command') {
-                    this.commands.push({
-                        name: '',
-                        nameIsLocked: false,
-                        parameters: [
-                            { key: '', value: '', keyIsLocked: false }
-                        ]
-                    });
-                } else if (this.type === 'param-key') {
-                    const command = this.commands[this.commandIndex];
-                    command.parameters.push({ key: '', value: '', keyIsLocked: false });
-                }
-            }
-
-            getPlaceholder() {
-                const defaultPlaceholders = {
-                    'command': 'command...',
-                    'param-key': 'param...',
-                    'param-value': 'value...'
-                };
-
-                if (this.type === 'command') {
-                    return this.commands[this.commandIndex].name || defaultPlaceholders.command;
-                } else if (this.type === 'param-key') {
-                    return this.commands[this.commandIndex].parameters[this.paramIndex].key || defaultPlaceholders['param-key'];
-                } else {
-                    return this.commands[this.commandIndex].parameters[this.paramIndex].value || defaultPlaceholders['param-value'];
-                }
-            }
-
-            resetPlaceholder() {
-                this.element.setAttribute('data-placeholder', this.getPlaceholder());
-            }
-        }
-
-        class RowspanGrid {
+        class StableRowspanGrid {
             constructor(container) {
                 this.container = container;
                 this.currentFocus = null;
@@ -317,7 +152,7 @@
                 this.isExpanding = false;
                 this.commands = [
                     {
-                        name: '', // Always have empty command
+                        name: '',
                         nameIsLocked: false,
                         parameters: [
                             { key: '', value: '', keyIsLocked: false }
@@ -327,15 +162,7 @@
                 
                 this.render();
                 this.setupEventListeners();
-                
-                // Focus first cell
-                setTimeout(() => {
-                    const firstCell = this.container.querySelector('.cell');
-                    if (firstCell) {
-                        firstCell.focus();
-                        this.currentFocus = firstCell;
-                    }
-                }, 100);
+                this.focusFirstCell();
             }
 
             render() {
@@ -343,7 +170,7 @@
                 this.commands.forEach((command, commandIndex) => {
                     const paramCount = command.parameters.length;
                     
-                    // First parameter row with command cell
+                    // First parameter row with command cell 
                     html += `
                         <tr>
                             <td class="cell command-cell ${command.nameIsLocked ? 'locked' : ''}" 
@@ -387,10 +214,32 @@
                 this.container.innerHTML = html;
             }
 
+            isValidCommand(command) {
+                return STAMP_DSL.commands.includes(command);
+            }
+
+            isValidParameter(command, param) {
+                return STAMP_DSL.parameters[command]?.includes(param) || false;
+            }
+
+            getCommandSuggestion(partial) {
+                return STAMP_DSL.commands.find(cmd => 
+                    cmd.startsWith(partial) && cmd !== partial
+                );
+            }
+
+            getParameterSuggestion(command, partial) {
+                const params = STAMP_DSL.parameters[command];
+                if (!params) return null;
+                return params.find(param => 
+                    param.startsWith(partial) && param !== partial
+                );
+            }
+
             setupEventListeners() {
+                // Input handling
                 this.container.addEventListener('input', (e) => {
                     if (e.target.classList.contains('cell')) {
-                        // Check if cell is locked before allowing input
                         if (this.isLockedCell(e.target)) {
                             e.preventDefault();
                             this.preventEditAndBlink(e.target);
@@ -401,23 +250,22 @@
                     }
                 });
 
+                // Keypress prevention for locked cells
                 this.container.addEventListener('keypress', (e) => {
-                    if (e.target.classList.contains('cell')) {
-                        const gridCell = new GridCell(e.target, this.commands);
-                        if (gridCell.isLocked()) {
-                            // Prevent typing in locked cells
-                            if (e.key.length === 1) { // Only prevent printable characters
-                                e.preventDefault();
-                                this.preventEditAndBlink(e.target);
-                            }
+                    if (e.target.classList.contains('cell') && this.isLockedCell(e.target)) {
+                        if (e.key.length === 1) {
+                            e.preventDefault();
+                            this.preventEditAndBlink(e.target);
                         }
                     }
                 });
 
+                // Keyboard navigation
                 this.container.addEventListener('keydown', (e) => {
                     this.handleKeydown(e);
                 });
 
+                // Focus handling
                 this.container.addEventListener('focus', (e) => {
                     if (e.target.classList.contains('cell')) {
                         this.currentFocus = e.target;
@@ -425,28 +273,105 @@
                     }
                 }, true);
 
+                // Blur handling with validation
                 this.container.addEventListener('blur', (e) => {
                     if (!e.target.classList.contains('cell')) return;
-                    
-                    // Don't auto-lock during expansion to prevent the blur->lock issue
                     if (this.isExpanding) return;
                     
-                    const gridCell = new GridCell(e.target, this.commands);
                     const content = e.target.textContent.trim();
                     
-                    // Clear invalid content for lockable cells
-                    if (gridCell.isLockable() && content && !gridCell.isValidContent(content)) {
+                    // Clear invalid content
+                    if (e.target.classList.contains('command-cell') && content && !this.isValidCommand(content)) {
                         e.target.innerHTML = '';
-                        gridCell.resetPlaceholder();
-                        gridCell.clear();
+                        e.target.setAttribute('data-placeholder', 'command...');
+                        this.updateCommandName(e.target, '');
                         return;
                     }
                     
-                    // Only auto-lock if the cell has content and isn't already locked
-                    if (gridCell.isLockable() && content && !gridCell.isLocked()) {
-                        gridCell.lock();
+                    if (e.target.classList.contains('param-key') && content) {
+                        const commandIndex = parseInt(e.target.dataset.commandIndex);
+                        const commandName = this.commands[commandIndex].name;
+                        if (commandName && !this.isValidParameter(commandName, content)) {
+                            e.target.innerHTML = '';
+                            e.target.setAttribute('data-placeholder', 'param...');
+                            this.updateParameterKey(e.target, '');
+                            return;
+                        }
+                    }
+                    
+                    // Auto-lock valid content
+                    if ((e.target.classList.contains('command-cell') || e.target.classList.contains('param-key')) 
+                        && content && !this.isLockedCell(e.target)) {
+                        this.lockCell(e.target);
                     }
                 }, true);
+            }
+
+            handleCellInput(element) {
+                if (element.classList.contains('command-cell')) {
+                    this.updateCommandName(element, element.textContent);
+                } else if (element.classList.contains('param-key')) {
+                    this.updateParameterKey(element, element.textContent);
+                } else if (element.classList.contains('param-value')) {
+                    this.updateParameterValue(element, element.textContent);
+                }
+                
+                // Check if we need to expand
+                if (this.shouldExpandGrid(element)) {
+                    this.expandGrid(element);
+                }
+            }
+
+            updateCommandName(element, content) {
+                const commandIndex = parseInt(element.dataset.commandIndex);
+                this.commands[commandIndex].name = content;
+            }
+
+            updateParameterKey(element, content) {
+                const commandIndex = parseInt(element.dataset.commandIndex);
+                const paramIndex = parseInt(element.dataset.paramIndex);
+                this.commands[commandIndex].parameters[paramIndex].key = content;
+            }
+
+            updateParameterValue(element, content) {
+                const commandIndex = parseInt(element.dataset.commandIndex);
+                const paramIndex = parseInt(element.dataset.paramIndex);
+                this.commands[commandIndex].parameters[paramIndex].value = content;
+            }
+
+            shouldExpandGrid(element) {
+                const content = element.textContent.trim();
+                if (!content) return false;
+                
+                if (element.classList.contains('command-cell')) {
+                    const commandIndex = parseInt(element.dataset.commandIndex);
+                    return commandIndex === this.commands.length - 1;
+                } else if (element.classList.contains('param-key')) {
+                    const commandIndex = parseInt(element.dataset.commandIndex);
+                    const paramIndex = parseInt(element.dataset.paramIndex);
+                    const command = this.commands[commandIndex];
+                    return paramIndex === command.parameters.length - 1;
+                }
+                return false;
+            }
+
+            expandGrid(element) {
+                this.isExpanding = true;
+                
+                if (element.classList.contains('command-cell')) {
+                    this.commands.push({
+                        name: '',
+                        nameIsLocked: false,
+                        parameters: [{ key: '', value: '', keyIsLocked: false }]
+                    });
+                } else if (element.classList.contains('param-key')) {
+                    const commandIndex = parseInt(element.dataset.commandIndex);
+                    this.commands[commandIndex].parameters.push({ key: '', value: '', keyIsLocked: false });
+                }
+                
+                this.render();
+                this.restoreFocus();
+                this.isExpanding = false;
             }
 
             handleKeydown(e) {
@@ -454,7 +379,7 @@
 
                 const cells = Array.from(this.container.querySelectorAll('.cell'));
                 const currentIndex = cells.indexOf(this.currentFocus);
-                const isLockedCell = this.isLockedCell(this.currentFocus);
+                const isLocked = this.isLockedCell(this.currentFocus);
 
                 switch (e.key) {
                     case 'ArrowUp':
@@ -468,14 +393,14 @@
                         break;
                     
                     case 'ArrowLeft':
-                        if (isLockedCell || this.getCursorPosition() === 0) {
+                        if (isLocked || this.getCursorPosition() === 0) {
                             e.preventDefault();
                             this.navigateLeft(cells, currentIndex);
                         }
                         break;
                     
                     case 'ArrowRight':
-                        if (isLockedCell || this.getCursorPosition() === this.currentFocus.textContent.length) {
+                        if (isLocked || this.getCursorPosition() === this.currentFocus.textContent.length) {
                             e.preventDefault();
                             this.navigateRight(cells, currentIndex);
                         }
@@ -484,7 +409,6 @@
                     case 'Tab':
                         e.preventDefault();
                         if (this.handleTabCompletion(this.currentFocus)) {
-                            // TAB completion happened, stay in same cell
                             return;
                         }
                         
@@ -497,40 +421,83 @@
                     
                     case 'Enter':
                         e.preventDefault();
-                        const currentGridCell = new GridCell(this.currentFocus, this.commands);
-                        
-                        if (isLockedCell) {
-                            // Unlock cell and enter edit mode
-                            currentGridCell.unlock();
+                        if (isLocked) {
+                            this.unlockCell(this.currentFocus);
                             this.enterEditMode(this.currentFocus);
-                        } else if (currentGridCell.isLockable()) {
-                            // Lock cell but stay in place
+                        } else if (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key')) {
                             if (this.currentFocus.textContent.trim()) {
-                                currentGridCell.lock();
-                                // Ensure text is selected to show blue background
+                                this.lockCell(this.currentFocus);
                                 setTimeout(() => {
                                     this.selectAllText(this.currentFocus);
                                 }, 0);
                             }
                         } else {
-                            // Regular navigation for param-value cells
                             this.navigateDown(cells, currentIndex);
                         }
                         break;
                         
                     case 'Backspace':
                     case 'Delete':
-                        if (isLockedCell) {
+                        if (isLocked) {
                             e.preventDefault();
-                            const deleteGridCell = new GridCell(this.currentFocus, this.commands);
-                            deleteGridCell.unlockAndClear();
+                            this.unlockAndClearCell(this.currentFocus);
                         }
                         break;
                 }
             }
 
+            handleTabCompletion(element) {
+                if (!element || this.isLockedCell(element)) return false;
+
+                const content = element.textContent.trim();
+                if (!content) return false;
+
+                let suggestion = null;
+                
+                if (element.classList.contains('command-cell')) {
+                    suggestion = this.getCommandSuggestion(content);
+                } else if (element.classList.contains('param-key')) {
+                    const commandIndex = parseInt(element.dataset.commandIndex);
+                    const commandName = this.commands[commandIndex].name;
+                    if (commandName) {
+                        suggestion = this.getParameterSuggestion(commandName, content);
+                    }
+                }
+
+                if (suggestion) {
+                    // Clean replacement to fix text corruption
+                    element.textContent = suggestion;
+                    
+                    // Update model
+                    if (element.classList.contains('command-cell')) {
+                        this.updateCommandName(element, suggestion);
+                    } else if (element.classList.contains('param-key')) {
+                        this.updateParameterKey(element, suggestion);
+                    }
+                    
+                    // Place cursor at end
+                    const range = document.createRange();
+                    const textNode = element.firstChild;
+                    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                        range.setStart(textNode, textNode.textContent.length);
+                        range.setEnd(textNode, textNode.textContent.length);
+                    } else {
+                        range.selectNodeContents(element);
+                        range.collapse(false);
+                    }
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    return true;
+                }
+
+                return false;
+            }
+
+            // Navigation methods 
             navigateUp(cells, currentIndex) {
-                // Find cell above in same column
                 const currentCell = cells[currentIndex];
                 for (let i = currentIndex - 1; i >= 0; i--) {
                     if (this.isInSameColumn(currentCell, cells[i])) {
@@ -541,7 +508,6 @@
             }
 
             navigateDown(cells, currentIndex) {
-                // Find cell below in same column
                 const currentCell = cells[currentIndex];
                 for (let i = currentIndex + 1; i < cells.length; i++) {
                     if (this.isInSameColumn(currentCell, cells[i])) {
@@ -554,16 +520,12 @@
             navigateLeft(cells, currentIndex) {
                 const currentCell = cells[currentIndex];
                 
-                // Special case: from any parameter key, go to the associated command cell
                 if (currentCell.classList.contains('param-key')) {
                     const commandIndex = parseInt(currentCell.dataset.commandIndex);
-                    
-                    // Find the command cell for this command group
                     const commandCell = cells.find(cell => 
                         cell.classList.contains('command-cell') && 
                         parseInt(cell.dataset.commandIndex) === commandIndex
                     );
-                    
                     if (commandCell) {
                         const commandCellIndex = cells.indexOf(commandCell);
                         this.focusCell(cells, commandCellIndex);
@@ -571,7 +533,6 @@
                     }
                 }
                 
-                // Default behavior: Move to previous cell in same row
                 for (let i = currentIndex - 1; i >= 0; i--) {
                     if (this.isInSameRow(currentCell, cells[i])) {
                         this.focusCell(cells, i);
@@ -581,7 +542,6 @@
             }
 
             navigateRight(cells, currentIndex) {
-                // Move to next cell in same row
                 const currentCell = cells[currentIndex];
                 for (let i = currentIndex + 1; i < cells.length; i++) {
                     if (this.isInSameRow(currentCell, cells[i])) {
@@ -592,81 +552,38 @@
             }
 
             isInSameColumn(cell1, cell2) {
-                // Simple heuristic: same class indicates same column
                 return (cell1.classList.contains('command-cell') && cell2.classList.contains('command-cell')) ||
                        (cell1.classList.contains('param-key') && cell2.classList.contains('param-key')) ||
                        (cell1.classList.contains('param-value') && cell2.classList.contains('param-value'));
             }
 
             isInSameRow(cell1, cell2) {
-                // Check if cells are in same table row
                 return cell1.closest('tr') === cell2.closest('tr');
             }
 
             focusCell(cells, index) {
                 if (index >= 0 && index < cells.length) {
-                    
-                    
                     const cell = cells[index];
                     cell.focus();
                     this.currentFocus = cell;
                     
-                    // Ensure proper selection for locked cells
                     if (this.isLockedCell(cell)) {
-                        setTimeout(() => {
-                            this.selectAllText(cell);
-                        }, 0);
+                        setTimeout(() => this.selectAllText(cell), 0);
                     }
                 }
             }
 
-            getCursorPosition() {
-                const selection = window.getSelection();
-                return selection.anchorOffset;
-            }
-
-            saveCursorPosition() {
-                if (this.currentFocus) {
-                    this.cursorPosition = this.getCursorPosition();
-                }
-            }
-
-            restoreCursorPosition(cell) {
-                if (!cell) return;
-                
-                // Set cursor position
-                const range = document.createRange();
-                const textNode = cell.firstChild;
-                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
-                    const position = Math.min(this.cursorPosition, textNode.textContent.length);
-                    range.setStart(textNode, position);
-                    range.setEnd(textNode, position);
-                    
-                    const selection = window.getSelection();
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            }
-
-            handleCellInput(cell) {
-                const gridCell = new GridCell(cell, this.commands);
-                const content = cell.textContent;
-                
-                // Update the model
-                gridCell.updateModel(content);
-                
-                // Check if we need to expand the grid
-                if (gridCell.shouldExpandGrid(content)) {
-                    this.isExpanding = true;
-                    gridCell.expandGrid();
-                    this.render();
-                    this.restoreFocus();
-                    this.isExpanding = false;
-                }
+            focusFirstCell() {
+                setTimeout(() => {
+                    const firstCell = this.container.querySelector('.cell');
+                    if (firstCell) {
+                        firstCell.focus();
+                        this.currentFocus = firstCell;
+                    }
+                }, 100);
             }
 
             restoreFocus() {
-                // Find the cell that should have focus based on current position
                 if (this.currentFocus) {
                     const commandIndex = this.currentFocus.dataset.commandIndex;
                     const paramIndex = this.currentFocus.dataset.paramIndex;
@@ -682,8 +599,6 @@
                     
                     const newCell = this.container.querySelector(selector);
                     if (newCell) {
-
-                        
                         newCell.focus();
                         this.currentFocus = newCell;
                         this.restoreCursorPosition(newCell);
@@ -691,42 +606,112 @@
                 }
             }
 
-            handleCellFocus(cell) {
-                const gridCell = new GridCell(cell, this.commands);
-                if (gridCell.isLocked()) {
-                    // Select all text in locked cell to show blue background
-                    setTimeout(() => {
-                        this.selectAllText(cell);
-                    }, 0);
+            handleCellFocus(element) {
+                if (this.isLockedCell(element)) {
+                    setTimeout(() => this.selectAllText(element), 0);
                 }
             }
 
-            lockCell(cell) {
-                const gridCell = new GridCell(cell, this.commands);
-                gridCell.lock();
+            lockCell(element) {
+                const commandIndex = parseInt(element.dataset.commandIndex);
+                
+                if (element.classList.contains('command-cell')) {
+                    this.commands[commandIndex].nameIsLocked = true;
+                } else if (element.classList.contains('param-key')) {
+                    const paramIndex = parseInt(element.dataset.paramIndex);
+                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = true;
+                }
+                
+                element.classList.add('locked');
+                element.style.userSelect = 'all';
             }
 
-            unlockCell(cell) {
-                const gridCell = new GridCell(cell, this.commands);
-                gridCell.unlock();
+            unlockCell(element) {
+                const commandIndex = parseInt(element.dataset.commandIndex);
+                
+                if (element.classList.contains('command-cell')) {
+                    this.commands[commandIndex].nameIsLocked = false;
+                } else if (element.classList.contains('param-key')) {
+                    const paramIndex = parseInt(element.dataset.paramIndex);
+                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = false;
+                }
+                
+                element.classList.remove('locked');
+                element.style.userSelect = '';
             }
 
-            unlockAndClearCell(cell) {
-                const gridCell = new GridCell(cell, this.commands);
-                gridCell.unlockAndClear();
+            unlockAndClearCell(element) {
+                const commandIndex = parseInt(element.dataset.commandIndex);
+                
+                if (element.classList.contains('command-cell')) {
+                    this.commands[commandIndex].name = '';
+                    this.commands[commandIndex].nameIsLocked = false;
+                } else if (element.classList.contains('param-key')) {
+                    const paramIndex = parseInt(element.dataset.paramIndex);
+                    this.commands[commandIndex].parameters[paramIndex].key = '';
+                    this.commands[commandIndex].parameters[paramIndex].keyIsLocked = false;
+                }
+                
+                element.textContent = '';
+                element.classList.remove('locked');
+                element.style.userSelect = '';
             }
 
-            enterEditMode(cell) {
-                // Place cursor at end of text for natural editing
+            isLockedCell(element) {
+                if (!element.classList.contains('command-cell') && !element.classList.contains('param-key')) {
+                    return false;
+                }
+                
+                const commandIndex = parseInt(element.dataset.commandIndex);
+                
+                if (element.classList.contains('command-cell')) {
+                    return this.commands[commandIndex].nameIsLocked;
+                } else if (element.classList.contains('param-key')) {
+                    const paramIndex = parseInt(element.dataset.paramIndex);
+                    return this.commands[commandIndex].parameters[paramIndex].keyIsLocked;
+                }
+                
+                return false;
+            }
+
+            // Utility methods
+            getCursorPosition() {
+                const selection = window.getSelection();
+                return selection.anchorOffset;
+            }
+
+            saveCursorPosition() {
+                if (this.currentFocus) {
+                    this.cursorPosition = this.getCursorPosition();
+                }
+            }
+
+            restoreCursorPosition(cell) {
+                if (!cell) return;
+                
+                const range = document.createRange();
+                const textNode = cell.firstChild;
+                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                    const position = Math.min(this.cursorPosition, textNode.textContent.length);
+                    range.setStart(textNode, position);
+                    range.setEnd(textNode, position);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
+
+            enterEditMode(element) {
                 setTimeout(() => {
                     const range = document.createRange();
-                    const textNode = cell.firstChild;
+                    const textNode = element.firstChild;
                     if (textNode && textNode.nodeType === Node.TEXT_NODE) {
                         range.setStart(textNode, textNode.textContent.length);
                         range.setEnd(textNode, textNode.textContent.length);
                     } else {
-                        range.selectNodeContents(cell);
-                        range.collapse(false); // Collapse to end
+                        range.selectNodeContents(element);
+                        range.collapse(false);
                     }
                     
                     const selection = window.getSelection();
@@ -735,59 +720,27 @@
                 }, 0);
             }
 
-            preventEditAndBlink(cell) {
-                // Add blink class and remove it after animation
-                cell.classList.add('blink');
-                setTimeout(() => {
-                    cell.classList.remove('blink');
-                }, 500);
-            }
-
-            isLockedCell(cell) {
-                const gridCell = new GridCell(cell, this.commands);
-                return gridCell.isLocked();
-            }
-
-            selectAllText(cell) {
+            selectAllText(element) {
                 const range = document.createRange();
-                range.selectNodeContents(cell);
+                range.selectNodeContents(element);
                 const selection = window.getSelection();
                 selection.removeAllRanges();
                 selection.addRange(range);
             }
 
-
-
-            handleTabCompletion(cell) {
-                const gridCell = new GridCell(cell, this.commands);
-                
-                if (!cell || gridCell.isLocked()) return false;
-
-                const content = cell.textContent.trim();
-                if (!content) return false;
-
-                const suggestion = gridCell.getAutocompleteSuggestion(content);
-                if (suggestion) {
-                    // Complete the suggestion
-                    cell.textContent = suggestion;
-                    
-                    // Update the model
-                    this.handleCellInput(cell);
-                    
-                    // Place cursor at end
-                    setTimeout(() => this.enterEditMode(cell), 0);
-                    return true;
-                }
-
-                return false;
+            preventEditAndBlink(element) {
+                element.classList.add('blink');
+                setTimeout(() => {
+                    element.classList.remove('blink');
+                }, 500);
             }
         }
 
         // Initialize the grid
         document.addEventListener('DOMContentLoaded', () => {
             const grid = document.getElementById('grid');
-            new RowspanGrid(grid);
+            new StableRowspanGrid(grid);
         });
     </script>
 </body>
-</html> 
+</html>
