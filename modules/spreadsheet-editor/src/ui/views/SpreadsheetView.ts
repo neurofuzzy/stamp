@@ -23,19 +23,19 @@ export class SpreadsheetView {
               contenteditable="true" 
               data-command-index="${commandIndex}"
               data-cell-type="command"
-              data-placeholder="${command.name || 'command...'}">${command.name}</td>
+              data-placeholder="${command.name.trim() ? command.name : 'command...'}">${command.name}</td>
           <td class="cell param-key ${command.parameters[0].keyIsLocked ? 'locked' : ''}" 
               contenteditable="true" 
               data-command-index="${commandIndex}"
               data-param-index="0"
               data-cell-type="param-key"
-              data-placeholder="${command.parameters[0].key || 'param...'}">${command.parameters[0].key}</td>
+              data-placeholder="${command.parameters[0].key.trim() ? command.parameters[0].key : 'param...'}">${command.parameters[0].key}</td>
           <td class="cell param-value" 
               contenteditable="true" 
               data-command-index="${commandIndex}"
               data-param-index="0"
               data-cell-type="param-value"
-              data-placeholder="${command.parameters[0].value || 'value...'}">${command.parameters[0].value}</td>
+              data-placeholder="${command.parameters[0].value.trim() ? command.parameters[0].value : 'value...'}">${command.parameters[0].value}</td>
         </tr>
       `;
 
@@ -49,13 +49,13 @@ export class SpreadsheetView {
                 data-command-index="${commandIndex}"
                 data-param-index="${paramIndex}"
                 data-cell-type="param-key"
-                data-placeholder="${param.key || 'param...'}">${param.key}</td>
+                data-placeholder="${param.key.trim() ? param.key : 'param...'}">${param.key}</td>
             <td class="cell param-value" 
                 contenteditable="true" 
                 data-command-index="${commandIndex}"
                 data-param-index="${paramIndex}"
                 data-cell-type="param-value"
-                data-placeholder="${param.value || 'value...'}">${param.value}</td>
+                data-placeholder="${param.value.trim() ? param.value : 'value...'}">${param.value}</td>
           </tr>
         `;
       }

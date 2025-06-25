@@ -290,5 +290,59 @@ describe('UI Improvements', () => {
       const updatedCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
       expect(view.isLockedCell(updatedCell, model)).toBe(false);
     });
+
+    it('Arrow down should traverse all parameter rows', () => {
+      // Set up a command with multiple parameters to test navigation
+      view.render(model);
+      let commandCell = container.querySelector('[data-command-index="0"][data-cell-type="command"]') as HTMLElement;
+      
+      // Set up command with content to create multiple parameters
+      commandCell.focus();
+      commandCell.textContent = 'circle';
+      commandCell.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // Add first parameter
+      let param1Cell = container.querySelector('[data-command-index="0"][data-param-index="0"][data-cell-type="param-key"]') as HTMLElement;
+      param1Cell.focus();
+      param1Cell.textContent = 'radius';
+      param1Cell.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // Add second parameter
+      let param2Cell = container.querySelector('[data-command-index="0"][data-param-index="1"][data-cell-type="param-key"]') as HTMLElement;
+      param2Cell.focus();  
+      param2Cell.textContent = 'color';
+      param2Cell.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // Re-render to ensure all rows are present
+      view.render(model);
+      
+      // Verify we have the expected structure (only one empty parameter due to ensureEmptyRows)
+      expect(model.commands[0].name).toBe('circle');
+      expect(model.commands[0].parameters[0].key).toBe('radius');
+      
+      // Manually add a second parameter to test navigation (need to trigger expansion first)
+      // First, add content to the first parameter to trigger expansion
+      model.updateParameterKey(0, 0, 'radius');
+      // Now we can add the second parameter
+      model.updateParameterKey(0, 1, 'color');
+      view.render(model);
+      
+      // Verify we now have both parameters plus an empty one
+      expect(model.commands[0].parameters.length).toBeGreaterThanOrEqual(2);
+      expect(model.commands[0].parameters[0].key).toBe('radius');
+      expect(model.commands[0].parameters[1].key).toBe('color');
+      
+      // Test that parameter rows are navigable with arrow down
+      param1Cell = container.querySelector('[data-command-index="0"][data-param-index="0"][data-cell-type="param-key"]') as HTMLElement;
+      param1Cell.focus();
+      
+      // Arrow down should go to second parameter row  
+      const downEvent = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true });
+      param1Cell.dispatchEvent(downEvent);
+      
+      // Verify focus moved to second parameter
+      param2Cell = container.querySelector('[data-command-index="0"][data-param-index="1"][data-cell-type="param-key"]') as HTMLElement;
+      expect(document.activeElement).toBe(param2Cell);
+    });
   });
 }); 

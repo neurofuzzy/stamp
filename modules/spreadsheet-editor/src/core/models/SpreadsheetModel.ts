@@ -27,9 +27,53 @@ export class SpreadsheetModel implements SpreadsheetData {
   updateCommandName(commandIndex: number, name: string): boolean {
     if (commandIndex >= 0 && commandIndex < this.commands.length) {
       this.commands[commandIndex].name = name;
-      return this.config.autoExpand ? this.shouldExpandCommands(commandIndex, name) : false;
+      
+      if (this.config.autoExpand) {
+        this.ensureEmptyRows();
+        return true; // Always re-render to maintain empty rows
+      }
     }
     return false;
+  }
+
+  // Ensure there's EXACTLY ONE empty row in each context  
+  ensureEmptyRows(): void {
+    // Remove any trailing empty commands (keep only ONE)
+    while (this.commands.length > 1) {
+      const lastCommand = this.commands[this.commands.length - 1];
+      if (lastCommand.name.trim() === '' && lastCommand.parameters.every(p => p.key.trim() === '' && p.value.trim() === '')) {
+        this.commands.pop();
+      } else {
+        break;
+      }
+    }
+    
+    // Ensure there's EXACTLY ONE empty command at the end
+    const lastCommand = this.commands[this.commands.length - 1];
+    if (lastCommand.name.trim() !== '' || lastCommand.parameters.some(p => p.key.trim() !== '' || p.value.trim() !== '')) {
+      this.commands.push(this.createEmptyCommand());
+    }
+    
+    // Ensure each command has EXACTLY ONE empty parameter at the end
+    this.commands.forEach(command => {
+      // Remove any trailing empty parameters (keep only ONE) - but only if we have more than 2 empty ones
+      while (command.parameters.length > 2) {
+        const lastParam = command.parameters[command.parameters.length - 1];
+        const secondLastParam = command.parameters[command.parameters.length - 2];
+        if (lastParam.key.trim() === '' && lastParam.value.trim() === '' &&
+            secondLastParam.key.trim() === '' && secondLastParam.value.trim() === '') {
+          command.parameters.pop();
+        } else {
+          break;
+        }
+      }
+      
+      // Ensure there's EXACTLY ONE empty parameter at the end
+      const lastParam = command.parameters[command.parameters.length - 1];
+      if (lastParam.key.trim() !== '' || lastParam.value.trim() !== '') {
+        command.parameters.push(this.createEmptyParameter());
+      }
+    });
   }
 
   shouldExpandCommands(commandIndex: number, name: string): boolean {
@@ -45,16 +89,26 @@ export class SpreadsheetModel implements SpreadsheetData {
     const command = this.commands[commandIndex];
     if (command && paramIndex >= 0 && paramIndex < command.parameters.length) {
       command.parameters[paramIndex].key = key;
-      return this.config.autoExpand ? this.shouldExpandParameters(command, paramIndex, key) : false;
+      
+      if (this.config.autoExpand) {
+        this.ensureEmptyRows();
+        return true; // Always re-render to maintain empty rows
+      }
     }
     return false;
   }
 
-  updateParameterValue(commandIndex: number, paramIndex: number, value: string): void {
+  updateParameterValue(commandIndex: number, paramIndex: number, value: string): boolean {
     const command = this.commands[commandIndex];
     if (command && paramIndex >= 0 && paramIndex < command.parameters.length) {
       command.parameters[paramIndex].value = value;
+      
+      if (this.config.autoExpand) {
+        this.ensureEmptyRows();
+        return true; // Always re-render to maintain empty rows
+      }
     }
+    return false;
   }
 
   shouldExpandParameters(command: Command, paramIndex: number, key: string): boolean {
@@ -65,6 +119,22 @@ export class SpreadsheetModel implements SpreadsheetData {
     const command = this.commands[commandIndex];
     if (command) {
       command.parameters.push(this.createEmptyParameter());
+    }
+  }
+
+  // Clean up empty trailing parameters
+  cleanupEmptyParameters(commandIndex: number): void {
+    const command = this.commands[commandIndex];
+    if (!command) return;
+
+    // Keep at least one parameter
+    while (command.parameters.length > 1) {
+      const lastParam = command.parameters[command.parameters.length - 1];
+      if (lastParam.key.trim() === '' && lastParam.value.trim() === '') {
+        command.parameters.pop();
+      } else {
+        break;
+      }
     }
   }
 
@@ -158,12 +228,14 @@ export class SpreadsheetModel implements SpreadsheetData {
 
   // New methods to check exact matches
   isValidCommand(input: string): boolean {
-    if (!this.dsl || !input.trim()) return false;
+    if (!input.trim()) return true; // Empty strings are valid (don't clear them)
+    if (!this.dsl) return false;
     return this.dsl.getValidCommands().includes(input);
   }
 
   isValidParameter(commandName: string, input: string): boolean {
-    if (!this.dsl || !input.trim() || !commandName) return false;
+    if (!input.trim()) return true; // Empty strings are valid (don't clear them)
+    if (!this.dsl || !commandName) return false;
     return this.dsl.getValidParameters(commandName).includes(input);
   }
 
