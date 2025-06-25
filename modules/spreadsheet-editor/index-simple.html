@@ -272,7 +272,9 @@
                     // Clear invalid content
                     if (e.target.classList.contains('command-cell') && content) {
                         if (!STAMP_DSL.commands.includes(content)) {
-                            e.target.textContent = '';
+                            // Properly clear contenteditable element and reset placeholder
+                            e.target.innerHTML = '';
+                            e.target.setAttribute('data-placeholder', 'command...');
                             const commandIndex = parseInt(e.target.dataset.commandIndex);
                             this.commands[commandIndex].name = '';
                             return;
@@ -281,7 +283,9 @@
                         const commandIndex = parseInt(e.target.dataset.commandIndex);
                         const commandName = this.commands[commandIndex].name;
                         if (commandName && STAMP_DSL.parameters[commandName] && !STAMP_DSL.parameters[commandName].includes(content)) {
-                            e.target.textContent = '';
+                            // Properly clear contenteditable element and reset placeholder
+                            e.target.innerHTML = '';
+                            e.target.setAttribute('data-placeholder', 'param...');
                             const paramIndex = parseInt(e.target.dataset.paramIndex);
                             this.commands[commandIndex].parameters[paramIndex].key = '';
                             return;
