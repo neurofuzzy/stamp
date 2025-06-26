@@ -236,3 +236,224 @@ This component should be able to support multiple independent instances on the p
 - **Minimal dependencies**: Only DOM APIs, no external libraries
 - **Event-driven**: Communicates via standard DOM events
 - **Theme-able**: CSS custom properties for styling customization
+
+
+# Recommended Architecture
+
+TypeScript compiled to a script-tag-ready library with MVC is perfect for this.
+
+## 🏗️ **Lightweight MVC Architecture**
+
+### **Model** - Data & State Management
+```typescript
+// KVDataGridModel.ts
+class KVDataGridModel {
+  private commands: CommandData[] = [];
+  private currentCell: CellReference | null = null;
+  private interactionMode: 'navigation' | 'editing' = 'navigation';
+  private originalValues: Map<string, string> = new Map();
+  
+  // Data operations
+  public getCommands(): CommandData[]
+  public updateCommand(index: number, data: Partial<CommandData>): void
+  public addCommand(): void
+  public removeCommand(index: number): void
+  
+  // State operations  
+  public setMode(mode: 'navigation' | 'editing'): void
+  public getMode(): 'navigation' | 'editing'
+  public setCurrentCell(cell: CellReference): void
+  public getCurrentCell(): CellReference | null
+}
+```
+
+### **View** - DOM Rendering & Updates
+```typescript
+// KVDataGridView.ts  
+class KVDataGridView {
+  private container: HTMLElement;
+  private table: HTMLTableElement;
+  
+  // Rendering
+  public render(commands: CommandData[]): void
+  public updateCell(cellRef: CellReference, value: string): void
+  public setFocus(cellRef: CellReference): void
+  public showValidationError(cellRef: CellReference): void
+  
+  // Mode-specific rendering
+  public enterNavigationMode(cellRef: CellReference): void
+  public enterEditingMode(cellRef: CellReference): void
+  
+  // Event binding (delegates to controller)
+  public bindEvents(eventHandlers: EventHandlers): void
+}
+```
+
+### **Controller** - Orchestration & Business Logic
+```typescript
+// KVDataGridController.ts
+class KVDataGridController {
+  private model: KVDataGridModel;
+  private view: KVDataGridView;
+  private dsl: DSLDefinition;
+  
+  // Mode management (your key insight!)
+  private handleNavigationMode(event: KeyboardEvent): void
+  private handleEditingMode(event: KeyboardEvent): void
+  private switchToEditing(cellRef: CellReference): void
+  private switchToNavigation(): void
+  
+  // DSL integration
+  private validateCell(cellRef: CellReference, value: string): boolean
+  private getSuggestion(cellRef: CellReference, partial: string): string | null
+  private autoComplete(cellRef: CellReference): boolean
+}
+```
+
+## 📦 **Build Configuration for Script Tag Distribution**
+
+### **TypeScript Config** (`tsconfig.json`)
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "UMD",           // Universal Module Definition
+    "lib": ["DOM", "ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,        // Generate .d.ts files
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+```
+
+### **Rollup Build** (for clean single-file output)
+```javascript
+// rollup.config.js
+export default {
+  input: 'src/index.ts',
+  output: [
+    {
+      file: 'dist/kv-datagrid.js',
+      format: 'umd',
+      name: 'KVDataGrid',      // Global variable name
+      sourcemap: true
+    },
+    {
+      file: 'dist/kv-datagrid.esm.js', 
+      format: 'es',            // For modern bundlers
+      sourcemap: true
+    }
+  ],
+  plugins: [
+    typescript(),
+    terser()                   // Minification
+  ]
+};
+```
+
+## 🎯 **Why MVC Works Perfectly Here**
+
+### **Mode State Machine in Controller**
+```typescript
+class KVDataGridController {
+  private handleKeydown(event: KeyboardEvent): void {
+    if (this.model.getMode() === 'navigation') {
+      this.handleNavigationMode(event);
+    } else {
+      this.handleEditingMode(event);
+    }
+  }
+  
+  private handleNavigationMode(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'Enter':
+        this.switchToEditing(this.model.getCurrentCell());
+        break;
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'ArrowLeft': 
+      case 'ArrowRight':
+        this.navigateInDirection(event.key);
+        break;
+    }
+  }
+  
+  private handleEditingMode(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'Enter':
+      case 'Tab':
+        this.attemptLockAndExit();
+        break;
+      case 'Escape':
+        this.restoreAndExit();
+        break;
+    }
+  }
+}
+```
+
+### **Clean DSL Integration**
+```typescript
+// The controller mediates between DSL and Model/View
+private validateAndSuggest(cellRef: CellReference, value: string): ValidationResult {
+  const cellType = this.getCellType(cellRef);
+  
+  if (cellType === 'command') {
+    return {
+      isValid: this.dsl.isValidCommand?.(value) ?? false,
+      suggestion: this.dsl.getCommandSuggestion?.(value) ?? null
+    };
+  }
+  // ... similar for param-key
+}
+```
+
+## 📋 **Project Structure**
+```
+src/
+├── index.ts              // Main export + UMD wrapper
+├── models/
+│   ├── KVDataGridModel.ts
+│   └── types.ts          // Interfaces
+├── views/
+│   ├── KVDataGridView.ts  
+│   └── styles.ts         // CSS-in-JS or constants
+├── controllers/
+│   └── KVDataGridController.ts
+└── utils/
+    ├── dsl-helpers.ts
+    └── dom-utils.ts
+```
+
+## 🚀 **Usage After Build**
+```html
+<!-- Script tag usage -->
+<script src="dist/kv-datagrid.js"></script>
+<script>
+  const grid = new KVDataGrid(document.getElementById('container'), STAMP_DSL);
+</script>
+```
+
+```javascript
+// ES Module usage
+import { KVDataGrid } from 'kv-datagrid';
+const grid = new KVDataGrid(container, dsl);
+```
+
+## 💡 **Why This MVC is "Light"**
+
+1. **Single Responsibility**: Each layer has one clear job
+2. **No Framework Overhead**: Pure TypeScript classes
+3. **Mode Separation**: Controller cleanly handles your two-mode architecture
+4. **Testable**: Mock any layer independently  
+5. **Multiple Instances**: Each instance gets its own Model/View/Controller trio
+6. **Event-Driven**: Controller can emit events for external integration
+
+The MVC pattern particularly shines here because your **two interaction modes** map perfectly to controller logic, while keeping data (Model) and rendering (View) completely separate.
+
+Would you like me to start with the TypeScript interfaces and Model implementation?
