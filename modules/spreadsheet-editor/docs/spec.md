@@ -107,6 +107,8 @@ These cells can have any value (for now)
 
   D. *Abort editing*: [ESCAPE KEY] will return the cell's value to what it was before it was unlocked, then go through the locking steps.
 
+  E. *Exiting a cell*: Exiting a cell may happen on a blur event if a user clicks outside the cell. At that time, we should go through the locking steps.
+
 ## Autocomplete hints
 
 For autocomplete hinting, we want inline ghost text that will show the completed value, in the same diminished color as the placeholder text. 
