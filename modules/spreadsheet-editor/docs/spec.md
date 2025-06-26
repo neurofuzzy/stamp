@@ -445,15 +445,18 @@ import { KVDataGrid } from 'kv-datagrid';
 const grid = new KVDataGrid(container, dsl);
 ```
 
-## 💡 **Why This MVC is "Light"**
+## Bite-Sized Design Philosophy
 
-1. **Single Responsibility**: Each layer has one clear job
-2. **No Framework Overhead**: Pure TypeScript classes
-3. **Mode Separation**: Controller cleanly handles your two-mode architecture
-4. **Testable**: Mock any layer independently  
-5. **Multiple Instances**: Each instance gets its own Model/View/Controller trio
-6. **Event-Driven**: Controller can emit events for external integration
+This component embodies a "bite-sized design philosophy" - creating small, focused modules that are feature-complete yet deliberately constrained in scope. In an AI-powered development world, we need to build solid, comprehensible components that are designed from the ground up to be part of a larger whole.
 
-The MVC pattern particularly shines here because your **two interaction modes** map perfectly to controller logic, while keeping data (Model) and rendering (View) completely separate.
+Each bite-sized component should be:
+- **Cognitively digestible**: Small enough for humans and AI to fully understand and modify
+- **Feature-complete**: Solves its specific problem entirely, with no missing pieces
+- **Composable by design**: Built with clear interfaces that anticipate integration with other components
+- **Independently testable**: Can be validated in isolation before becoming part of larger systems
+- **Self-documenting**: Clear enough that its purpose and capabilities are obvious from usage
 
-Would you like me to start with the TypeScript interfaces and Model implementation?
+The KVDataGrid exemplifies this philosophy - it's a complete spreadsheet editor for DSL-based data entry, nothing more, nothing less. It doesn't try to be a full application framework or solve problems outside its domain. Instead, it provides a robust, well-defined interface that allows it to be seamlessly integrated into larger applications where spreadsheet-style data editing is needed.
+
+This approach enables rapid development and iteration, where complex applications can be built by composing many small, reliable components rather than creating monolithic solutions. In an AI-assisted development environment, this modularity allows both humans and AI tools to reason about, modify, and extend functionality at the appropriate level of granularity.
+
