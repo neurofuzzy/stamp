@@ -150,6 +150,7 @@
                 this.currentFocus = null;
                 this.cursorPosition = 0;
                 this.isExpanding = false;
+                this.originalValues = new Map(); // Track original values for ESC restore
                 this.commands = [
                     {
                         name: '',
@@ -234,6 +235,20 @@
                 return params.find(param => 
                     param.startsWith(partial) && param !== partial
                 );
+            }
+
+            isValidContentForCell(element) {
+                const content = element.textContent.trim();
+                if (!content) return true; // Empty is always valid
+
+                if (element.classList.contains('command-cell')) {
+                    return this.isValidCommand(content);
+                } else if (element.classList.contains('param-key')) {
+                    const commandIndex = parseInt(element.dataset.commandIndex);
+                    const commandName = this.commands[commandIndex].name;
+                    return !commandName || this.isValidParameter(commandName, content);
+                }
+                return true; // param-value cells are always valid
             }
 
             setupEventListeners() {
@@ -384,34 +399,59 @@
                 switch (e.key) {
                     case 'ArrowUp':
                         e.preventDefault();
-                        this.navigateUp(cells, currentIndex);
+                        if (!isLocked && (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key'))) {
+                            this.handleArrowNavigation(this.currentFocus, () => this.navigateUp(cells, currentIndex));
+                        } else {
+                            this.navigateUp(cells, currentIndex);
+                        }
                         break;
                     
                     case 'ArrowDown':
                         e.preventDefault();
-                        this.navigateDown(cells, currentIndex);
+                        if (!isLocked && (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key'))) {
+                            this.handleArrowNavigation(this.currentFocus, () => this.navigateDown(cells, currentIndex));
+                        } else {
+                            this.navigateDown(cells, currentIndex);
+                        }
                         break;
                     
                     case 'ArrowLeft':
                         if (isLocked || this.getCursorPosition() === 0) {
                             e.preventDefault();
-                            this.navigateLeft(cells, currentIndex);
+                            if (!isLocked && (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key'))) {
+                                this.handleArrowNavigation(this.currentFocus, () => this.navigateLeft(cells, currentIndex));
+                            } else {
+                                this.navigateLeft(cells, currentIndex);
+                            }
                         }
                         break;
                     
                     case 'ArrowRight':
                         if (isLocked || this.getCursorPosition() === this.currentFocus.textContent.length) {
                             e.preventDefault();
-                            this.navigateRight(cells, currentIndex);
+                            if (!isLocked && (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key'))) {
+                                this.handleArrowNavigation(this.currentFocus, () => this.navigateRight(cells, currentIndex));
+                            } else {
+                                this.navigateRight(cells, currentIndex);
+                            }
                         }
                         break;
                     
                     case 'Tab':
                         e.preventDefault();
-                        if (this.handleTabCompletion(this.currentFocus)) {
-                            return;
+                        if (!isLocked && (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key'))) {
+                            // Try tab completion first
+                            if (this.handleTabCompletion(this.currentFocus)) {
+                                return;
+                            }
+                            // If no completion and content is invalid, blink
+                            if (!this.isValidContentForCell(this.currentFocus)) {
+                                this.preventEditAndBlink(this.currentFocus);
+                                return;
+                            }
                         }
                         
+                        // Normal tab navigation
                         if (e.shiftKey) {
                             this.focusCell(cells, Math.max(0, currentIndex - 1));
                         } else {
@@ -425,14 +465,52 @@
                             this.unlockCell(this.currentFocus);
                             this.enterEditMode(this.currentFocus);
                         } else if (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key')) {
-                            if (this.currentFocus.textContent.trim()) {
+                            const content = this.currentFocus.textContent.trim();
+                            if (content) {
+                                if (this.isValidContentForCell(this.currentFocus)) {
+                                    this.lockCell(this.currentFocus);
+                                    setTimeout(() => {
+                                        this.selectAllText(this.currentFocus);
+                                    }, 0);
+                                } else {
+                                    // Invalid content, blink instead of navigating
+                                    this.preventEditAndBlink(this.currentFocus);
+                                }
+                            } else {
+                                // Empty content, just navigate
+                                this.navigateDown(cells, currentIndex);
+                            }
+                        } else {
+                            this.navigateDown(cells, currentIndex);
+                        }
+                        break;
+
+                    case 'Escape':
+                        e.preventDefault();
+                        if (!isLocked && this.originalValues.has(this.currentFocus)) {
+                            // Restore original value
+                            const originalValue = this.originalValues.get(this.currentFocus);
+                            this.currentFocus.textContent = originalValue;
+                            
+                            // Update model
+                            if (this.currentFocus.classList.contains('command-cell')) {
+                                this.updateCommandName(this.currentFocus, originalValue);
+                            } else if (this.currentFocus.classList.contains('param-key')) {
+                                this.updateParameterKey(this.currentFocus, originalValue);
+                            } else if (this.currentFocus.classList.contains('param-value')) {
+                                this.updateParameterValue(this.currentFocus, originalValue);
+                            }
+                            
+                            // If it was locked before, lock it again
+                            if (originalValue && (this.currentFocus.classList.contains('command-cell') || this.currentFocus.classList.contains('param-key'))) {
                                 this.lockCell(this.currentFocus);
                                 setTimeout(() => {
                                     this.selectAllText(this.currentFocus);
                                 }, 0);
                             }
-                        } else {
-                            this.navigateDown(cells, currentIndex);
+                            
+                            // Clean up
+                            this.originalValues.delete(this.currentFocus);
                         }
                         break;
                         
@@ -629,6 +707,9 @@
             unlockCell(element) {
                 const commandIndex = parseInt(element.dataset.commandIndex);
                 
+                // Store original value for ESC restore
+                this.originalValues.set(element, element.textContent.trim());
+                
                 if (element.classList.contains('command-cell')) {
                     this.commands[commandIndex].nameIsLocked = false;
                 } else if (element.classList.contains('param-key')) {
@@ -733,6 +814,62 @@
                 setTimeout(() => {
                     element.classList.remove('blink');
                 }, 500);
+            }
+
+            clearCellContent(element) {
+                element.textContent = '';
+                
+                // Reset placeholder
+                if (element.classList.contains('command-cell')) {
+                    element.setAttribute('data-placeholder', 'command...');
+                    this.updateCommandName(element, '');
+                } else if (element.classList.contains('param-key')) {
+                    element.setAttribute('data-placeholder', 'param...');
+                    this.updateParameterKey(element, '');
+                } else if (element.classList.contains('param-value')) {
+                    element.setAttribute('data-placeholder', 'value...');
+                    this.updateParameterValue(element, '');
+                }
+            }
+
+            handleArrowNavigation(element, navigationCallback) {
+                const content = element.textContent.trim();
+                
+                if (!content) {
+                    // Empty content, just navigate
+                    navigationCallback();
+                    return;
+                }
+
+                // Check for suggestions (autocomplete)
+                let suggestion = null;
+                if (element.classList.contains('command-cell')) {
+                    suggestion = this.getCommandSuggestion(content);
+                } else if (element.classList.contains('param-key')) {
+                    const commandIndex = parseInt(element.dataset.commandIndex);
+                    const commandName = this.commands[commandIndex].name;
+                    if (commandName) {
+                        suggestion = this.getParameterSuggestion(commandName, content);
+                    }
+                }
+
+                if (suggestion) {
+                    // Autocomplete and then navigate
+                    element.textContent = suggestion;
+                    
+                    // Update model
+                    if (element.classList.contains('command-cell')) {
+                        this.updateCommandName(element, suggestion);
+                    } else if (element.classList.contains('param-key')) {
+                        this.updateParameterKey(element, suggestion);
+                    }
+                } else {
+                    // No match, clear content and reset placeholder
+                    this.clearCellContent(element);
+                }
+                
+                // Always navigate after handling content
+                navigationCallback();
             }
         }
 
