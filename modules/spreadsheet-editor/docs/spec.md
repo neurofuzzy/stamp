@@ -113,9 +113,16 @@ These cells can have any value (for now)
 
 For autocomplete hinting, we want inline ghost text that will show the completed value, in the same diminished color as the placeholder text. 
 
-We can align this using an overlay trick to add an overlay container that has the same exact size and border as the cell, but the border is transparent. It should also have the same padding and text styles as the cell, so that the text lines up perfectly. The contents should be two spans. The first will have visibility none but contain the text the user has typed. The second will have the ghost text style and contain the remainder of the autocomplete text.
+- We only need have one overlay for the component because a user can only edit one cell at a time.
+- Autocomplete hints only appear in editing mode.
+- In navigation mode, autocomplete should remain idle and hints should not be visible
+- When entering edit mode, autocomplete should reset
+- When a cell becomes empty, autocomplete should also clear and reset
+- In parameter values (Column C) autocomplete should instead use values from other cells in column C.
 
-We only need have one overlay for the component because a user can only edit one cell at a time.
+*Technical note*: We can align this using an overlay trick to add an overlay container that has the same exact size and border as the cell, but the border is transparent. It should also have the same padding and text styles as the cell, so that the text lines up perfectly. The contents should be two spans. The first will have visibility none but contain the text the user has typed. The second will have the ghost text style and contain the remainder of the autocomplete text.
+
+
 
 ## Change Events
 
