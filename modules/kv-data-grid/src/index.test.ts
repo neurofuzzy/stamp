@@ -47,7 +47,7 @@ describe('KVDataGrid', () => {
   describe('data management', () => {
     it('should export empty data initially', () => {
       const data = grid.exportData();
-      expect(data).toEqual([]);
+      expect(data).toEqual([{ name: '', parameters: [] }]);
     });
 
     it('should import data correctly', () => {

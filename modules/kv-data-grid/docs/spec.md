@@ -76,7 +76,8 @@ These cells can have any value (for now)
 
 2. Possible Cell States:
   A. Empty
-  B. Unlocke for editing
+    - should be full-height of 1 line with placeholder text. Columns A. "command...", B. "param..." C. "value..." see styling for details
+  B. Unlocked for editing
     - only one cell can be unlocked at a time
   C. Locked (must have valid values for DSL Cells)
 

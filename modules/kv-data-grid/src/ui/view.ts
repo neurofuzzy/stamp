@@ -16,6 +16,9 @@ export class KVDataGridView {
     this.table = document.createElement('table');
     this.table.className = 'kv-datagrid';
     
+    // Make table focusable for keyboard events
+    this.table.tabIndex = 0;
+    
     // Create header
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
@@ -61,10 +64,11 @@ export class KVDataGridView {
     // Command cell with rowspan
     const commandCell = document.createElement('td');
     commandCell.className = 'command-cell';
-    commandCell.textContent = command.name;
+    commandCell.textContent = command.name || 'command...';
     commandCell.rowSpan = totalRows;
     commandCell.dataset.commandIndex = commandIndex.toString();
     commandCell.dataset.cellType = 'command';
+    this.addCellClickHandler(commandCell);
     firstRow.appendChild(commandCell);
     
     // If there are parameters, add first parameter to first row
@@ -97,48 +101,80 @@ export class KVDataGridView {
     
     const commandCell = document.createElement('td');
     commandCell.className = 'command-cell';
-    commandCell.textContent = '';
+    commandCell.textContent = 'command...';
+    commandCell.dataset.commandIndex = '0';
     commandCell.dataset.cellType = 'command';
+    this.addCellClickHandler(commandCell);
     row.appendChild(commandCell);
     
-    this.addEmptyParameterCells(row, -1, 0);
+    this.addEmptyParameterCells(row, 0, 0);
     this.tbody.appendChild(row);
   }
 
   private addParameterCells(row: HTMLTableRowElement, param: { key: string; value: string }, commandIndex: number, paramIndex: number): void {
     const keyCell = document.createElement('td');
     keyCell.className = 'param-key-cell';
-    keyCell.textContent = param.key;
+    keyCell.textContent = param.key || 'param...';
     keyCell.dataset.commandIndex = commandIndex.toString();
     keyCell.dataset.cellType = 'param-key';
     keyCell.dataset.paramIndex = paramIndex.toString();
+    this.addCellClickHandler(keyCell);
     row.appendChild(keyCell);
     
     const valueCell = document.createElement('td');
     valueCell.className = 'param-value-cell';
-    valueCell.textContent = param.value;
+    valueCell.textContent = param.value || 'value...';
     valueCell.dataset.commandIndex = commandIndex.toString();
     valueCell.dataset.cellType = 'param-value';
     valueCell.dataset.paramIndex = paramIndex.toString();
+    this.addCellClickHandler(valueCell);
     row.appendChild(valueCell);
   }
 
   private addEmptyParameterCells(row: HTMLTableRowElement, commandIndex: number, paramIndex: number): void {
     const keyCell = document.createElement('td');
     keyCell.className = 'param-key-cell';
-    keyCell.textContent = '';
+    keyCell.textContent = 'param...';
     keyCell.dataset.commandIndex = commandIndex.toString();
     keyCell.dataset.cellType = 'param-key';
     keyCell.dataset.paramIndex = paramIndex.toString();
+    this.addCellClickHandler(keyCell);
     row.appendChild(keyCell);
     
     const valueCell = document.createElement('td');
     valueCell.className = 'param-value-cell';
-    valueCell.textContent = '';
+    valueCell.textContent = 'value...';
     valueCell.dataset.commandIndex = commandIndex.toString();
     valueCell.dataset.cellType = 'param-value';
     valueCell.dataset.paramIndex = paramIndex.toString();
+    this.addCellClickHandler(valueCell);
     row.appendChild(valueCell);
+  }
+
+  private addCellClickHandler(cell: HTMLElement): void {
+    cell.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.handleCellClick(cell);
+    });
+  }
+
+  private handleCellClick(cell: HTMLElement): void {
+    const commandIndex = parseInt(cell.dataset.commandIndex || '0');
+    const cellType = cell.dataset.cellType as 'command' | 'param-key' | 'param-value';
+    const paramIndex = cell.dataset.paramIndex ? parseInt(cell.dataset.paramIndex) : undefined;
+
+    const cellRef: CellReference = {
+      commandIndex,
+      cellType,
+      paramIndex
+    };
+
+    // Emit custom event for the Controller to handle
+    const clickEvent = new CustomEvent('cellClicked', { 
+      detail: cellRef,
+      bubbles: true 
+    });
+    this.container.dispatchEvent(clickEvent);
   }
 
   public setFocus(cellRef: CellReference): void {

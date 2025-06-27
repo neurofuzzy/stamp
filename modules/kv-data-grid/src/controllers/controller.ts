@@ -24,6 +24,7 @@ export class KVDataGridController {
   private setupEventListeners(): void {
     const container = this.view.getContainer();
     container.addEventListener('keydown', this.handleKeydown.bind(this));
+    container.addEventListener('cellClicked', this.handleCellClick.bind(this) as EventListener);
     container.tabIndex = 0;
     this.isKeyboardListening = true;
   }
@@ -306,5 +307,11 @@ export class KVDataGridController {
     const detail: ModeChangeEvent = { oldMode, newMode };
     const event = new CustomEvent('modeChange', { detail });
     this.eventTarget.dispatchEvent(event);
+  }
+
+  private handleCellClick(event: Event): void {
+    const customEvent = event as CustomEvent;
+    const cellRef = customEvent.detail as CellReference;
+    this.focusCell(cellRef);
   }
 } 

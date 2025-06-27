@@ -23,6 +23,9 @@ export class KVDataGrid {
     this.view = new KVDataGridView(container);
     this.controller = new KVDataGridController(this.model, this.view, dsl);
     
+    // Ensure we always have at least one empty command to match the view
+    this.model.addCommand();
+    
     // Initial render
     this.syncViewWithModel();
   }

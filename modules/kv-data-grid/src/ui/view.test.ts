@@ -32,13 +32,12 @@ describe('KVDataGridView', () => {
     it('should render empty state with one empty command row', () => {
       view.render([]);
       
-      const tbody = container.querySelector('tbody');
-      const rows = tbody?.querySelectorAll('tr');
+      const rows = container.querySelectorAll('tbody tr');
       expect(rows).toHaveLength(1);
       
-      // Should have empty command cell
+      // Should have empty command cell with placeholder text
       const commandCell = rows?.[0].querySelector('.command-cell');
-      expect(commandCell?.textContent).toBe('');
+      expect(commandCell?.textContent).toBe('command...');
     });
 
     it('should render single command without parameters', () => {
@@ -53,45 +52,47 @@ describe('KVDataGridView', () => {
     });
 
     it('should render command with parameters using rowspan', () => {
-      const commands: CommandData[] = [
-        { 
-          name: 'circle', 
-          parameters: [
-            { key: 'radius', value: '10' },
-            { key: 'x', value: '5' }
-          ] 
-        }
-      ];
+      const testCommand: CommandData = {
+        name: 'circle',
+        parameters: [
+          { key: 'radius', value: '50' },
+          { key: 'x', value: '100' }
+        ]
+      };
       
-      view.render(commands);
+      view.render([testCommand]);
       
-      const commandCell = container.querySelector('.command-cell') as HTMLTableCellElement;
-      expect(commandCell.rowSpan).toBe(3); // Command + 2 params + 1 empty
+      const rows = container.querySelectorAll('tbody tr');
+      expect(rows).toHaveLength(3); // 2 params + 1 empty row
       
+      // Check command cell rowspan
+      const commandCell = container.querySelector('.command-cell');
+      expect(commandCell?.textContent).toBe('circle');
+      expect((commandCell as HTMLTableCellElement)?.rowSpan).toBe(3);
+      
+      // Check parameter cells
       const paramCells = container.querySelectorAll('.param-key-cell');
-      expect(paramCells).toHaveLength(3); // 2 params + 1 empty
+      expect(paramCells).toHaveLength(3);
       expect(paramCells[0].textContent).toBe('radius');
       expect(paramCells[1].textContent).toBe('x');
-      expect(paramCells[2].textContent).toBe(''); // Empty parameter row
+      expect(paramCells[2].textContent).toBe('param...'); // Empty parameter row with placeholder
     });
 
     it('should always include empty parameter row for each command', () => {
-      const commands: CommandData[] = [
-        { 
-          name: 'circle', 
-          parameters: [{ key: 'radius', value: '10' }] 
-        }
-      ];
+      const testCommand: CommandData = {
+        name: 'rect',
+        parameters: [{ key: 'width', value: '100' }]
+      };
       
-      view.render(commands);
+      view.render([testCommand]);
       
       const rows = container.querySelectorAll('tbody tr');
-      // Should have: param row + empty param row
-      expect(rows).toHaveLength(2);
+      expect(rows).toHaveLength(2); // 1 param + 1 empty row
       
+      // Check that last row is empty parameter row with placeholder
       const lastRow = rows[rows.length - 1];
       const emptyParamKey = lastRow.querySelector('.param-key-cell');
-      expect(emptyParamKey?.textContent).toBe('');
+      expect(emptyParamKey?.textContent).toBe('param...');
     });
   });
 
