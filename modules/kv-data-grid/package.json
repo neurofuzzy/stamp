@@ -1,5 +1,5 @@
 {
-  "name": "@stamp/spreadsheet-editor",
+  "name": "@stamp/kv-data-grid",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -14,7 +14,6 @@
   "devDependencies": {
     "@types/node": "^20.19.1",
     "@vitest/ui": "^1.2.1",
-    "jsdom": "^26.1.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.12",
     "vitest": "^1.2.1"
@@ -22,8 +21,7 @@
   "keywords": [
     "spreadsheet",
     "editor",
-    "stamp",
     "live-coding"
   ],
-  "description": "Scalable spreadsheet editor for Stamp live coding environment"
+  "description": "Modular spreadsheet editor for live coding environment"
 }
