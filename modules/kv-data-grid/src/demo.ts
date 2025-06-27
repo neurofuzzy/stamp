@@ -56,6 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set up demo buttons
   setupDemoControls();
   
+  // Focus the first cell so user can immediately start using keyboard
+  setTimeout(() => {
+    grid.focusCell(0, 'command');
+  }, 100);
+  
   // Initial status
   updateStatus('Ready - Try clicking cells and using arrow keys to navigate! Press Enter to edit.');
 });

@@ -91,7 +91,8 @@ describe('KVDataGrid', () => {
       grid.importData(testData);
       grid.clearData();
       
-      expect(grid.exportData()).toEqual([]);
+      // Should have one empty command after clearing
+      expect(grid.exportData()).toEqual([{ name: '', parameters: [] }]);
       
       // Should render empty state
       const tbody = container.querySelector('tbody');

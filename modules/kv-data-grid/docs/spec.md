@@ -68,6 +68,15 @@ These cells can only have valid values saved in them
 These cells can have any value (for now)
 2 Param Value
 
+## Input Events
+1. Mouse
+  A. Clicking on a cell should navigate to and focus on that cell
+  B. Double-clicking on a cell should focus on that cell and go into editing mode
+  C. Any clicks outside the component will naturally trigger a blur event. In that case, exit editing mode
+2. Keyboard
+  A. Once a cell in component is focused on via mouse or tab-index navigation, handle keyboard navigation (see below)
+  B. In editing mode, keyboard entry should edit the cell content (see below)
+
 ## States and Actions
 
 1. Possible Interaction Modes
@@ -84,6 +93,8 @@ These cells can have any value (for now)
 3a. Actions: Navigation Mode;
   
 2a. Navigation mode:
+  There should be a visual indication of the current cell when navigating.
+
   A. *Arrow-navigation*: Shall always navigate visually in the direction of the arrow. Special cases are navigating left from column B (param key) which, since the command has rowspan, should go both left and possibly up to the command row.
 
   B. *Tab Navigation*: TAB navigation works just like regular tabindex navigation.
@@ -93,6 +104,7 @@ These cells can have any value (for now)
   D. *Other Keypresses*: Typing in a locked cell will not change its value. A flashing indicator should be shown in the cell.
 
 3b. Actions: Editing Mode
+  There should be a visual indication of the current cell when editing.
 
   A. *Arrow-navigation*: Using the left and right arrows will simply move the cursor within the text as normal.
 
@@ -122,8 +134,6 @@ For autocomplete hinting, we want inline ghost text that will show the completed
 - In parameter values (Column C) autocomplete should instead use values from other cells in column C.
 
 *Technical note*: We can align this using an overlay trick to add an overlay container that has the same exact size and border as the cell, but the border is transparent. It should also have the same padding and text styles as the cell, so that the text lines up perfectly. The contents should be two spans. The first will have visibility none but contain the text the user has typed. The second will have the ghost text style and contain the remainder of the autocomplete text.
-
-
 
 ## Change Events
 

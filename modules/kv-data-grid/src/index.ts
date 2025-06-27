@@ -61,6 +61,10 @@ export class KVDataGrid {
   public clearData(): void {
     // Reset model to empty state
     this.model = new KVDataGridModel(this.model.getDSL());
+    
+    // Ensure we always have at least one empty command
+    this.model.addCommand();
+    
     this.syncViewWithModel();
     
     // Re-create controller with new model instance
