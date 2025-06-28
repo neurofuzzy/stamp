@@ -4,6 +4,7 @@ import { css } from './styles';
 // EventHandlers will be defined in the controller, so I'll just put a placeholder here
 export type EventHandlers = {
   onCellClick: (cellRef: CellReference) => void;
+  onCellFocus: (cellRef: CellReference) => void;
   onCellDoubleClick: (cellRef: CellReference) => void;
   onKeyDown: (event: KeyboardEvent) => void;
 }
@@ -185,6 +186,20 @@ export class KVDataGridView {
       };
       eventHandlers.onCellClick(cellRef);
     });
+
+    this.table.addEventListener('focusin', (event) => {
+        const cell = (event.target as HTMLElement).closest('td');
+        if (!cell) return;
+  
+        const { commandIndex, cellType, paramIndex } = cell.dataset;
+        
+        const cellRef: CellReference = {
+          commandIndex: Number(commandIndex),
+          cellType: cellType as CellReference['cellType'],
+          paramIndex: paramIndex !== undefined ? Number(paramIndex) : undefined
+        };
+        eventHandlers.onCellFocus(cellRef);
+      });
 
     this.table.addEventListener('dblclick', (event) => {
         const cell = (event.target as HTMLElement).closest('td');

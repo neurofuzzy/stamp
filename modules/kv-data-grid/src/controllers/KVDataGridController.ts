@@ -19,6 +19,7 @@ export class KVDataGridController {
   private init() {
     this.view.bindEvents({
       onCellClick: this.handleCellClick.bind(this),
+      onCellFocus: this.handleCellFocus.bind(this),
       onCellDoubleClick: this.handleCellDoubleClick.bind(this),
       onKeyDown: this.handleKeyDown.bind(this)
     });
@@ -29,6 +30,10 @@ export class KVDataGridController {
   }
 
   private handleCellClick(cellRef: CellReference) {
+    this.handleCellFocus(cellRef);
+  }
+
+  private handleCellFocus(cellRef: CellReference) {
     this.model.setCurrentCell(cellRef);
     this.view.setFocus(cellRef);
   }
@@ -206,9 +211,37 @@ export class KVDataGridController {
   }
 
   private navigateToNextCell() {
-    const currentCell = this.model.getCurrentCell();
-    if (!currentCell) return;
-    this.navigate('ArrowRight'); // Simple navigation for now
+    const currentCellRef = this.model.getCurrentCell();
+    if (!currentCellRef) return;
+
+    const commands = this.model.getCommands();
+    let { commandIndex, cellType, paramIndex } = currentCellRef;
+
+    if (cellType === 'command') {
+        cellType = 'param-key';
+        paramIndex = 0;
+    } else if (cellType === 'param-key') {
+        cellType = 'param-value';
+    } else if (cellType === 'param-value') {
+        const command = commands[commandIndex];
+        if (paramIndex !== undefined && paramIndex < command.parameters.length - 1) {
+            paramIndex++;
+            cellType = 'param-key';
+        } else if (commandIndex < commands.length - 1) {
+            commandIndex++;
+            cellType = 'command';
+            paramIndex = undefined;
+        } else {
+            // Loop back to the start
+            commandIndex = 0;
+            cellType = 'command';
+            paramIndex = undefined;
+        }
+    }
+
+    const newCell: CellReference = { commandIndex, cellType, paramIndex };
+    this.model.setCurrentCell(newCell);
+    this.view.setFocus(newCell);
   }
 
   private restoreAndExit() {
