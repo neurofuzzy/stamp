@@ -59,6 +59,8 @@ The grid will always have 1 and only 1 empty command row at the bottom. Once a n
 
 Parameter key and value rows will also always have 1 and only 1 empty row at the bottom of each command. So, for instance, if a command has two parameters, there will be 3 rows total and the command cell will span 3 rows.
 
+A new empty parameter row shall be added when the user enters a new parameter for a command. The parameters for each command should always have an additional empty row so that an additional parameter can be added by the user.
+
 ## DSL-Marshalled Cells:
 These cells can only have valid values saved in them
 1. Command
@@ -85,7 +87,7 @@ These cells can have any value (for now)
 
 2. Possible Cell States:
   A. Empty
-    - should be full-height of 1 line with placeholder text. Columns A. "command...", B. "param..." C. "value..." see styling for details
+    - should be full-height of 1 line with placeholder text. Columns A. "command...", B. "param..." C. "value..." see styling for details. Placeholder text should be CSS-based using the :empty pseudoclass
   B. Unlocked for editing
     - only one cell can be unlocked at a time
   C. Locked (must have valid values for DSL Cells)
@@ -95,7 +97,7 @@ These cells can have any value (for now)
 2a. Navigation mode:
   There should be a visual indication of the current cell when navigating.
 
-  A. *Arrow-navigation*: Shall always navigate visually in the direction of the arrow. Special cases are navigating left from column B (param key) which, since the command has rowspan, should go both left and possibly up to the command row.
+  A. *Arrow-navigation*: Shall always navigate visually in the direction of the arrow. Special cases are navigating left from column B (param key) which, since the command has rowspan, should go both left and possibly up to the command row. Navigating up and down should always stay in the same column.
 
   B. *Tab Navigation*: TAB navigation works just like regular tabindex navigation.
 
@@ -104,7 +106,7 @@ These cells can have any value (for now)
   D. *Other Keypresses*: Typing in a locked cell will not change its value. A flashing indicator should be shown in the cell.
 
 3b. Actions: Editing Mode
-  There should be a visual indication of the current cell when editing.
+  There should be a visual indication of the current cell when editing. Exiting a cell will exit edit mode
 
   A. *Arrow-navigation*: Using the left and right arrows will simply move the cursor within the text as normal.
 
@@ -120,7 +122,7 @@ These cells can have any value (for now)
 
   D. *Abort editing*: [ESCAPE KEY] will return the cell's value to what it was before it was unlocked, then go through the locking steps.
 
-  E. *Exiting a cell*: Exiting a cell may happen on a blur event if a user clicks outside the cell. At that time, we should go through the locking steps.
+  E. *Exiting a cell*: Exiting a cell may happen on a blur event if a user clicks outside the cell. At that time, we should go through the locking steps AND exit edit mode.
 
 ## Autocomplete hints
 

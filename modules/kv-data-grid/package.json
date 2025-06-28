@@ -1,28 +1,24 @@
 {
-  "name": "@stamp/kv-data-grid",
-  "version": "0.1.0",
-  "type": "module",
+  "name": "kv-data-grid",
+  "version": "0.0.1",
+  "description": "A key-value data grid component.",
+  "main": "dist/kv-datagrid.js",
+  "module": "dist/kv-datagrid.esm.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "typecheck": "tsc --noEmit"
+    "build": "tsc && rollup -c",
+    "test": "vitest"
   },
   "devDependencies": {
-    "@types/node": "^20.19.1",
-    "@vitest/ui": "^1.2.1",
-    "jsdom": "^26.1.0",
+    "rollup": "^4.9.6",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.12",
     "vitest": "^1.2.1"
   },
-  "keywords": [
-    "spreadsheet",
-    "editor",
-    "live-coding"
-  ],
-  "description": "Modular spreadsheet editor for live coding environment"
+  "files": [
+    "dist"
+  ]
 }
