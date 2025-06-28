@@ -149,6 +149,12 @@ export class KVDataGridController {
     if (!input) return;
 
     switch (event.key) {
+      case 'ArrowUp':
+      case 'ArrowDown':
+        event.preventDefault();
+        this.attemptLockAndExit(false); // Lock cell, but don't navigate yet.
+        this.navigate(event.key);      // Now navigate in the arrow's direction.
+        break;
       case 'Tab':
         const suggestion = this.getSuggestion(currentCellRef, input.value);
         if (suggestion) {

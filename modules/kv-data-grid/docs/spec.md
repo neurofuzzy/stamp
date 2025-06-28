@@ -122,7 +122,7 @@ These cells can have any value (for now)
 
   D. *Abort editing*: [ESCAPE KEY] will return the cell's value to what it was before it was unlocked, then go through the locking steps.
 
-  E. *Exiting a cell*: Exiting a cell may happen on a blur event if a user clicks outside the cell. At that time, we should go through the locking steps AND exit edit mode.
+  E. *Exiting a cell*: Exiting a cell may happen on a blur event if a user clicks outside the cell or presses the up or down arrow keys. At that time, we should go through the locking steps AND exit edit mode.
 
 ## Autocomplete hints
 
