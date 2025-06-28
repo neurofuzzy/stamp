@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KVDataGrid Multi-Instance Demo</title>
+    <style>
+        body { background-color: #121212; color: #eee; font-family: sans-serif; padding: 2em; }
+        h1, h2 { border-bottom: 1px solid #444; padding-bottom: 0.5em; }
+        .grid-wrapper { margin-bottom: 2em; }
+    </style>
+</head>
+<body>
+    <h1>KVDataGrid Multi-Instance Demo</h1>
+    <p>This page demonstrates two independent instances of the KVDataGrid component, each with its own data model and DSL.</p>
+
+    <div class="grid-wrapper">
+        <h2>Instance 1: Geometric Shapes DSL</h2>
+        <div id="grid-container-1"></div>
+    </div>
+
+    <div class="grid-wrapper">
+        <h2>Instance 2: Scene Properties DSL</h2>
+        <div id="grid-container-2"></div>
+    </div>
+
+    <script type="module">
+        import { KVDataGrid } from './src/index.ts';
+
+        // --- Instance 1: Geometric Shapes ---
+        const SHAPES_DSL = {
+            commands: ['circle', 'rect', 'line'],
+            parameters: {
+                'circle': ['radius', 'x', 'y', 'fill'],
+                'rect': ['width', 'height', 'x', 'y', 'stroke'],
+                'line': ['x1', 'y1', 'x2', 'y2'],
+            }
+        };
+        const container1 = document.getElementById('grid-container-1');
+        const grid1 = new KVDataGrid(container1, SHAPES_DSL);
+        grid1.importData([
+            { name: 'rect', parameters: [{ key: 'width', value: 100 }, { key: 'height', value: 50 }] },
+            { name: 'circle', parameters: [{ key: 'radius', value: 25 }] }
+        ]);
+
+        // --- Instance 2: Scene Properties ---
+        const SCENE_DSL = {
+            commands: ['background', 'layer', 'camera'],
+            parameters: {
+                'background': ['color', 'pattern'],
+                'layer': ['name', 'opacity', 'blendMode'],
+                'camera': ['zoom', 'panX', 'panY'],
+            }
+        };
+        const container2 = document.getElementById('grid-container-2');
+        const grid2 = new KVDataGrid(container2, SCENE_DSL);
+        grid2.importData([
+            { name: 'background', parameters: [{ key: 'color', value: '#333333' }] },
+            { name: 'layer', parameters: [{ key: 'name', value: 'Foreground' }, {key: 'opacity', value: 0.8}] }
+        ]);
+
+        // You can interact with each instance independently
+        window.grid1 = grid1;
+        window.grid2 = grid2;
+        console.log('Two independent grid instances are available as `window.grid1` and `window.grid2`');
+    </script>
+</body>
+</html> 

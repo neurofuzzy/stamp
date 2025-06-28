@@ -21,7 +21,8 @@ export class KVDataGridController {
       onCellClick: this.handleCellClick.bind(this),
       onCellFocus: this.handleCellFocus.bind(this),
       onCellDoubleClick: this.handleCellDoubleClick.bind(this),
-      onKeyDown: this.handleKeyDown.bind(this)
+      onKeyDown: this.handleKeyDown.bind(this),
+      onInputBlur: this.handleInputBlur.bind(this)
     });
     // Set initial focus
     const initialCell = { commandIndex: 0, cellType: 'command' as const };
@@ -327,5 +328,11 @@ export class KVDataGridController {
     this.model.redo();
     this.view.render(this.model.getCommands());
     this.view.setNavigationFocus(this.model.getCurrentCell());
+  }
+
+  private handleInputBlur() {
+    if (this.model.getMode() === 'editing') {
+      this.attemptLockAndExit(false);
+    }
   }
 }

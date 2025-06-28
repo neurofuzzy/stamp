@@ -57,9 +57,7 @@ There can be multiple B and C columns associated with a single A column - comman
 
 The grid will always have 1 and only 1 empty command row at the bottom. Once a new command is added, a new empty row will be inserted at the bottom.
 
-Parameter key and value rows will also always have 1 and only 1 empty row at the bottom of each command. So, for instance, if a command has two parameters, there will be 3 rows total and the command cell will span 3 rows.
-
-A new empty parameter row shall be added when the user enters a new parameter for a command. The parameters for each command should always have an additional empty row so that an additional parameter can be added by the user.
+The parameters for each command should always have an additional empty row so that a new parameter can be easily added by the user. If a command has a name, it must have at least one parameter row, even if it's empty.
 
 ## DSL-Marshalled Cells:
 These cells can only have valid values saved in them
@@ -95,22 +93,27 @@ These cells can have any value (for now)
 3a. Actions: Navigation Mode;
   
 2a. Navigation mode:
-  There should be a visual indication of the current cell when navigating.
+  The component must always provide clear visual indication of the current cell.
 
-  A. *Arrow-navigation*: Shall always navigate visually in the direction of the arrow. Special cases are navigating left from column B (param key) which, since the command has rowspan, should go both left and possibly up to the command row. Navigating up and down should always stay in the same column.
+  A. *Focus Management*: Focus is managed via a single, unified system that responds to mouse clicks, keyboard arrows, and Tab/Shift-Tab presses.
+    - **Visual State**:
+      - *Navigation Focus*: The currently selected cell has a distinct background color (`#2d2d2d`). The browser's default outline is suppressed.
+      - *Editing Focus*: The cell containing the input field has a distinct border (`2px solid #4fc3f7`). The background highlight is removed.
+    - **Arrow Keys**: Navigate visually. Up/Down keys stay within the same column, moving between parameter rows or jumping to the command in the adjacent block. Left/Right keys move between columns.
+    - **Tab / Shift-Tab**: Navigate sequentially through all cells in the grid, behaving like a standard web form. The visual highlight follows the browser's focus.
 
-  B. *Tab Navigation*: TAB navigation works just like regular tabindex navigation.
+  B. *Unlock Cell*: [ENTER KEY OR DOUBLE-CLICK] If the current cell is locked, it will unlock the cell, and interaction mode will change to Editing Mode.
 
-  C. *Unlock Cell*: [ENTER KEY OR DOUBLE-CLICK] If the current cell is locked, it will unlock the cell, and interaction mode will change to Editing Mode
-
-  D. *Other Keypresses*: Typing in a locked cell will not change its value. A flashing indicator should be shown in the cell.
+  C. *Other Keypresses*: Typing in a locked cell will not change its value. A flashing indicator should be shown in the cell.
 
 3b. Actions: Editing Mode
   There should be a visual indication of the current cell when editing. Exiting a cell will exit edit mode
 
-  A. *Arrow-navigation*: Using the left and right arrows will simply move the cursor within the text as normal.
+  A. *Arrow-navigation*:
+    - Left/Right arrows move the cursor within the text as normal.
+    - Up/Down arrows lock the current cell and navigate to the cell above or below.
 
-  B. *Lock a cell*: [TAB OR ENTER] Locking an unlocked cell involves a careful multi-step process: 
+  B. *Lock a cell*: [TAB OR ENTER] Locking an unlocked cell involves a careful multi-step process:
     1. IF A CELL IS DSL-MARSHALLED:
       a. read the current value and attempt to match the DSL in that context.
       b. If match, autocomplete the cell, save and lock the cell.
@@ -143,7 +146,7 @@ The component should emit change events when a value in a cell is both changed f
 
 ## Undo and Redo
 
-The component should have undo and redo history supporting CMD-Z undo and SHIFT-CMD-Z redo
+The component should have undo and redo history supporting CMD-Z undo and SHIFT-CMD-Z redo. Any action that modifies the data model (e.g., updating a cell, clearing the grid) should create a new entry in the history stack that can be undone.
 
 ## Styling
 
@@ -448,40 +451,6 @@ src/
 ├── views/
 │   ├── KVDataGridView.ts  
 │   └── styles.ts         // CSS-in-JS or constants
-├── controllers/
-│   └── KVDataGridController.ts
-└── utils/
-    ├── dsl-helpers.ts
-    └── dom-utils.ts
+└── controllers/
+    └── KVDataGridController.ts
 ```
-
-## 🚀 **Usage After Build**
-```html
-<!-- Script tag usage -->
-<script src="dist/kv-datagrid.js"></script>
-<script>
-  const grid = new KVDataGrid(document.getElementById('container'), STAMP_DSL);
-</script>
-```
-
-```javascript
-// ES Module usage
-import { KVDataGrid } from 'kv-datagrid';
-const grid = new KVDataGrid(container, dsl);
-```
-
-## Bite-Sized Design Philosophy
-
-This component embodies a "bite-sized design philosophy" - creating small, focused modules that are feature-complete yet deliberately constrained in scope. In an AI-powered development world, we need to build solid, comprehensible components that are designed from the ground up to be part of a larger whole.
-
-Each bite-sized component should be:
-- **Cognitively digestible**: Small enough for humans and AI to fully understand and modify
-- **Feature-complete**: Solves its specific problem entirely, with no missing pieces
-- **Composable by design**: Built with clear interfaces that anticipate integration with other components
-- **Independently testable**: Can be validated in isolation before becoming part of larger systems
-- **Self-documenting**: Clear enough that its purpose and capabilities are obvious from usage
-
-The KVDataGrid exemplifies this philosophy - it's a complete spreadsheet editor for DSL-based data entry, nothing more, nothing less. It doesn't try to be a full application framework or solve problems outside its domain. Instead, it provides a robust, well-defined interface that allows it to be seamlessly integrated into larger applications where spreadsheet-style data editing is needed.
-
-This approach enables rapid development and iteration, where complex applications can be built by composing many small, reliable components rather than creating monolithic solutions. In an AI-assisted development environment, this modularity allows both humans and AI tools to reason about, modify, and extend functionality at the appropriate level of granularity.
-

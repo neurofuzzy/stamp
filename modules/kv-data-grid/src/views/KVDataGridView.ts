@@ -7,6 +7,7 @@ export type EventHandlers = {
   onCellFocus: (cellRef: CellReference) => void;
   onCellDoubleClick: (cellRef: CellReference) => void;
   onKeyDown: (event: KeyboardEvent) => void;
+  onInputBlur: () => void;
 }
 
 export class KVDataGridView {
@@ -203,6 +204,12 @@ export class KVDataGridView {
         };
         eventHandlers.onCellFocus(cellRef);
       });
+
+    this.table.addEventListener('focusout', (event) => {
+        if ((event.target as HTMLElement).tagName === 'INPUT') {
+            eventHandlers.onInputBlur();
+        }
+    });
 
     this.table.addEventListener('dblclick', (event) => {
         const cell = (event.target as HTMLElement).closest('td');
