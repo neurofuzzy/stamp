@@ -50,10 +50,18 @@ td:empty::before {
 }
 
 /* Focus and Selection */
-td:focus, .focused {
+td.nav-focus {
+  background-color: #2d2d2d;
+}
+
+td.edit-focus {
   outline: 2px solid #4fc3f7;
   outline-offset: -2px;
-  background-color: #2d2d2d;
+}
+
+/* Remove the default browser outline on the cell itself */
+td:focus {
+  outline: none;
 }
 
 /* Warning Flash */

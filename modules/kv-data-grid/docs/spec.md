@@ -147,6 +147,9 @@ The component should have undo and redo history supporting CMD-Z undo and SHIFT-
 
 ## Styling
 
+Current cell indication in navigation mode and edit mode should look different. In navigation mode show the current cell with a background color change and in editing mode only highlight the border. That way, editing mode appears to be more like the user is within the cell and navigation more like the user is floating on top of the cell. 
+
+
 ### Color Palette
 - **Background**: Dark theme with `#1e1e1e` primary background
 - **Command cells**: Blue (`#4fc3f7`) text on `#242424` background

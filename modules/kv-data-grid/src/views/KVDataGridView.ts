@@ -95,25 +95,19 @@ export class KVDataGridView {
   public updateCell(cellRef: CellReference, value: string): void {
     // to be implemented
   }
-  public setFocus(cellRef: CellReference | null): void {
+  public setNavigationFocus(cellRef: CellReference | null): void {
     // Clear previous focus
-    const focused = this.table.querySelector('.focused');
+    const focused = this.table.querySelector('.nav-focus');
     if (focused) {
-      focused.classList.remove('focused');
+      focused.classList.remove('nav-focus');
     }
 
     // Set new focus
     if (!cellRef) return;
-    const { commandIndex, cellType, paramIndex } = cellRef;
-    let cell;
-    if (cellType === 'command') {
-      cell = this.table.querySelector(`td[data-command-index="${commandIndex}"][data-cell-type="command"]`);
-    } else {
-      cell = this.table.querySelector(`td[data-command-index="${commandIndex}"][data-cell-type="${cellType}"][data-param-index="${paramIndex}"]`);
-    }
+    const cell = this.getCell(cellRef);
     
     if (cell) {
-      cell.classList.add('focused');
+      cell.classList.add('nav-focus');
       (cell as HTMLElement).focus(); // for keyboard nav
     }
   }
@@ -133,13 +127,22 @@ export class KVDataGridView {
   public enterNavigationMode(cellRef: CellReference | null): void {
     this.clearSuggestion();
     if (!cellRef) return;
-    // ... logic to get cell value from input and restore the td text ...
-    this.setFocus(cellRef);
+
+    const cell = this.getCell(cellRef);
+    if(cell) {
+        cell.classList.remove('edit-focus');
+    }
+
+    this.setNavigationFocus(cellRef);
   }
   public enterEditingMode(cellRef: CellReference): void {
     const cell = this.getCell(cellRef);
 
     if (!cell) return;
+    
+    // Remove nav focus, add edit focus
+    cell.classList.remove('nav-focus');
+    cell.classList.add('edit-focus');
 
     const value = cell.textContent || '';
     cell.innerHTML = '';
@@ -150,12 +153,12 @@ export class KVDataGridView {
     input.style.width = '100%';
     input.style.height = '100%';
     input.style.boxSizing = 'border-box';
-    input.style.border = 'none';
-    input.style.outline = 'none';
     input.style.backgroundColor = 'inherit';
     input.style.color = 'inherit';
     input.style.fontFamily = 'inherit';
     input.style.fontSize = 'inherit';
+    input.style.border = 'none';
+    input.style.outline = 'none';
     
     cell.appendChild(input);
     input.focus();

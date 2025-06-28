@@ -26,7 +26,7 @@ export class KVDataGridController {
     // Set initial focus
     const initialCell = { commandIndex: 0, cellType: 'command' as const };
     this.model.setCurrentCell(initialCell);
-    this.view.setFocus(initialCell);
+    this.view.setNavigationFocus(initialCell);
   }
 
   private handleCellClick(cellRef: CellReference) {
@@ -38,7 +38,7 @@ export class KVDataGridController {
       return;
     }
     this.model.setCurrentCell(cellRef);
-    this.view.setFocus(cellRef);
+    this.view.setNavigationFocus(cellRef);
   }
 
   private handleCellDoubleClick(cellRef: CellReference) {
@@ -136,7 +136,7 @@ export class KVDataGridController {
 
     const newCell: CellReference = { commandIndex, cellType, paramIndex };
     this.model.setCurrentCell(newCell);
-    this.view.setFocus(newCell);
+    this.view.setNavigationFocus(newCell);
   }
 
   private handleEditingMode(event: KeyboardEvent): void {
@@ -215,7 +215,7 @@ export class KVDataGridController {
     if (navigateToNext) {
       this.navigateToNextCell();
     } else {
-      this.view.setFocus(currentCellRef);
+      this.view.setNavigationFocus(currentCellRef);
     }
   }
 
@@ -250,14 +250,14 @@ export class KVDataGridController {
 
     const newCell: CellReference = { commandIndex, cellType, paramIndex };
     this.model.setCurrentCell(newCell);
-    this.view.setFocus(newCell);
+    this.view.setNavigationFocus(newCell);
   }
 
   private restoreAndExit() {
     // TODO: restore original value
     this.switchToNavigation();
     this.view.render(this.model.getCommands());
-    this.view.setFocus(this.model.getCurrentCell());
+    this.view.setNavigationFocus(this.model.getCurrentCell());
   }
 
   private switchToEditing(cellRef: CellReference): void {
@@ -320,12 +320,12 @@ export class KVDataGridController {
   private undo() {
     this.model.undo();
     this.view.render(this.model.getCommands());
-    this.view.setFocus(this.model.getCurrentCell());
+    this.view.setNavigationFocus(this.model.getCurrentCell());
   }
 
   private redo() {
     this.model.redo();
     this.view.render(this.model.getCommands());
-    this.view.setFocus(this.model.getCurrentCell());
+    this.view.setNavigationFocus(this.model.getCurrentCell());
   }
 }
