@@ -34,6 +34,9 @@ export class KVDataGridController {
   }
 
   private handleCellFocus(cellRef: CellReference) {
+    if (this.model.getMode() === 'editing') {
+      return;
+    }
     this.model.setCurrentCell(cellRef);
     this.view.setFocus(cellRef);
   }
