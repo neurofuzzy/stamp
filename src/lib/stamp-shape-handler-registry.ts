@@ -3,7 +3,7 @@ import { IShapeHandler, IShapeHandlerRegistry } from './stamp-interfaces';
 /**
  * Registry for managing shape handlers
  */
-export class ShapeHandlerRegistry implements IShapeHandlerRegistry {
+export class StampShapeHandlerRegistry implements IShapeHandlerRegistry {
   private handlers: Map<string, IShapeHandler> = new Map();
 
   register(shapeName: string, handler: IShapeHandler): void {

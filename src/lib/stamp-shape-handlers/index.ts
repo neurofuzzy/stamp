@@ -1,4 +1,4 @@
-import { ShapeHandlerRegistry } from '../shape-handler-registry';
+import { StampShapeHandlerRegistry } from '../stamp-shape-handler-registry';
 import { CircleHandler } from './circle-handler';
 import { RectangleHandler } from './rectangle-handler';
 import { EllipseHandler } from './ellipse-handler';
@@ -25,7 +25,7 @@ export { RoundedTangramHandler } from './rounded-tangram-handler';
 export { BoneHandler } from './bone-handler';
 
 // Create and export default registry
-export const defaultShapeRegistry = new ShapeHandlerRegistry();
+export const defaultShapeRegistry = new StampShapeHandlerRegistry();
 
 // Register default handlers
 defaultShapeRegistry.register('circle', new CircleHandler());
@@ -41,4 +41,4 @@ defaultShapeRegistry.register('roundedTangram', new RoundedTangramHandler());
 defaultShapeRegistry.register('bone', new BoneHandler());
 
 // Export registry class for custom registries
-export { ShapeHandlerRegistry } from '../shape-handler-registry'; 
+export { StampShapeHandlerRegistry as ShapeHandlerRegistry } from '../stamp-shape-handler-registry'; 

@@ -61,7 +61,7 @@ import {
   IStepBackParams,
   IPathParams,
 } from "./stamp-interfaces";
-import { defaultShapeRegistry } from "./shapes";
+import { defaultShapeRegistry } from "./stamp-shape-handlers";
 
 const $ = resolveStringOrNumber;
 
