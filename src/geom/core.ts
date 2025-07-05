@@ -1,4 +1,4 @@
-import { makeCircle } from "../lib/smallest-enclosing-circle";
+import { makeCircle } from "./smallest-enclosing-circle";
 import { GeomHelpers } from "./helpers";
 
 export enum Heading {

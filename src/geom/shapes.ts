@@ -1,4 +1,4 @@
-import { makeCircle } from "../lib/smallest-enclosing-circle";
+import { makeCircle } from "./smallest-enclosing-circle";
 import {
   IShape,
   Ray,
