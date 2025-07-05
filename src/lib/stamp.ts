@@ -13,18 +13,8 @@ import {
 import { GeomHelpers } from "../geom/helpers";
 import {
   AbstractShape,
-  Arch,
-  Bone,
-  Circle,
-  Ellipse,
-  LeafShape,
   Polygon,
-  Rectangle,
-  RoundedRectangle,
-  Trapezoid,
 } from "../geom/shapes";
-import { Donut } from "../geom/compoundshapes";
-import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Optimize } from "./optimize";
 import { StampsProvider } from "./stamps-provider";
@@ -53,7 +43,7 @@ import {
   IShapeHandlerRegistry,
   IShapeHandler,
 } from "./stamp-interfaces";
-import { defaultShapeRegistry, ShapeHandlerRegistry } from "./shapes";
+import { defaultShapeRegistry } from "./shapes";
 
 const $ = resolveStringOrNumber;
 
@@ -1109,10 +1099,12 @@ export class Stamp extends AbstractShape implements IShapeContext {
       }
     }
 
+
+
+    // Core function map (for linter and type safety)
     const privateFunctionMap: { [key: string]: Function } = {
       _add: this._add,
       _boolean: this._boolean,
-      _breakApart: this._breakApart,
       _crop: this._crop,
       _defaultStyle: this._defaultStyle,
       _forward: this._forward,
@@ -1132,21 +1124,6 @@ export class Stamp extends AbstractShape implements IShapeContext {
       _subtract: this._subtract,
     };
 
-    // Shape handler name mapping (function name -> handler name)
-    const shapeHandlers: { [key: string]: string } = {
-      _arch: 'arch',
-      _bone: 'bone',
-      _circle: 'circle',
-      _ellipse: 'ellipse',
-      _leafShape: 'leafShape',
-      _polygon: 'polygon',
-      _rectangle: 'rectangle',
-      _roundedRectangle: 'roundedRectangle',
-      _roundedTangram: 'roundedTangram',
-      _tangram: 'tangram',
-      _trapezoid: 'trapezoid',
-    };
-
     let breakApartTimes = 0;
 
     for (let i = 0; i < nodes.length; i++) {
@@ -1158,15 +1135,17 @@ export class Stamp extends AbstractShape implements IShapeContext {
         continue;
       }
       
-      // Check if it's a shape handler
-      const handlerName = shapeHandlers[fName];
-      if (handlerName) {
+      // Try shape handler first (convention: _shapeName -> shapeName handler)
+      if (fName.startsWith('_')) {
+        const handlerName = fName.substring(1); // Remove the underscore
         const handler = this._shapeRegistry.getHandler(handlerName);
-        handler?.handle(args[0], this);
-        continue;
+        if (handler) {
+          handler.handle(args[0], this);
+          continue;
+        }
       }
       
-      // Check if it's a regular private function
+      // Fallback to core private functions
       const fn: Function = privateFunctionMap[fName];
       if (fn) {
         fn.apply(this, args);
