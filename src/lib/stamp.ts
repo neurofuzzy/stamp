@@ -42,6 +42,24 @@ import {
   IShapeContext,
   IShapeHandlerRegistry,
   IShapeHandler,
+  ISetBoundsParams,
+  ISetCursorBoundsParams,
+  IMoveToParams,
+  IMoveParams,
+  IMoveOverParams,
+  IForwardParams,
+  IOffsetParams,
+  IRotateToParams,
+  IRotateParams,
+  ICropParams,
+  IBooleanParams,
+  ISetParams,
+  IRemoveTagParams,
+  ISkipTagParams,
+  IReplaceVariableParams,
+  IRepeatLastParams,
+  IStepBackParams,
+  IPathParams,
 } from "./stamp-interfaces";
 import { defaultShapeRegistry } from "./shapes";
 
@@ -719,8 +737,8 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this;
   }
 
-  boolean(type: number | string) {
-    this._nodes.push({ fName: "_boolean", args: [type] });
+  boolean(params: IBooleanParams) {
+    this._nodes.push({ fName: "_boolean", args: [params.type] });
     return this;
   }
 
@@ -744,71 +762,68 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this;
   }
 
-  set(sequenceCall: string) {
-    this._nodes.push({ fName: "_set", args: [sequenceCall] });
+  set(params: ISetParams) {
+    this._nodes.push({ fName: "_set", args: [params.sequenceCall] });
     return this;
   }
 
-  setBounds(width: number, height: number) {
-    this._overrideBounds = new BoundingBox(0, 0, width, height);
+  setBounds(params: ISetBoundsParams) {
+    this._overrideBounds = new BoundingBox(0, 0, $(params.width), $(params.height));
     return this;
   }
 
-  setCursorBounds(x: number, y: number, width: number, height: number) {
+  setCursorBounds(params: ISetCursorBoundsParams) {
     this._nodes.push({
       fName: "_setCursorBounds",
-      args: [x, y, width, height],
+      args: [params.x, params.y, params.width, params.height],
     });
     return this;
   }
 
-  moveTo(
-    x: number | string | undefined = undefined,
-    y: number | string | undefined = undefined,
-  ) {
-    this._nodes.push({ fName: "_moveTo", args: [x, y] });
+  moveTo(params: IMoveToParams) {
+    this._nodes.push({ fName: "_moveTo", args: [params.x, params.y] });
     return this;
   }
 
-  move(x: number | string = 0, y: number | string = 0) {
-    this._nodes.push({ fName: "_move", args: [x, y] });
+  move(params: IMoveParams) {
+    this._nodes.push({ fName: "_move", args: [params.x || 0, params.y || 0] });
     return this;
   }
 
-  moveOver(direction: number, perc: number) {
-    this._nodes.push({ fName: "_moveOver", args: [direction, perc] });
+  moveOver(params: IMoveOverParams) {
+    this._nodes.push({ fName: "_moveOver", args: [params.direction, params.percentage || 1] });
     return this;
   }
 
-  forward(distance: number | string = 0) {
-    this._nodes.push({ fName: "_forward", args: [distance] });
+  forward(params: IForwardParams) {
+    this._nodes.push({ fName: "_forward", args: [params.distance || 0] });
     return this;
   }
 
-  offset(x: number, y: number = 0) {
-    this._nodes.push({ fName: "_offset", args: [x, y] });
+  offset(params: IOffsetParams) {
+    this._nodes.push({ fName: "_offset", args: [params.x, params.y || 0] });
     return this;
   }
 
-  rotateTo(r: number | string = 0) {
-    this._nodes.push({ fName: "_rotateTo", args: [r] });
+  rotateTo(params: IRotateToParams) {
+    this._nodes.push({ fName: "_rotateTo", args: [params.rotation || 0] });
     return this;
   }
 
-  rotate(r: number | string = 0) {
-    this._nodes.push({ fName: "_rotate", args: [r] });
+  rotate(params: IRotateParams) {
+    this._nodes.push({ fName: "_rotate", args: [params.rotation || 0] });
     return this;
   }
 
   /**
    * removes any nodes with the given tag
-   * @param tag
+   * @param params
    * @returns
    */
-  removeTag(tag: string) {
+  removeTag(params: IRemoveTagParams) {
     let i = this._nodes.length;
     while (i--) {
-      if (this._nodes[i].tag === tag) {
+      if (this._nodes[i].tag === params.tag) {
         this._nodes.splice(i, 1);
         // reduce any repeatLasts steps by 1
         for (let j = i; j < this._nodes.length; j++) {
@@ -821,12 +836,12 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this;
   }
 
-  skipTag(tag: string, condition: string) {
+  skipTag(params: ISkipTagParams) {
     let i = this._nodes.length;
     while (i--) {
-      if (this._nodes[i].tag === tag) {
+      if (this._nodes[i].tag === params.tag) {
         if (typeof this._nodes[i].args[0] === "object") {
-          this._nodes[i].args[0].skip = condition;
+          this._nodes[i].args[0].skip = params.condition;
         }
       }
     }
@@ -835,18 +850,17 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
   /**
    * replaces any occurances of named sequences
-   * @param oldName
-   * @param newName
+   * @param params
    * @returns
    */
-  replaceVariable(oldName: string, newName: string) {
+  replaceVariable(params: IReplaceVariableParams) {
     this._nodes.forEach((node) => {
       node.args.forEach((arg, idx) => {
-        if (arg === oldName) {
-          arg = newName;
+        if (arg === params.oldName) {
+          arg = params.newName;
         }
-        if (arg === `${oldName}()`) {
-          arg = `${newName}()`;
+        if (arg === `${params.oldName}()`) {
+          arg = `${params.newName}()`;
         }
         node.args[idx] = arg;
       });
@@ -856,14 +870,11 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
   /**
    * crops the stamp to the given bounds
-   * @param x
-   * @param y
-   * @param width
-   * @param height
+   * @param params
    * @returns
    */
-  crop(x: number, y: number, width: number, height: number) {
-    this._nodes.push({ fName: "_crop", args: [x, y, width, height] });
+  crop(params: ICropParams) {
+    this._nodes.push({ fName: "_crop", args: [params.x, params.y, params.width, params.height] });
     return this;
   }
 
@@ -933,13 +944,13 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this._addShapeNode("_roundedTangram", params);
   }
 
-  repeatLast(steps: number, times: number | string = 1) {
-    this._nodes.push({ fName: "_repeatLast", args: [steps, times] });
+  repeatLast(params: IRepeatLastParams) {
+    this._nodes.push({ fName: "_repeatLast", args: [params.steps, params.times || 1] });
     return this;
   }
 
-  stepBack(steps: number | string) {
-    this._nodes.push({ fName: "_stepBack", args: [steps] });
+  stepBack(params: IStepBackParams) {
+    this._nodes.push({ fName: "_stepBack", args: [params.steps] });
     return this;
   }
 
@@ -961,11 +972,11 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this._cursor.clone();
   }
 
-  path(
-    scale: number = 1,
-    optimize: boolean = true,
-    mergeConnectedPaths: boolean = true,
-  ): Path[] {
+  path(params: IPathParams = {}): Path[] {
+    const scale = $(params.scale || 1);
+    const optimize = params.optimize !== false;
+    const mergeConnectedPaths = params.mergeConnectedPaths !== false;
+    
     if (!this._baked) {
       this.bake();
     }
@@ -1252,7 +1263,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     stamp.isHole = this.isHole;
     stamp.scale = this.scale;
     if (this._overrideBounds) {
-      stamp.setBounds(this._overrideBounds.width, this._overrideBounds.height);
+      stamp.setBounds({ width: this._overrideBounds.width, height: this._overrideBounds.height });
     }
     if (this._baked && this._tree) {
       // clone the tree by unioning it with an empty path

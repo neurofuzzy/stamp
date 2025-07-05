@@ -66,11 +66,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       angle: 15,
       skip: "RANGLE"
     })
-    .forward(len)
-    .rotate("RANGLE()")
-    .repeatLast(4, 120)
+    .forward({ distance: len })
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 4, times: 120 })
 
-  let paths = lattice.path();
+  let paths = lattice.path({});
   let shapes = ClipperHelpers.offsetPathsToShape(paths, len / 12, 2);
   lattice.children().forEach(shape => {
     drawShape(ctx, shape, 0);

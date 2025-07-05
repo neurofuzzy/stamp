@@ -55,11 +55,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       hatchScale: 0.3,
       hatchInset: 0.5,
     })
-    .set("R")
-    .set("S")
-    .set("B")
-    .set("B2")
-    .rotate("R")
+    .set({ sequenceCall: "R" })
+    .set({ sequenceCall: "S" })
+    .set({ sequenceCall: "B" })
+    .set({ sequenceCall: "B2" })
+    .rotate({ rotation: "R" })
     .circle({
       radius: 18,
       divisions: "S",
@@ -69,18 +69,18 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: "S",
       angle: "90 / S",
     })
-    .boolean("B")
+    .boolean({ type: "B" })
     .circle({
       radius: 12,
       divisions: "S",
     })
-    .boolean("B2")
+    .boolean({ type: "B2" })
     .circle({
       radius: "B2 * 5",
       divisions: "S",
       angle: "90 / S",
     })
-    .setBounds(46, 46);
+    .setBounds({ width: 46, height: 46 });
 
   const grid = new CirclePackingStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: circle,

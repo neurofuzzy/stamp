@@ -68,14 +68,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 0,
       fillColor: "cyan",
     })
-    .forward(len)
+    .forward({ distance: len })
     .circle({
       radius: 2,
       divisions: 3,
       skip: 1,
     })
-    .rotate("RANGLE()")
-    .repeatLast(3, 240);
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 240 });
 
   //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
   //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
@@ -95,11 +95,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 200 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });

@@ -69,9 +69,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       angle: 15,
       skip: "RANGLE",
     })
-    .forward(len)
-    .rotate("RANGLE()")
-    .repeatLast(4, 180);
+    .forward({ distance: len })
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 4, times: 180 });
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
@@ -83,11 +83,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 100 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });

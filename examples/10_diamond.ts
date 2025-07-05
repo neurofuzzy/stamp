@@ -78,9 +78,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       skip: "repeat 0,1,0"
     })
     */
-    .forward(len)
-    .rotate("RANGLE()")
-    .repeatLast(4, 180)
+    .forward({ distance: len })
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 4, times: 180 })
 
   const tree = lattice;
   const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))

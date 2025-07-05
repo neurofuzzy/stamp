@@ -68,14 +68,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 0,
       fillColor: "cyan",
     })
-    .forward(len)
+    .forward({ distance: len })
     .circle({
       radius: 2,
       divisions: 6,
       skip: 1,
     })
-    .rotate("RANGLE()")
-    .repeatLast(3, 240);
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 240 });
 
   // Sequence.fromStatement("repeat 181,270,254,17,316,778,759,266,62,29,7,2493251,238", 7),
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
@@ -91,11 +91,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 90 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });

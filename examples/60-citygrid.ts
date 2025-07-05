@@ -65,14 +65,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // building
   const bldg = new Stamp(new Ray(0, 0, 0))
-    .set("BW")
-    .set("BH")
-    .set("WH")
-    .set("WA")
-    .set("NWX")
-    .set("NWY")
-    .set("DX")
-    .set("DOFF")
+    .set({ sequenceCall: "BW" })
+    .set({ sequenceCall: "BH" })
+    .set({ sequenceCall: "WH" })
+    .set({ sequenceCall: "WA" })
+    .set({ sequenceCall: "NWX" })
+    .set({ sequenceCall: "NWY" })
+    .set({ sequenceCall: "DX" })
+    .set({ sequenceCall: "DOFF" })
     // building shape
     .rectangle({
       width: "BW",
@@ -99,7 +99,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       skip: "BW > 100 | BH > 80",
     })
     // windows
-    .boolean("BOOL2()")
+    .boolean({ type: "BOOL2()" })
     .rectangle({
       width: 16,
       height: "WH",
@@ -130,12 +130,12 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       skip: "DOFF | BW < 61",
     })
-    .boolean("BOOL2()");
+    .boolean({ type: "BOOL2()" });
 
   // building2
   const bldg2 = new Stamp(new Ray(0, 0, 0))
     .extends(bldg)
-    .skipTag("pitchroof", "T1() | BW > 100 | BH > 80")
+    .skipTag({ tag: "pitchroof", condition: "T1() | BW > 100 | BH > 80" })
     .trapezoid({
       tag: "roof",
       taper: 10,
@@ -148,11 +148,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // church
   const church = new Stamp(new Ray(0, 0, 0))
-    .set("STEEPLEH")
-    .set("STEEPLEX")
-    .set("CH")
-    .set("CW")
-    .set("CNWX")
+    .set({ sequenceCall: "STEEPLEH" })
+    .set({ sequenceCall: "STEEPLEX" })
+    .set({ sequenceCall: "CH" })
+    .set({ sequenceCall: "CW" })
+    .set({ sequenceCall: "CNWX" })
     // building shape
     .rectangle({
       width: "CW",
@@ -174,7 +174,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: 60,
     })
     // windows
-    .boolean("BOOL2()")
+    .boolean({ type: "BOOL2()" })
     .rectangle({
       width: 16,
       height: 17,
@@ -195,7 +195,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       spacingY: 30,
       offsetY: 32,
     })
-    .boolean("BOOL2()")
+    .boolean({ type: "BOOL2()" })
     // steeple
     .rectangle({
       width: 40,
@@ -218,7 +218,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: "STEEPLEH + 60",
       skip: "STEEPLEH < 60",
     })
-    .boolean("BOOL2()")
+    .boolean({ type: "BOOL2()" })
     .rectangle({
       width: 10,
       height: 20,
@@ -226,11 +226,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: "STEEPLEH + 30",
       align: ShapeAlignment.TOP,
     })
-    .boolean("BOOL2()");
+    .boolean({ type: "BOOL2()" });
 
   // tree
   const tree = new Stamp(new Ray(0, 0, 0))
-    .set("TH")
+    .set({ sequenceCall: "TH" })
     // trunk shape
     .rectangle({
       width: 10,
@@ -255,10 +255,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // store
   const store = new Stamp(new Ray(0, 0, 0))
-    .set("STH")
-    .set("STW")
-    .set("STNWX")
-    .set("STNWY")
+    .set({ sequenceCall: "STH" })
+    .set({ sequenceCall: "STW" })
+    .set({ sequenceCall: "STNWX" })
+    .set({ sequenceCall: "STNWY" })
     // store shape
     .rectangle({
       width: "STW",
@@ -266,7 +266,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       outlineThickness: 0,
     })
-    .boolean("BOOL3()")
+    .boolean({ type: "BOOL3()" })
     // store windows
     .rectangle({
       width: "STW / 2 - 30",
@@ -303,7 +303,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 8,
       offsetY: "STH / 2 + 24",
     })
-    .boolean("BOOL3()")
+    .boolean({ type: "BOOL3()" })
     // roof
     .rectangle({
       width: "STW - 20",
@@ -335,7 +335,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   // city grid
   const city = new Stamp(new Ray(w / 2, h / 2 - 20, 0))
-    .setCursorBounds(0, 0, 1200, 900)
+    .setCursorBounds({ x: 0, y: 0, width: 1200, height: 900 })
     .markBoundsStart()
     .stamp({
       subStamp: blocks,
@@ -343,22 +343,22 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
     })
     .markBoundsEnd()
-    .moveOver(Heading.RIGHT, 0.5)
-    .setCursorBounds(0, 0, 1400, 900)
+    .moveOver({ direction: Heading.RIGHT, percentage: 0.5 })
+    .setCursorBounds({ x: 0, y: 0, width: 1400, height: 900 })
     // ground shape
     .rectangle({
       width: "BW + 100",
       height: 160,
       align: ShapeAlignment.BOTTOM,
     })
-    .moveOver(Heading.RIGHT, 0.5)
-    .move(15, 0)
-    .repeatLast(9, 16)
-    .moveTo(0)
-    .move(0, 160)
-    .boolean("BOOL()")
-    .repeatLast(13, 5)
-    .crop(-40, -200, 1340, 1100);
+    .moveOver({ direction: Heading.RIGHT, percentage: 0.5 })
+    .move({ x: 15, y: 0 })
+    .repeatLast({ steps: 9, times: 16 })
+    .moveTo({ x: 0 })
+    .move({ x: 0, y: 160 })
+    .boolean({ type: "BOOL()" })
+    .repeatLast({ steps: 13, times: 5 })
+    .crop({ x: -40, y: -200, width: 1340, height: 1100 });
 
   // draw as single shape
   //drawShape(ctx, city);

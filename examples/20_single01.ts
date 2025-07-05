@@ -52,7 +52,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeColor: "#ffffff",
       fillColor: "#222222",
     })
-    .forward(len)
+    .forward({ distance: len })
     .bone({
       topRadius: weight / 2,
       bottomRadius: weight / 2,
@@ -60,10 +60,10 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 3,
       align: ShapeAlignment.BOTTOM
     })
-    .rotate("RANGLE()")
-    .repeatLast(3, 240)
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 240 })
 
-  let paths = lattice.path();
+  let paths = lattice.path({});
   let shapes = ClipperHelpers.offsetPathsToShape(paths, 4);
   lattice.children().forEach(shape => {
     drawShape(ctx, shape, 0);

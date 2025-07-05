@@ -51,9 +51,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 2.5,
       fillColor: 0,
     })
-    .forward("RLENGTH()")
-    .rotate("RANGLE()")
-    .rotate(72)
+    .forward({ distance: "RLENGTH()" })
+    .rotate({ rotation: "RANGLE()" })
+    .rotate({ rotation: 72 })
     .leafShape({
       radius: "BERRY()",
       outlineThickness: 12,
@@ -68,8 +68,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 36,
       outlineThickness: 12,
     })
-    .repeatLast(3, 5)
-    .repeatLast(6, 6)
+    .repeatLast({ steps: 3, times: 5 })
+    .repeatLast({ steps: 6, times: 6 })
 
   const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
@@ -77,9 +77,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 3.5,
       fillColor: 0,
     })
-    .forward("RLENGTH()")
-    .rotate("RANGLE()")
-    .rotate(72)
+    .forward({ distance: "RLENGTH()" })
+    .rotate({ rotation: "RANGLE()" })
+    .rotate({ rotation: 72 })
     .leafShape({
       radius: 152,
       outlineThickness: 0,
@@ -94,8 +94,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 36,
       outlineThickness: 0,
     })
-    .repeatLast(3, 5)
-    .repeatLast(6, 6)
+    .repeatLast({ steps: 3, times: 5 })
+    .repeatLast({ steps: 6, times: 6 })
 
   // draw children
   tree2.children().forEach(child => {

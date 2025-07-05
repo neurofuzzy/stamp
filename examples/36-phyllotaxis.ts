@@ -52,7 +52,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillColor: 0,
       fillAlpha: 0,
     })
-    .rotate(137.508)
+    .rotate({ rotation: 137.508 })
     .leafShape({
       radius: "180 - RSCALE()",
       outlineThickness: 15,
@@ -64,7 +64,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       offsetX: "180 - 20 * ROFFSET()",
     })
-    .repeatLast(2, 59)
+    .repeatLast({ steps: 2, times: 59 })
     .circle({
       radius: 42,
       outlineThickness: 15,
@@ -85,7 +85,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       fillColor: 0,
       fillAlpha: 0,
     })
-    .rotate(137.508)
+    .rotate({ rotation: 137.508 })
     .leafShape({
       radius: "180 - RSCALE()",
       outlineThickness: 0,
@@ -97,7 +97,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       offsetX: "180 - 20 * ROFFSET()",
     })
-    .repeatLast(2, 59)
+    .repeatLast({ steps: 2, times: 59 })
     .circle({
       radius: 180,
     });

@@ -45,7 +45,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);
 
   // compound leaf
-  const leaf = new Stamp(new Ray(0, 0)).rotate(90).ellipse({
+  const leaf = new Stamp(new Ray(0, 0)).rotate({ rotation: 90 }).ellipse({
     radiusX: "1.3 * RSCALE() * RSCALE()",
     radiusY: "12 * RSCALE()",
     divisions: 64,
@@ -71,8 +71,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     // 48
     // 67
     // 210
-    .rotate(137.508)
-    .forward("40 * ROFFSET()")
+    .rotate({ rotation: 137.508 })
+    .forward({ distance: "40 * ROFFSET()" })
     .stamp({
       subStamp: leaf,
       outlineThickness: "8 + ROFFSET * 1.2",
@@ -84,8 +84,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
         hatchScale: 0.5,
       },
     })
-    .stepBack(1)
-    .repeatLast(4, 100)
+    .stepBack({ steps: 1 })
+    .repeatLast({ steps: 4, times: 100 })
     .flip();
 
   tree.children().forEach((child) => {

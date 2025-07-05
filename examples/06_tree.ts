@@ -56,9 +56,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 2,
       align: ShapeAlignment.TOP,
     })
-    .forward("RLENGTH")
-    .rotate("RANGLE()")
-    .repeatLast(3, 4)
+    .forward({ distance: "RLENGTH" })
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 4 })
     .circle({
       radius: 20,
       outlineThickness: 6
@@ -68,8 +68,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       radius: 10
     })
     .add()
-    .stepBack("RSTEP()")
-    .repeatLast(9, 3);
+    .stepBack({ steps: "RSTEP()" })
+    .repeatLast({ steps: 9, times: 3 });
     
   // draw children
   grid.children().forEach(child => {

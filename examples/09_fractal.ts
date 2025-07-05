@@ -65,9 +65,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       offsetY: 12,
       angle: 15,
     })
-    .forward(12)
-    .rotate("RANGLE()")
-    .repeatLast(5, 400)
+    .forward({ distance: 12 })
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 5, times: 400 })
 
   // draw children
   tree.children().forEach(child => {

@@ -57,14 +57,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()
-    .forward(len)
+    .forward({ distance: len })
     .circle({
       radius: 20,
       divisions: 8,
       skip: "RANGLE - 100",
     })
-    .rotate("RANGLE()")
-    .repeatLast(3, 340);
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 340 });
 
   Sequence.fromStatement("shuffle 60,60,-60,-60 AS RINGLE");
   Sequence.fromStatement("shuffle -60,-60,-60,60,60,RINGLE() AS RANGLE");
@@ -80,11 +80,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 300 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });

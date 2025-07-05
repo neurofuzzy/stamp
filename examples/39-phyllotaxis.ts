@@ -54,7 +54,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 64,
       outlineThickness: 14,
     })
-    .rotate(137.508)
+    .rotate({ rotation: 137.508 })
     .leafShape({
       radius: "40 + RSCALE() * 12",
       outlineThickness: 14,
@@ -66,7 +66,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       offsetY: "60 * ROFFSET()",
     })
-    .repeatLast(2, 27)
+    .repeatLast({ steps: 2, times: 27 })
     .flip();
 
   const tree2 = new Stamp(new Ray(w / 2, h / 2, 0))
@@ -81,7 +81,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 32,
       outlineThickness: 8,
     })
-    .rotate(137.508)
+    .rotate({ rotation: 137.508 })
     .leafShape({
       radius: "40 + RSCALE() * 12",
       outlineThickness: -14,
@@ -93,7 +93,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       offsetY: "60 * ROFFSET()",
     })
-    .repeatLast(2, 27);
+    .repeatLast({ steps: 2, times: 27 });
 
   tree2.children().forEach((child) => {
     if (

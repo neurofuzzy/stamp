@@ -44,14 +44,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // building
   const building = new Stamp(new Ray(100, 100, 0))
     .rectangle({ width: 50, height: "BHEIGHT()"})
-    .moveTo(0, "0 - BHEIGHT / 2")
+    .moveTo({ x: 0, y: "0 - BHEIGHT / 2" })
     .circle({
       radius: 25,
       divisions: 4,
       align: ShapeAlignment.CENTER,
       skip: "BHEIGHT - 41"
     })
-    .moveTo(0, 0)
+    .moveTo({ x: 0, y: 0 })
     .subtract()
     .rectangle({
       width: 10,
@@ -63,7 +63,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       spacingY: 30
     })
     .add()
-    .moveTo(0, "0 - BHEIGHT / 2")
+    .moveTo({ x: 0, y: "0 - BHEIGHT / 2" })
     .rectangle({
       width: 20,
       height: 10,
