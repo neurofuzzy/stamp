@@ -93,3 +93,35 @@ interface INode {
 interface IBoundsParams {
   padding?: number | string;
 }
+
+/**
+ * Context interface providing access to Stamp's internal methods and state
+ */
+export interface IShapeContext {
+  getGroupOffset(nx: number, ny: number, spx: number, spy: number): Point;
+  make(shapes: IShape[], outlineThickness?: number, scale?: number): void;
+  getCursor(): Ray;
+  getCursorDirection(): number;
+  resolveStringOrNumber(value: string | number): number;
+}
+
+/**
+ * Interface for shape handler extensions
+ */
+export interface IShapeHandler {
+  /**
+   * Handles the creation of a specific shape type
+   * @param params - Shape-specific parameters
+   * @param context - Context providing access to core functionality
+   */
+  handle(params: any, context: IShapeContext): void;
+}
+
+/**
+ * Registry interface for managing shape handlers
+ */
+export interface IShapeHandlerRegistry {
+  register(shapeName: string, handler: IShapeHandler): void;
+  getHandler(shapeName: string): IShapeHandler | undefined;
+  hasHandler(shapeName: string): boolean;
+}
