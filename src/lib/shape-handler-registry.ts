@@ -11,7 +11,11 @@ export class ShapeHandlerRegistry implements IShapeHandlerRegistry {
   }
 
   getHandler(shapeName: string): IShapeHandler | undefined {
-    return this.handlers.get(shapeName);
+    if (this.hasHandler(shapeName)) {
+      return this.handlers.get(shapeName);
+    }
+    console.warn(`Shape handler for ${shapeName} not found in registry`);
+    return undefined;
   }
 
   hasHandler(shapeName: string): boolean {

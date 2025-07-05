@@ -642,6 +642,19 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this._shapeRegistry;
   }
 
+  /**
+   * Helper method to add shape nodes with consistent processing
+   */
+  private _addShapeNode<T extends { tag?: string }>(functionName: string, params: T): this {
+    const processedParams = paramsWithDefaults<T>(params);
+    this._nodes.push({
+      fName: functionName,
+      tag: processedParams.tag,
+      args: [processedParams],
+    });
+    return this;
+  }
+
   private _stamp(params: IStampParams) {
     if (params.providerIndex !== undefined) {
       const stamp = StampsProvider.getInstance(
@@ -684,104 +697,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     this._make(shapes, $(params.outlineThickness), $(params.scale));
   }
 
-  private _circle(params: ICircleParams) {
-    const handler = this._shapeRegistry.getHandler('circle');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Circle handler not found in registry');
-    }
-  }
 
-  private _ellipse(params: IEllipseParams) {
-    const handler = this._shapeRegistry.getHandler('ellipse');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Ellipse handler not found in registry');
-    }
-  }
-
-  private _arch(params: IArchParams) {
-    const handler = this._shapeRegistry.getHandler('arch');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Arch handler not found in registry');
-    }
-  }
-
-  private _leafShape(params: ILeafShapeParams) {
-    const handler = this._shapeRegistry.getHandler('leafShape');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('LeafShape handler not found in registry');
-    }
-  }
-
-  private _rectangle(params: IRectangleParams) {
-    const handler = this._shapeRegistry.getHandler('rectangle');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Rectangle handler not found in registry');
-    }
-  }
-
-  private _trapezoid(params: ITrapezoidParams) {
-    const handler = this._shapeRegistry.getHandler('trapezoid');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Trapezoid handler not found in registry');
-    }
-  }
-
-  private _roundedRectangle(params: IRoundedRectangleParams) {
-    const handler = this._shapeRegistry.getHandler('roundedRectangle');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('RoundedRectangle handler not found in registry');
-    }
-  }
-
-  private _polygon(params: IPolygonParams) {
-    const handler = this._shapeRegistry.getHandler('polygon');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Polygon handler not found in registry');
-    }
-  }
-
-  private _tangram(params: ITangramParams) {
-    const handler = this._shapeRegistry.getHandler('tangram');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Tangram handler not found in registry');
-    }
-  }
-
-  private _roundedTangram(params: ITangramParams) {
-    const handler = this._shapeRegistry.getHandler('roundedTangram');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('RoundedTangram handler not found in registry');
-    }
-  }
-
-  private _bone(params: IBoneParams) {
-    const handler = this._shapeRegistry.getHandler('bone');
-    if (handler) {
-      handler.handle(params, this);
-    } else {
-      console.warn('Bone handler not found in registry');
-    }
-  }
 
   reset() {
     this._nodes.push({ fName: "_reset", args: Array.from(arguments) });
@@ -962,129 +878,69 @@ export class Stamp extends AbstractShape implements IShapeContext {
   }
 
   circle(params: ICircleParams) {
-    params = paramsWithDefaults<ICircleParams>(params);
-    this._nodes.push({
-      fName: "_circle",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_circle", params);
   }
 
   arch(params: IArchParams) {
-    params = paramsWithDefaults<IArchParams>(params);
-    this._nodes.push({
-      fName: "_arch",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_arch", params);
   }
 
   ellipse(params: IEllipseParams) {
-    params = paramsWithDefaults<IEllipseParams>(params);
-    this._nodes.push({
-      fName: "_ellipse",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_ellipse", params);
   }
 
   leafShape(params: ILeafShapeParams) {
-    params = paramsWithDefaults<ILeafShapeParams>(params);
-    this._nodes.push({
-      fName: "_leafShape",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_leafShape", params);
   }
 
   rectangle(params: IRectangleParams) {
-    params = paramsWithDefaults<IRectangleParams>(params);
-    this._nodes.push({
-      fName: "_rectangle",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_rectangle", params);
   }
 
   trapezoid(params: ITrapezoidParams) {
-    params = paramsWithDefaults<ITrapezoidParams>(params);
-    this._nodes.push({
-      fName: "_trapezoid",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_trapezoid", params);
   }
 
   roundedRectangle(params: IRoundedRectangleParams) {
-    params = paramsWithDefaults<IRoundedRectangleParams>(params);
-    this._nodes.push({
-      fName: "_roundedRectangle",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_roundedRectangle", params);
   }
 
   bone(params: IBoneParams) {
-    params = paramsWithDefaults<IBoneParams>(params);
-    this._nodes.push({
-      fName: "_bone",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_bone", params);
   }
 
   polygon(params: IPolygonParams) {
-    params = paramsWithDefaults<IPolygonParams>(params);
-    params.rayStrings = params.rays.map((r) => r.toString());
+    const processedParams = paramsWithDefaults<IPolygonParams>(params);
+    processedParams.rayStrings = processedParams.rays.map((r) => r.toString());
     this._nodes.push({
       fName: "_polygon",
-      tag: params.tag,
-      args: [params],
+      tag: processedParams.tag,
+      args: [processedParams],
     });
     return this;
   }
 
   stamp(params: IStampParams) {
-    params = paramsWithDefaults<IStampParams>(params);
-    if (params.subStamp instanceof StampsProvider) {
-      params.providerIndex = params.subStamp.instanceIndex();
+    const processedParams = paramsWithDefaults<IStampParams>(params);
+    if (processedParams.subStamp instanceof StampsProvider) {
+      processedParams.providerIndex = processedParams.subStamp.instanceIndex();
     } else {
-      params.subStampString = params.subStamp.toString();
+      processedParams.subStampString = processedParams.subStamp.toString();
     }
     this._nodes.push({
       fName: "_stamp",
-      tag: params.tag,
-      args: [params],
+      tag: processedParams.tag,
+      args: [processedParams],
     });
     return this;
   }
 
   tangram(params: ITangramParams) {
-    params = paramsWithDefaults<ITangramParams>(params);
-    this._nodes.push({
-      fName: "_tangram",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_tangram", params);
   }
 
   roundedTangram(params: ITangramParams) {
-    params = paramsWithDefaults<ITangramParams>(params);
-    this._nodes.push({
-      fName: "_roundedTangram",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_roundedTangram", params);
   }
 
   repeatLast(steps: number, times: number | string = 1) {
@@ -1255,48 +1111,63 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
     const privateFunctionMap: { [key: string]: Function } = {
       _add: this._add,
-      _arch: this._arch,
-      _bone: this._bone,
       _boolean: this._boolean,
       _breakApart: this._breakApart,
-      _circle: this._circle,
       _crop: this._crop,
       _defaultStyle: this._defaultStyle,
-      _ellipse: this._ellipse,
       _forward: this._forward,
       _intersect: this._intersect,
-      _leafShape: this._leafShape,
       _markBoundsEnd: this._markBoundsEnd,
       _markBoundsStart: this._markBoundsStart,
       _move: this._move,
       _moveOver: this._moveOver,
       _moveTo: this._moveTo,
-      _polygon: this._polygon,
-      _rectangle: this._rectangle,
       _reset: this._reset,
       _rotate: this._rotate,
       _rotateTo: this._rotateTo,
-      _roundedRectangle: this._roundedRectangle,
-      _roundedTangram: this._roundedTangram,
       _set: this._set,
       _setCursorBounds: this._setCursorBounds,
       _stamp: this._stamp,
       _stepBack: this._stepBack,
       _subtract: this._subtract,
-      _tangram: this._tangram,
-      _trapezoid: this._trapezoid,
+    };
+
+    // Shape handler name mapping (function name -> handler name)
+    const shapeHandlers: { [key: string]: string } = {
+      _arch: 'arch',
+      _bone: 'bone',
+      _circle: 'circle',
+      _ellipse: 'ellipse',
+      _leafShape: 'leafShape',
+      _polygon: 'polygon',
+      _rectangle: 'rectangle',
+      _roundedRectangle: 'roundedRectangle',
+      _roundedTangram: 'roundedTangram',
+      _tangram: 'tangram',
+      _trapezoid: 'trapezoid',
     };
 
     let breakApartTimes = 0;
 
     for (let i = 0; i < nodes.length; i++) {
       let fName = nodes[i].fName;
-      let fn: Function = privateFunctionMap[fName];
       let args = nodes[i].args;
+      
       if (fName === "_breakApart") {
         breakApartTimes++;
         continue;
       }
+      
+      // Check if it's a shape handler
+      const handlerName = shapeHandlers[fName];
+      if (handlerName) {
+        const handler = this._shapeRegistry.getHandler(handlerName);
+        handler?.handle(args[0], this);
+        continue;
+      }
+      
+      // Check if it's a regular private function
+      const fn: Function = privateFunctionMap[fName];
       if (fn) {
         fn.apply(this, args);
       }
