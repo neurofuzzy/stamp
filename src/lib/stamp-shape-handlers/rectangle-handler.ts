@@ -21,7 +21,13 @@ export class RectangleHandler extends BaseHandler {
 
     for (let i = 0; i < centers.length; i++) {
       const center = centers[i];
-      const s = new Rectangle(center, $(params.width || 1), $(params.height || 1), $(params.divisions || 4), $(params.align || 0));
+      const s = new Rectangle(
+        center, 
+        $(params.width || 1), 
+        $(params.height || 1),
+        $(params.divisions || 4), 
+        $(params.align || 0)
+      );
       if (params.style) {
         s.style = params.style;
       }
@@ -30,7 +36,11 @@ export class RectangleHandler extends BaseHandler {
 
     distributeHandler.arrangeShapes(shapes, params, context);
     
-    context.make(shapes, $(params.outlineThickness || 0), $(params.scale || 1));
+    context.make(
+      shapes, 
+      $(params.outlineThickness || 0), 
+      $(params.scale || 1)
+    );
 
   }
 

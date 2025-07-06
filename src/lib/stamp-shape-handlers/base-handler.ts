@@ -1,11 +1,11 @@
-import { IShapeHandler, IShapeContext, IRectangleParams } from '../stamp-interfaces';
+import { IShapeHandler, IShapeContext, IShapeParams } from '../stamp-interfaces';
 
 /**
  * Handler for creating rectangle shapes
  */
 export class BaseHandler implements IShapeHandler {
 
-  handle(params: IRectangleParams, _: IShapeContext): void {
+  handle(params: IShapeParams, _: IShapeContext): void {
 
     // backwards compatibility
     if (!params.distribute) {
