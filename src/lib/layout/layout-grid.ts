@@ -13,10 +13,10 @@ export class GridLayoutHandler implements ILayoutHandler {
   constructor(params: IGridLayoutParams) {
     this._resolvedParams = {
       ...params,
-      columns: $(params.columns) || 1,
-      rows:  $(params.rows) || 1,
-      columnSpacing: $(params.columnSpacing) || 0,
-      rowSpacing: $(params.rowSpacing) || 0,
+      columns: $(params?.columns) || 1,
+      rows:  $(params?.rows) || 1,
+      columnSpacing: $(params?.columnSpacing) || 0,
+      rowSpacing: $(params?.rowSpacing) || 0,
     }
   }
 
@@ -46,16 +46,21 @@ export class GridLayoutHandler implements ILayoutHandler {
     
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
+        const s = shapes[i * nny + j];
         const offset = new Point(
           $(params.offsetX || 0),
           $(params.offsetY || 0),
         );
         GeomHelpers.rotatePoint(offset, Math.PI - context.getCursorDirection());
         
-        const center = shapes[i * nny + j].center;
+        const center = s.center;
         center.x = nspx * i - o.x + offset.x;
         center.y = nspy * j - o.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
+
+        if ($(params.skip || 0) > 0) {
+          s.hidden = true;
+        }
         
       }
     }

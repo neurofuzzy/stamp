@@ -1,31 +1,19 @@
 import { IShape} from '../../geom/core';
 import { Rectangle } from '../../geom/shapes';
-import { IShapeHandler, IShapeContext, IRectangleParams } from '../stamp-interfaces';
+import { IShapeContext, IRectangleParams } from '../stamp-interfaces';
 import { layoutHandlerFromParams } from '../layout';
 import { resolveStringOrNumber } from '../stamp-helpers';
+import { BaseHandler } from './base-handler';
 
 const $ = resolveStringOrNumber;
 
 /**
  * Handler for creating rectangle shapes
  */
-export class RectangleHandler implements IShapeHandler {
+export class RectangleHandler extends BaseHandler {
 
   handle(params: IRectangleParams, context: IShapeContext): void {
-
-    // backwards compatibility
-    if (!params.layout) {
-      params.layout = {
-        type: "grid",
-        columns: params.numX || 1,
-        rows: params.numY || 1,
-        columnSpacing: params.spacingX || 0,
-        rowSpacing: params.spacingY || 0,
-        columnPadding: 0,
-        rowPadding: 0,
-        offsetAlternateRows: false,
-      };
-    }
+    super.handle(params, context);
 
     const layoutHandler = layoutHandlerFromParams(params.layout);
     const centers = layoutHandler.getCenters();
@@ -34,9 +22,6 @@ export class RectangleHandler implements IShapeHandler {
     for (let i = 0; i < centers.length; i++) {
       const center = centers[i];
       const s = new Rectangle(center, $(params.width || 1), $(params.height || 1), $(params.divisions || 4), $(params.align || 0));
-      if ($(params.skip || 0) > 0) {
-        s.hidden = true;
-      }
       if (params.style) {
         s.style = params.style;
       }
