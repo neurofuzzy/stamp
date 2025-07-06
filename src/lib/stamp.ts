@@ -953,14 +953,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     }
 
     if (scale !== 1) {
-      points.forEach((p) => {
-        p.x -= this.center.x;
-        p.y -= this.center.y;
-        p.x *= scale;
-        p.y *= scale;
-        p.x += this.center.x;
-        p.y += this.center.y;
-      });
+      points.forEach((p) => GeomHelpers.scalePointRelativeToCenter(p, this.center, scale));
     }
 
     let seg = new Path(points);
@@ -1165,14 +1158,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     };
 
     const applyScaleToPoly = (p: Polygon) => {
-      p.rays.forEach((r) => {
-        r.x -= this.center.x;
-        r.y -= this.center.y;
-        r.x *= this.scale;
-        r.y *= this.scale;
-        r.x += this.center.x;
-        r.y += this.center.y;
-      });
+      p.rays.forEach((r) => GeomHelpers.scalePointRelativeToCenter(r, this.center, this.scale));
       p.children().forEach((child) => {
         if (child instanceof Polygon) {
           applyScaleToPoly(child as Polygon);
