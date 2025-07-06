@@ -227,7 +227,6 @@ export class Stamp extends AbstractShape implements IShapeContext {
     if (x !== undefined) {
       this._cursor.x = $(x);
     }
-    console.log(y);
     if (y !== undefined) {
       this._cursor.y = $(y);
     }
