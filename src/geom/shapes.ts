@@ -1022,14 +1022,14 @@ export class LeafShape extends AbstractShape {
   splitAngle2: number;
   serration: number;
   constructor(
-    center?: Ray,
-    radius: number = 50,
-    divisions: number = 12,
-    splitAngle: number = 45,
+    center?: Ray, 
+    radius: number = 50, 
+    divisions: number = 12, 
+    splitAngle: number = 45, 
     splitAngle2: number = 0,
     serration: number = 0,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     divisions = Math.max(2, Math.ceil(divisions / 2) * 2);
     super(center, divisions, alignment, reverse);
@@ -1039,13 +1039,11 @@ export class LeafShape extends AbstractShape {
     this.serration = serration;
   }
   protected alignmentOffset(): Point {
-    const r1 =
-      this.radius - Math.cos((this.splitAngle2 * Math.PI) / 180) * this.radius;
-    const r2 =
-      this.radius - Math.cos((this.splitAngle * Math.PI) / 180) * this.radius;
-    const minY = 0 - r2 * Math.sin((this.splitAngle2 * Math.PI) / 180);
-    const maxY = r1 * Math.sin((this.splitAngle * Math.PI) / 180);
-    const maxX = r1 - r1 * Math.cos((this.splitAngle * Math.PI) / 180);
+    const r1 = this.radius - Math.cos(this.splitAngle2 * Math.PI / 180) * this.radius;
+    const r2 = this.radius - Math.cos(this.splitAngle * Math.PI / 180) * this.radius;
+    const minY = 0 - r2 * Math.sin(this.splitAngle2 * Math.PI / 180);
+    const maxY = r1 * Math.sin(this.splitAngle * Math.PI / 180);
+    const maxX = r1 - r1 * Math.cos(this.splitAngle * Math.PI / 180);
     const minX = 0 - maxX;
     switch (this.alignment) {
       case ShapeAlignment.TOP_LEFT:
@@ -1073,11 +1071,8 @@ export class LeafShape extends AbstractShape {
   generate(withinArea?: BoundingBox) {
     let rays = [];
     const offset = this.alignmentOffset();
-    let degsPerStep = (this.splitAngle * 2) / this.divisions;
-    const r1 =
-      this.radius -
-      Math.cos((this.splitAngle2 * Math.PI) / 180) *
-        (this.radius + this.serration);
+    let degsPerStep = this.splitAngle * 2 / this.divisions;
+    const r1 = this.radius - Math.cos(this.splitAngle2 * Math.PI / 180) * (this.radius + this.serration);
     for (let i = 0; i <= this.divisions / 2; i++) {
       let currentAngle = degsPerStep * i;
       let deg = 90 + currentAngle - this.splitAngle;
@@ -1086,16 +1081,13 @@ export class LeafShape extends AbstractShape {
         delta = r1 + this.serration;
       }
       let r = new Ray(0, delta);
-      GeomHelpers.rotatePoint(r, (deg * Math.PI) / 180);
+      GeomHelpers.rotatePoint(r, deg * Math.PI / 180);
       r.x += this.radius - r1;
       r.y = 0 - r.y;
       rays.push(r);
     }
-    const r2 =
-      this.radius -
-      Math.cos((this.splitAngle * Math.PI) / 180) *
-        (this.radius + this.serration);
-    degsPerStep = (this.splitAngle2 * 2) / this.divisions;
+    const r2 = this.radius - Math.cos(this.splitAngle * Math.PI / 180) * (this.radius + this.serration);
+    degsPerStep = this.splitAngle2 * 2 / this.divisions;
     for (let i = this.divisions / 2; i <= this.divisions; i++) {
       let currentAngle = degsPerStep * i;
       let deg = 90 + currentAngle - this.splitAngle2;
@@ -1104,30 +1096,19 @@ export class LeafShape extends AbstractShape {
         delta = r2 + this.serration;
       }
       let r = new Ray(0, delta);
-      GeomHelpers.rotatePoint(r, (deg * Math.PI) / 180);
+      GeomHelpers.rotatePoint(r, deg * Math.PI / 180);
       r.x += this.radius - r2;
       r.y = 0 - r.y;
       rays.push(r);
     }
-    const minX = Math.min(...rays.map((pt) => pt.x));
+    const minX = Math.min(...rays.map(pt => pt.x));
     rays.forEach((r) => {
       r.x -= minX;
     });
-    const mirroredRays = rays.map(
-      (pt) =>
-        new Ray(
-          -pt.x,
-          pt.y,
-          GeomHelpers.normalizeAngle(pt.direction + Math.PI),
-        ),
-    );
+    const mirroredRays = rays.map(pt => new Ray(-pt.x, pt.y, GeomHelpers.normalizeAngle(pt.direction + Math.PI)));
     rays = rays.concat(mirroredRays.reverse());
     GeomHelpers.normalizeRayDirections(rays);
-    const bb = GeomHelpers.pointsBoundingBox(rays);
-    const scale = (this.radius * 2) / bb.width;
     rays.forEach((r) => {
-      r.x *= scale;
-      r.y *= scale;
       r.x += this.center.x + offset.x;
       r.y += this.center.y + offset.y;
     });
@@ -1153,7 +1134,7 @@ export class LeafShape extends AbstractShape {
       this.splitAngle2,
       this.serration,
       this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;

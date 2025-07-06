@@ -184,11 +184,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       spacingY: 30,
       offsetY: 25,
     })
-    .leafShape({
+    .circle({
       radius: 8,
-      splitAngle: 60,
-      splitAngle2: 78,
-      divisions: 8,
+      divisions: 24,
       numX: "CNWX",
       numY: 1,
       spacingX: 25,

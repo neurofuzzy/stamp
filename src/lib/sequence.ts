@@ -593,7 +593,7 @@ export class Sequence {
         }
         let n = seq.current();
         if (isNaN(n)) {
-          return 0;
+          return seq.next() || 0;
         }
         return n;
       }
