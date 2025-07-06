@@ -49,8 +49,8 @@ class AbstractStampLayout extends AbstractShape {
   }
 }
 
-function resetSequences(params: IStampLayoutParams) {
-  const seed = $(params.permutation) ?? i;
+function resetSequences(params: IStampLayoutParams, idx: number) {
+  const seed = $(params.permutation) ?? idx;
   const skipSequences: Sequence[] = [];
   if (typeof params.permutation === "string") {
     skipSequences.push(Sequence.getSequence(params.permutation));
@@ -78,7 +78,7 @@ export class GridStampLayout extends AbstractStampLayout {
         cols++;
       }
       for (let i = 0; i < cols; i++) {
-        resetSequences(params);
+        resetSequences(params, i);
         const x = params.columnSpacing * i;
         const y = params.rowSpacing * j;
         const stamp = params.stamp.clone();
@@ -108,7 +108,7 @@ export class CircleGridStampLayout extends AbstractStampLayout {
     const params = this.params as ICircleGridStampLayoutParams;
     for (let j = 0; j < params.rings; j++) {
       for (let i = 0; i < Math.max(1, params.numPerRing * j); i++) {
-        resetSequences(params);
+        resetSequences(params, i);
         const stamp = params.stamp.clone();
         const center = new Ray(0, params.spacing * j);
         if (j > 0) {
