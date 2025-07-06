@@ -32,6 +32,7 @@ export interface IGridDistributeParams extends IDistributeParams {
   columnPadding?: string | number;
   rowPadding?: string | number;
   offsetAlternateRows?: boolean;
+  negateOffsetX?: boolean;
 }
 
 export interface IGridShapeDistributeParams extends IGridDistributeParams, IShapeDistributeParams {};

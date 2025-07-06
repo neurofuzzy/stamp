@@ -47,8 +47,9 @@ export class GridDistributeHandler implements IDistributeHandler {
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const s = shapes[i * nny + j];
+        const offsetX = $(params.offsetX || 0);
         const offset = new Point(
-          $(params.offsetX || 0),
+          (this._resolvedParams as IGridDistributeParams).negateOffsetX ? -offsetX : offsetX,
           $(params.offsetY || 0),
         );
         GeomHelpers.rotatePoint(offset, Math.PI - context.getCursorDirection());
