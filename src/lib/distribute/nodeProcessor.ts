@@ -57,7 +57,7 @@ const resolveParameterValue = (value: ParameterValue | undefined): number => {
 };
 
 // PHASE 2: Helper function to generate elements from either shape or stamp nodes
-const generateElementsFromNode = (sourceNode: Node, allNodes: Node[], elementId?: string, itemDirection?: number): GeneratedElement[] => {
+const generateElementsFromNode = (_sourceNode: Node, _allNodes: Node[], _elementId?: string, _itemDirection?: number): GeneratedElement[] => {
   return [];
 };
 
@@ -105,8 +105,8 @@ const processGridDistribution = (node: Node, shapeNodes: Node[], allNodes: Node[
   const spacingYParam = node.parameters.find(p => p.id === 'spacing-y')?.value;
   const spacingY = resolveParameterValue(spacingYParam);
 
-  const jitterParam = node.parameters.find(p => p.id === 'jitter')?.value;
-  const jitter = resolveParameterValue(jitterParam);
+  // const jitterParam = node.parameters.find(p => p.id === 'jitter')?.value;
+  // const jitter = resolveParameterValue(jitterParam); // TODO: Implement jitter functionality
 
   const gridTypeParam = node.parameters.find(p => p.id === 'grid-type')?.value;
   const gridType = typeof gridTypeParam === 'string' ? gridTypeParam : 'rectangular';
