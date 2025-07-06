@@ -80,7 +80,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutation: "SEEDS()",
+    stampSeed: "SEEDS()",
     rows: 2,
     columns: 2,
     rowSpacing: 420,

@@ -84,7 +84,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // Sequence.fromStatement("repeat 181,270,254,17,316,778,759,266,62,29,7,2493251,238", 7),
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutation: "PERM()",
+    stampSeed: "PERM()",
     rows: 3,
     columns: 3,
     rowSpacing: 240,

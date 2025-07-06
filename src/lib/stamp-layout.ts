@@ -10,7 +10,7 @@ const $ = resolveStringOrNumber;
 
 interface IStampLayoutParams {
   stamp: Stamp;
-  permutation?: string | number;
+  stampSeed?: string | number;
   scale?: string | number;
   seed?: number;
 }
@@ -50,10 +50,10 @@ class AbstractStampLayout extends AbstractShape {
 }
 
 function resetSequences(params: IStampLayoutParams, idx: number) {
-  const seed = $(params.permutation) ?? idx;
+  const seed = $(params.stampSeed) ?? idx;
   const skipSequences: Sequence[] = [];
-  if (typeof params.permutation === "string") {
-    skipSequences.push(Sequence.getSequence(params.permutation));
+  if (typeof params.stampSeed === "string") {
+    skipSequences.push(Sequence.getSequence(params.stampSeed));
   }
   if (typeof params.scale === "string") {
     skipSequences.push(Sequence.getSequence(params.scale));
@@ -290,7 +290,7 @@ export class CirclePackingStampLayout extends AbstractStampLayout {
     }
 
     c.forEach((stamp, idx) => {
-      const seed = $(params.permutation) ?? idx;
+      const seed = $(params.stampSeed) ?? idx;
       Sequence.seed = seed;
       stamp.generate();
     });

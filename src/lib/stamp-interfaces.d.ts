@@ -1,4 +1,4 @@
-import { IDistribution } from "./layout-interfaces.d.ts";
+import { ILayout } from "./layout-interfaces.d.ts";
 
 interface IShapeParams {
   angle?: number | string;
