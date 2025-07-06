@@ -1,8 +1,10 @@
-import { IShape, Ray, Point } from '../../geom/core';
-import { GeomHelpers } from '../../geom/helpers';
+import { IShape} from '../../geom/core';
 import { Rectangle } from '../../geom/shapes';
 import { IShapeHandler, IShapeContext, IRectangleParams } from '../stamp-interfaces';
 import { layoutHandlerFromParams } from '../layout';
+import { resolveStringOrNumber } from '../stamp-helpers';
+
+const $ = resolveStringOrNumber;
 
 /**
  * Handler for creating rectangle shapes
@@ -25,7 +27,6 @@ export class RectangleHandler implements IShapeHandler {
       };
     }
 
-    const $ = context.resolveStringOrNumber;
     const layoutHandler = layoutHandlerFromParams(params.layout);
     const centers = layoutHandler.getCenters();
     const shapes: IShape[] = [];

@@ -1,7 +1,6 @@
 import { ILayoutHandler, IGridLayoutParams } from "./layout-interfaces";
 import { Ray, IShape, Point } from "../../geom/core";
 import { resolveStringOrNumber } from "../stamp-helpers";
-import { Rectangle } from "../../geom/shapes";
 import { IShapeContext, IShapeParams } from "../stamp-interfaces";
 import { GeomHelpers } from "../../geom/helpers";
 
@@ -53,7 +52,7 @@ export class GridLayoutHandler implements ILayoutHandler {
         );
         GeomHelpers.rotatePoint(offset, Math.PI - context.getCursorDirection());
         
-        const center = shapes[i].center;
+        const center = shapes[i * nny + j].center;
         center.x = nspx * i - o.x + offset.x;
         center.y = nspy * j - o.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
