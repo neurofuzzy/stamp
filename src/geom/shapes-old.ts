@@ -1,14 +1,5 @@
-import { makeCircle } from "./smallest-enclosing-circle";
-import {
-  IShape,
-  Ray,
-  ShapeAlignment,
-  IStyle,
-  Point,
-  BoundingBox,
-  BoundingCircle,
-  Segment,
-} from "./core";
+import { makeCircle } from "../lib/smallest-enclosing-circle";
+import { IShape, Ray, ShapeAlignment, IStyle, Point, BoundingBox, BoundingCircle, Segment } from "./core";
 import { GeomHelpers } from "./helpers";
 
 export class AbstractShape implements IShape {
@@ -21,10 +12,9 @@ export class AbstractShape implements IShape {
     hatchStrokeColor: "#cccccc",
     hatchStrokeThickness: 0.5,
     hatchScale: 1,
-  };
+  }
   id: number = ++AbstractShape.id;
   center: Ray;
-  scale: number = 1;
   divisions: number;
   reverse: boolean;
   childShapes: IShape[];
@@ -36,7 +26,7 @@ export class AbstractShape implements IShape {
     center?: Ray,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     this.center = center || new Ray(0, 0);
     this.divisions = Math.floor(Math.max(1, divisions));
@@ -44,7 +34,6 @@ export class AbstractShape implements IShape {
     this.reverse = reverse || false;
     this.childShapes = [];
     this.isHole = false;
-    this.scale = 1;
   }
   generate(): Ray[] {
     console.log("generate", this.divisions);
@@ -69,39 +58,39 @@ export class AbstractShape implements IShape {
     let pt = new Point(0, 0);
     switch (this.alignment) {
       case ShapeAlignment.TOP_LEFT:
-        pt.x -= bb.x - this.center.x;
-        pt.y -= bb.y + bb.height - this.center.y;
+        pt.x -= (bb.x) - this.center.x;
+        pt.y -= (bb.y + bb.height) - this.center.y;
         break;
       case ShapeAlignment.TOP:
-        pt.x -= bb.x - this.center.x;
-        pt.y -= bb.y + bb.height - this.center.y;
+        pt.x -= (bb.x) - this.center.x;
+        pt.y -= (bb.y + bb.height) - this.center.y;
         break;
       case ShapeAlignment.TOP_RIGHT:
-        pt.x -= bb.x + bb.width - this.center.x;
-        pt.y -= bb.y + bb.height - this.center.y;
+        pt.x -= (bb.x + bb.width) - this.center.x;
+        pt.y -= (bb.y + bb.height) - this.center.y;
         break;
       case ShapeAlignment.LEFT:
-        pt.x -= bb.x - this.center.x;
-        pt.y -= bb.y + bb.height / 2 - this.center.y;
+        pt.x -= (bb.x) - this.center.x;
+        pt.y -= (bb.y + bb.height / 2) - this.center.y;
         break;
       case ShapeAlignment.CENTER:
-        pt.x -= bb.x + bb.width / 2 - this.center.x;
-        pt.y -= bb.y + bb.height / 2 - this.center.y;
+        pt.x -= (bb.x + bb.width / 2) - this.center.x;
+        pt.y -= (bb.y + bb.height / 2) - this.center.y;
         break;
       case ShapeAlignment.RIGHT:
-        pt.x -= bb.x + bb.width - this.center.x;
-        pt.y -= bb.y + bb.height / 2 - this.center.y;
+        pt.x -= (bb.x + bb.width) - this.center.x;
+        pt.y -= (bb.y + bb.height / 2) - this.center.y;
         break;
       case ShapeAlignment.BOTTOM_LEFT:
-        pt.x -= bb.x - this.center.x;
+        pt.x -= (bb.x) - this.center.x;
         pt.y -= bb.y - this.center.y;
         break;
       case ShapeAlignment.BOTTOM:
-        pt.x -= bb.x + bb.width / 2 - this.center.x;
+        pt.x -= (bb.x + bb.width / 2) - this.center.x;
         pt.y -= bb.y - this.center.y;
         break;
       case ShapeAlignment.BOTTOM_RIGHT:
-        pt.x -= bb.x + bb.width - this.center.x;
+        pt.x -= (bb.x + bb.width) - this.center.x;
         pt.y -= bb.y - this.center.y;
     }
     return pt;
@@ -122,10 +111,17 @@ export class AbstractShape implements IShape {
       const bb = shape.boundingBox();
       if (bb.x < minX) minX = bb.x;
       if (bb.y < minY) minY = bb.y;
-      if (bb.x + bb.width > maxX) maxX = bb.x + bb.width;
-      if (bb.y + bb.height > maxY) maxY = bb.y + bb.height;
+      if (bb.x + bb.width > maxX)
+        maxX = bb.x + bb.width;
+      if (bb.y + bb.height > maxY)
+        maxY = bb.y + bb.height;
     });
-    return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
+    return new BoundingBox(
+      minX,
+      minY,
+      maxX - minX,
+      maxY - minY
+    );
   }
   boundingCircle(): BoundingCircle {
     const rays = this.generate();
@@ -141,10 +137,7 @@ export class AbstractShape implements IShape {
   protected fit(rays: Ray[], withinArea?: BoundingBox) {
     if (withinArea) {
       const bb = this.boundingBox();
-      const scale = Math.min(
-        withinArea.width / bb.width,
-        withinArea.height / bb.height,
-      );
+      const scale = Math.min(withinArea.width / bb.width, withinArea.height / bb.height);
       rays.forEach((r) => {
         r.x *= scale;
         r.y *= scale;
@@ -173,7 +166,7 @@ export class Arc extends AbstractShape {
     endAngle: number = Math.PI * 2,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     super(center, divisions, alignment, reverse);
     this.radius = radius;
@@ -187,14 +180,14 @@ export class Arc extends AbstractShape {
       const angle = GeomHelpers.lerpAngle(
         this.startAngle,
         this.endAngle,
-        i / this.divisions,
+        i / this.divisions
       );
       rays.push(
         new Ray(
           this.center.x + this.radius * Math.cos(angle),
           this.center.y + this.radius * Math.sin(angle),
-          this.startAngle + (Math.PI * 2 * i) / this.divisions,
-        ),
+          this.startAngle + (Math.PI * 2 * i) / this.divisions
+        )
       );
     }
     if (this.reverse) {
@@ -222,99 +215,7 @@ export class Arc extends AbstractShape {
       this.endAngle,
       this.divisions,
       this.alignment,
-      this.reverse,
-    );
-    s.isHole = this.isHole;
-    s.hidden = this.hidden;
-    s.style = Object.assign({}, this.style);
-    return s;
-  }
-}
-
-export class Arch extends AbstractShape {
-  radius: number;
-  width: number;
-  private _height: number;
-  sweepAngleDegrees: number;
-  startAngle: number;
-  endAngle: number;
-  constructor(
-    center?: Ray,
-    width: number = 100,
-    sweepAngleDegrees: number = 30,
-    divisions: number = 64,
-    alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
-  ) {
-    super(center, divisions, alignment, reverse);
-    this.width = width;
-    this.sweepAngleDegrees = sweepAngleDegrees;
-    this.startAngle = 0 - (sweepAngleDegrees * Math.PI) / 180 - Math.PI / 2;
-    this.endAngle = (sweepAngleDegrees * Math.PI) / 180 - Math.PI / 2;
-    const b = this.width * 0.5;
-    const a = b * Math.tan(this.endAngle);
-    this.radius = Math.sqrt(b * b + a * a);
-    this._height = (this.radius + this.radius * Math.sin(this.endAngle)) * 2;
-    this.reverse = reverse;
-  }
-  generate(withinArea?: BoundingBox) {
-    if (this.sweepAngleDegrees === 0) {
-      return [];
-    }
-    const rays = [];
-    for (let i = 0; i <= this.divisions; i++) {
-      const angle = GeomHelpers.lerpAngle(
-        this.startAngle,
-        this.endAngle,
-        i / this.divisions,
-      );
-      rays.push(
-        new Ray(
-          this.center.x + this.radius * Math.cos(angle),
-          this.center.y + this.radius * Math.sin(angle) + this.radius,
-          this.startAngle + (Math.PI * 2 * i) / this.divisions,
-        ),
-      );
-    }
-    rays.forEach((r) => {
-      r.y -= this._height * 0.5;
-    });
-    if (this.reverse) {
-      rays.reverse();
-      rays.forEach((r) => (r.direction += Math.PI));
-    }
-    if (this.reverse) {
-      rays.reverse();
-    }
-    GeomHelpers.normalizeRayDirections(rays);
-    if (this.center.direction) {
-      rays.forEach((r) => {
-        GeomHelpers.rotateRayAboutOrigin(this.center, r);
-      });
-    }
-    this.fit(rays, withinArea);
-    return rays;
-  }
-  boundingBox(): BoundingBox {
-    if (this.sweepAngleDegrees === 0) {
-      return new BoundingBox(this.center.x, this.center.y, 0, 0);
-    }
-    return new BoundingBox(
-      this.center.x - this.width / 2,
-      this.center.y - this._height / 2,
-      this.width,
-      this._height,
-    );
-  }
-  clone(atScale = 1) {
-    const scale = atScale || 1;
-    const s = new Arch(
-      this.center.clone(),
-      this.width * scale,
-      this.sweepAngleDegrees,
-      this.divisions,
-      this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
@@ -331,7 +232,7 @@ export class Polygon extends AbstractShape {
     rays: Ray[] = [],
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     super(center, divisions, alignment, reverse);
     this.rays = rays;
@@ -372,7 +273,7 @@ export class Polygon extends AbstractShape {
       this.rays.map((r) => r.clone()),
       this.divisions,
       this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
@@ -389,7 +290,7 @@ export class Circle extends AbstractShape {
     radius: number = 50,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     if (divisions <= 2) {
       divisions = 32;
@@ -430,17 +331,17 @@ export class Circle extends AbstractShape {
           this.center.x +
             this.radius *
               Math.cos(
-                this.center.direction + (Math.PI * 2 * i) / this.divisions,
+                this.center.direction + (Math.PI * 2 * i) / this.divisions
               ) +
             offset.x,
           this.center.y +
             this.radius *
               Math.sin(
-                this.center.direction + (Math.PI * 2 * i) / this.divisions,
+                this.center.direction + (Math.PI * 2 * i) / this.divisions
               ) +
             offset.y,
-          this.center.direction + (Math.PI * 2 * i) / this.divisions,
-        ),
+          this.center.direction + (Math.PI * 2 * i) / this.divisions
+        )
       );
     }
     if (this.center.direction) {
@@ -462,7 +363,7 @@ export class Circle extends AbstractShape {
       this.radius * scale,
       this.divisions,
       this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
@@ -480,7 +381,7 @@ export class Ellipse extends AbstractShape {
     radiusY: number = 50,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     super(center, divisions, alignment, reverse);
     this.radiusX = radiusX;
@@ -519,17 +420,17 @@ export class Ellipse extends AbstractShape {
           this.center.x +
             this.radiusX *
               Math.cos(
-                this.center.direction + (Math.PI * 2 * i) / this.divisions,
+                this.center.direction + (Math.PI * 2 * i) / this.divisions
               ) +
             offset.x,
           this.center.y +
             this.radiusY *
               Math.sin(
-                this.center.direction + (Math.PI * 2 * i) / this.divisions,
+                this.center.direction + (Math.PI * 2 * i) / this.divisions
               ) +
             offset.y,
-          this.center.direction + (Math.PI * 2 * i) / this.divisions,
-        ),
+          this.center.direction + (Math.PI * 2 * i) / this.divisions
+        )
       );
     }
     if (this.center.direction) {
@@ -552,7 +453,7 @@ export class Ellipse extends AbstractShape {
       this.radiusY * scale,
       this.divisions,
       this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
@@ -570,7 +471,7 @@ export class Rectangle extends AbstractShape {
     height: number = 100,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     super(center, divisions, alignment, reverse);
     this.width = width;
@@ -607,32 +508,32 @@ export class Rectangle extends AbstractShape {
     rays.push(
       new Ray(
         this.center.x - this.width / 2 + offset.x,
-        this.center.y - this.height / 2 + offset.y,
-      ),
+        this.center.y - this.height / 2 + offset.y
+      )
     );
     rays.push(
       new Ray(
         this.center.x + this.width / 2 + offset.x,
-        this.center.y - this.height / 2 + offset.y,
-      ),
+        this.center.y - this.height / 2 + offset.y
+      )
     );
     rays.push(
       new Ray(
         this.center.x + this.width / 2 + offset.x,
-        this.center.y + this.height / 2 + offset.y,
-      ),
+        this.center.y + this.height / 2 + offset.y
+      )
     );
     rays.push(
       new Ray(
         this.center.x - this.width / 2 + offset.x,
-        this.center.y + this.height / 2 + offset.y,
-      ),
+        this.center.y + this.height / 2 + offset.y
+      )
     );
     rays.push(
       new Ray(
         this.center.x - this.width / 2 + offset.x,
-        this.center.y - this.height / 2 + offset.y,
-      ),
+        this.center.y - this.height / 2 + offset.y
+      )
     );
     if (this.reverse) {
       rays.reverse();
@@ -660,85 +561,7 @@ export class Rectangle extends AbstractShape {
       this.height * scale,
       this.divisions,
       this.alignment,
-      this.reverse,
-    );
-    s.isHole = this.isHole;
-    s.hidden = this.hidden;
-    s.style = Object.assign({}, this.style);
-    return s;
-  }
-}
-
-export class Trapezoid extends Rectangle {
-  taper: number;
-  constructor(
-    center?: Ray,
-    width: number = 100,
-    height: number = 100,
-    taper: number = 20,
-    divisions: number = 1,
-    alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
-  ) {
-    super(center, width, height, divisions, alignment, reverse);
-    this.taper = taper;
-  }
-  generate(withinArea?: BoundingBox) {
-    let rays: Ray[] = [];
-    const offset = this.alignmentOffset();
-    // add rectangle corners
-    rays.push(
-      new Ray(
-        this.center.x - this.width / 2 + offset.x + this.taper,
-        this.center.y - this.height / 2 + offset.y,
-      ),
-    );
-    rays.push(
-      new Ray(
-        this.center.x + this.width / 2 + offset.x - this.taper,
-        this.center.y - this.height / 2 + offset.y,
-      ),
-    );
-    rays.push(
-      new Ray(
-        this.center.x + this.width / 2 + offset.x,
-        this.center.y + this.height / 2 + offset.y,
-      ),
-    );
-    rays.push(
-      new Ray(
-        this.center.x - this.width / 2 + offset.x,
-        this.center.y + this.height / 2 + offset.y,
-      ),
-    );
-    if (this.reverse) {
-      rays.reverse();
-    }
-    GeomHelpers.normalizeRayDirections(rays);
-    if (this.center.direction) {
-      rays.forEach((r) => {
-        GeomHelpers.rotateRayAboutOrigin(this.center, r);
-      });
-    }
-    if (this.divisions > 1) {
-      rays = GeomHelpers.subdivideRays(rays[0], rays[1], this.divisions)
-        .concat(GeomHelpers.subdivideRays(rays[1], rays[2], this.divisions))
-        .concat(GeomHelpers.subdivideRays(rays[2], rays[3], this.divisions))
-        .concat(GeomHelpers.subdivideRays(rays[3], rays[0], this.divisions));
-    }
-    this.fit(rays, withinArea);
-    return rays;
-  }
-  clone(atScale = 1) {
-    const scale = atScale || 1;
-    const s = new Trapezoid(
-      this.center.clone(),
-      this.width * scale,
-      this.height * scale,
-      this.taper * scale,
-      this.divisions,
-      this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
@@ -756,7 +579,7 @@ export class RoundedRectangle extends Rectangle {
     radius: number = 25,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     super(center, width, height, divisions, alignment, reverse);
     this.radius = radius;
@@ -770,54 +593,54 @@ export class RoundedRectangle extends Rectangle {
     // add rectangle corners
     const arcCenterTopLeft = new Ray(
       this.center.x - this.width / 2 + this.radius + offset.x,
-      this.center.y - this.height / 2 + this.radius + offset.y,
+      this.center.y - this.height / 2 + this.radius + offset.y
     );
     const arcCenterTopRight = new Ray(
       this.center.x + this.width / 2 - this.radius + offset.x,
-      this.center.y - this.height / 2 + this.radius + offset.y,
+      this.center.y - this.height / 2 + this.radius + offset.y
     );
     const arcCenterBottomRight = new Ray(
       this.center.x + this.width / 2 - this.radius + offset.x,
-      this.center.y + this.height / 2 - this.radius + offset.y,
+      this.center.y + this.height / 2 - this.radius + offset.y
     );
     const arcCenterBottomLeft = new Ray(
       this.center.x - this.width / 2 + this.radius + offset.x,
-      this.center.y + this.height / 2 - this.radius + offset.y,
+      this.center.y + this.height / 2 - this.radius + offset.y
     );
     const cornerTopLeft = new Arc(
       arcCenterTopLeft,
       this.radius,
       0 - Math.PI,
       0 - Math.PI / 2,
-      this.divisions * 3,
+      this.divisions * 3
     ).generate();
     const cornerTopRight = new Arc(
       arcCenterTopRight,
       this.radius,
       0 - Math.PI / 2,
       0,
-      this.divisions * 3,
+      this.divisions * 3
     ).generate();
     const cornerBottomRight = new Arc(
       arcCenterBottomRight,
       this.radius,
       0,
       Math.PI / 2,
-      this.divisions * 3,
+      this.divisions * 3
     ).generate();
     const cornerBottomLeft = new Arc(
       arcCenterBottomLeft,
       this.radius,
       Math.PI / 2,
       Math.PI,
-      this.divisions * 3,
+      this.divisions * 3
     ).generate();
     rays.push(...cornerTopLeft);
     if (this.divisions > 1) {
       const top = GeomHelpers.subdivideRays(
         cornerTopLeft[cornerBottomLeft.length - 1],
         cornerTopRight[0],
-        this.divisions,
+        this.divisions
       );
       top.shift();
       top.pop();
@@ -828,7 +651,7 @@ export class RoundedRectangle extends Rectangle {
       const right = GeomHelpers.subdivideRays(
         cornerTopRight[cornerBottomRight.length - 1],
         cornerBottomRight[0],
-        this.divisions,
+        this.divisions
       );
       right.shift();
       right.pop();
@@ -839,7 +662,7 @@ export class RoundedRectangle extends Rectangle {
       const bottom = GeomHelpers.subdivideRays(
         cornerBottomRight[cornerTopRight.length - 1],
         cornerBottomLeft[0],
-        this.divisions,
+        this.divisions
       );
       bottom.shift();
       bottom.pop();
@@ -850,7 +673,7 @@ export class RoundedRectangle extends Rectangle {
       const left = GeomHelpers.subdivideRays(
         cornerBottomLeft[cornerTopLeft.length - 1],
         cornerTopLeft[0],
-        this.divisions,
+        this.divisions
       );
       left.shift();
       rays.push(...left);
@@ -878,7 +701,7 @@ export class RoundedRectangle extends Rectangle {
       this.radius * scale,
       this.divisions,
       this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
@@ -899,7 +722,7 @@ export class Bone extends AbstractShape {
     topRadius: number,
     divisions: number = 1,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
-    reverse: boolean = false,
+    reverse: boolean = false
   ) {
     super(center, divisions, alignment, reverse);
     this.center = center;
@@ -915,25 +738,23 @@ export class Bone extends AbstractShape {
       this.center.x,
       this.center.y - this.length * 0.5,
     );
-    const topCenter = new Ray(this.center.x, this.center.y + this.length * 0.5);
+    const topCenter = new Ray(
+      this.center.x,
+      this.center.y + this.length * 0.5,
+    );
     switch (this.alignment) {
       case ShapeAlignment.CENTER:
         break;
       case ShapeAlignment.TOP:
-        (bottomCenter.y -= this.length * 0.5),
-          (topCenter.y -= this.length * 0.5);
+        bottomCenter.y -= this.length * 0.5,
+        topCenter.y -= this.length * 0.5
         break;
       case ShapeAlignment.BOTTOM:
-        (bottomCenter.y += this.length * 0.5),
-          (topCenter.y += this.length * 0.5);
+        bottomCenter.y += this.length * 0.5,
+        topCenter.y += this.length * 0.5
         break;
     }
-    const tangents = GeomHelpers.circleCircleTangents(
-      bottomCenter,
-      this.bottomRadius,
-      topCenter,
-      this.topRadius,
-    );
+    const tangents = GeomHelpers.circleCircleTangents(bottomCenter, this.bottomRadius, topCenter, this.topRadius);
     const rays = [];
     rays.push(tangents[0].toRay());
     rays.push(tangents[1].toRay());
@@ -941,7 +762,7 @@ export class Bone extends AbstractShape {
     let side1 = GeomHelpers.subdivideRays(
       tangents[0].toRay(),
       tangents[1].toRay(),
-      this.divisions,
+      this.divisions
     );
     if (this.divisions > 0) {
       side1 = side1.slice(1, -1);
@@ -952,19 +773,17 @@ export class Bone extends AbstractShape {
       const arc1 = new Arc(
         bottomCenter,
         this.bottomRadius,
-        GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) -
-          Math.PI * 0.5,
-        GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) -
-          Math.PI * 0.5,
-        this.divisions * 2,
-      );
+        GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5,
+        GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
+        this.divisions * 2
+      )
       rays.push(...arc1.generate());
     }
-
+    
     let side2 = GeomHelpers.subdivideRays(
       tangents[2].toRay(),
       tangents[3].toRay(),
-      this.divisions,
+      this.divisions
     );
     if (this.divisions > 0) {
       side2 = side2.slice(1, -1);
@@ -975,13 +794,10 @@ export class Bone extends AbstractShape {
       const arc2 = new Arc(
         topCenter,
         this.topRadius,
-        GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) -
-          Math.PI * 0.5,
-        GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) -
-          Math.PI * 0.5 +
-          Math.PI * 2,
-        this.divisions * 2,
-      );
+        GeomHelpers.angleBetweenPoints(tangents[2], tangents[3]) - Math.PI * 0.5,
+        GeomHelpers.angleBetweenPoints(tangents[0], tangents[1]) - Math.PI * 0.5 + Math.PI * 2,
+        this.divisions * 2
+      )
       rays.push(...arc2.generate());
     }
 
@@ -1007,7 +823,7 @@ export class Bone extends AbstractShape {
       this.bottomRadius * scale,
       this.divisions,
       this.alignment,
-      this.reverse,
+      this.reverse
     );
     s.isHole = this.isHole;
     s.hidden = this.hidden;
