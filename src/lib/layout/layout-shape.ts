@@ -1,10 +1,14 @@
 import * as arbit from "arbit";
-import { BoundingBox, Ray } from "../geom/core";
-import { AbstractShape } from "../geom/shapes";
-import { IShape } from "../geom/core";
-import { GeomHelpers } from "../geom/helpers";
+import { BoundingBox, Ray } from "../../geom/core";
+import { AbstractShape } from "../../geom/shapes";
+import { IShape } from "../../geom/core";
+import { GeomHelpers } from "../../geom/helpers";
+import { resolveStringOrNumber } from "../stamp-helpers";
 
 import { IShapeLayoutParams, IGridShapeLayoutParams, IScatterShapeLayoutParams } from "./layout-interfaces";
+
+const $ = resolveStringOrNumber;
+
 
 class AbstractShapeLayout extends AbstractShape {
   params: IShapeLayoutParams;
@@ -26,18 +30,23 @@ export class GridShapeLayout extends AbstractShapeLayout {
   children(): IShape[] {
     const c: IShape[] = [];
     const params = this.params as IGridShapeLayoutParams;
-    const w = params.columnSpacing * (params.columns - 1);
-    const h = (params.rowSpacing || params.columnSpacing) * (params.rows - 1);
+    const w = $(params.columnSpacing) * ($(params.columns) - 1);
+    const h = ($(params.rowSpacing || params.columnSpacing) * ($(params.rows) - 1));
     const bb = new BoundingBox(
       0, 
       0, 
-      params.columnSpacing - (params.columnPadding || 0), 
-      (params.rowSpacing || params.columnSpacing) - (params.rowPadding || params.columnPadding || 0)
+      $(params.columnSpacing) - ($(params.columnPadding) || 0), 
+      ($(params.rowSpacing || params.columnSpacing) - ($(params.rowPadding) || $(params.columnPadding) || 0))
     );
-    for (let j = 0; j < params.rows; j++) {
-      for (let i = 0; i < params.columns; i++) {
-        const x = params.columnSpacing * i;
-        const y = (params.rowSpacing || params.columnSpacing) * j;
+    const nnx = $(params.columns) || 1;
+    const nny = $(params.rows) || 1;
+    const nspx = $(params.columnSpacing) || 0;
+    const nspy = $(params.rowSpacing || params.columnSpacing) || 0;
+
+    for (let j = 0; j < nnx; j++) {
+      for (let i = 0; i < nny; i++) {
+        const x = nspx * i;
+        const y = nspy * j;
         let shape = params.shape.clone();
         const sbb = shape.boundingBox();
         const scale = Math.min(bb.width / sbb.width, bb.height / sbb.height);
@@ -70,9 +79,11 @@ export class ScatterShapeLayout extends AbstractShapeLayout {
     this.containerBounds = params.container.boundingBox();
 
     this.scatterPoints = [];
-    const prng = arbit(params.maxShapes);
+    const n = $(params.maxShapes) || 1;
+    const prng = arbit(n);
+    const minSpacing = $(params.minSpacing) || 0;
     
-    for (let j = 0; j < params.maxShapes * 2; j++) {
+    for (let j = 0; j < n * 2; j++) {
       const possiblePts: { pt: Ray, dist: number }[] = [];
       for (let i = 0; i < 500; i++) {
         const pt = new Ray(
@@ -92,7 +103,7 @@ export class ScatterShapeLayout extends AbstractShapeLayout {
             }
           });
           p.dist = minDist;
-          if (p.dist >= params.minSpacing) {
+          if (p.dist >= minSpacing) {
             possiblePts.push(p);
           }
         }
@@ -100,7 +111,7 @@ export class ScatterShapeLayout extends AbstractShapeLayout {
       possiblePts.sort((a, b) => b.dist - a.dist);
       if (possiblePts.length > 0) {
         this.scatterPoints.push(possiblePts[0].pt);
-        if (this.scatterPoints.length >= params.maxShapes) {
+        if (this.scatterPoints.length >= n) {
           break;
         }
       }
@@ -126,11 +137,12 @@ export class ScatterShapeLayout extends AbstractShapeLayout {
 
     const c: IShape[] = [];
     const params = this.params as IScatterShapeLayoutParams;
+    const padding = $(params.padding) || 0;
 
     for (let i = 0; i < this.scatterPoints.length; i++) {
       const x = this.scatterPoints[i].x;
       const y = this.scatterPoints[i].y;
-      const size = this.scatterPointsClosestDist[i] - params.padding;
+      const size = this.scatterPointsClosestDist[i] - padding;
       let shape = params.shape.clone();
       const sbb = shape.boundingBox();
       const scale = Math.min(size / sbb.width, size / sbb.height);

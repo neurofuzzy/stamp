@@ -5,7 +5,7 @@ import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { GridShapeLayout } from "../src/lib/shapes-layout";
+import { GridShapeLayout } from "../src/lib/layout/layout-shape";
 import { ShapeProvider } from "../src/lib/shape-provider";
 import { Circle } from "../src/geom/shapes";
 import { Donut } from "../src/geom/compoundshapes";

@@ -1,4 +1,4 @@
-import { ILayout } from "./layout-interfaces.d.ts";
+import { ILayout } from "./layout/layout-interfaces";
 
 interface IShapeParams {
   angle?: number | string;

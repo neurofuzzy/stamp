@@ -6,7 +6,7 @@ import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { GridStampLayout } from "../src/lib/layout-stamp";
+import { GridStampLayout } from "../src/lib/layout/layout-stamp";
 import { GeomHelpers } from "../src/geom/helpers";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `

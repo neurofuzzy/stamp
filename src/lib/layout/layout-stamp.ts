@@ -1,10 +1,10 @@
-import { Ray } from "../geom/core";
-import { GeomHelpers } from "../geom/helpers";
-import { AbstractShape } from "../geom/shapes";
-import { Sequence } from "./sequence";
-import { Stamp } from "./stamp";
+import { Ray } from "../../geom/core";
+import { GeomHelpers } from "../../geom/helpers";
+import { AbstractShape } from "../../geom/shapes";
+import { Sequence } from "../sequence";
+import { Stamp } from "../stamp";
 import * as arbit from "arbit";
-import { resolveStringOrNumber } from "./stamp-helpers";
+import { resolveStringOrNumber } from "../stamp-helpers";
 import { IStampLayoutParams, IGridStampLayoutParams, ICircleGridStampLayoutParams, ICirclePackingStampLayoutParams } from "./layout-interfaces";
 
 const $ = resolveStringOrNumber;

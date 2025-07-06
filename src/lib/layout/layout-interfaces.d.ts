@@ -1,6 +1,8 @@
-import { IShape } from "../geom/core";
-import { IStyle } from "../geom/core";
-import { Stamp } from "./stamp";
+import { IShape, Ray } from "../../geom/core";
+import { IStyle } from "../../geom/core";
+import { Stamp } from "../stamp";
+
+// layout params
 
 export interface ILayoutParams {
   type: string;
@@ -19,16 +21,16 @@ export interface IStampLayoutParams {
 }
 
 
-// grid layout
+// grid layout params
 
 export interface IGridLayoutParams extends ILayoutParams {
   type: "grid";
-  columns: number;
-  rows: number;
-  columnSpacing: number;
-  rowSpacing: number;
-  columnPadding?: number;
-  rowPadding?: number;
+  columns: string | number;
+  rows: string | number;
+  columnSpacing: string | number;
+  rowSpacing: string | number;
+  columnPadding?: string | number;
+  rowPadding?: string | number;
   offsetAlternateRows?: boolean;
 }
 
@@ -37,24 +39,24 @@ export interface IGridShapeLayoutParams extends IGridLayoutParams, IShapeLayoutP
 export interface IGridStampLayoutParams extends IGridLayoutParams, IStampLayoutParams {};
 
 
-// scatter layout
+// scatter layout params
 
 export interface IScatterLayoutParams extends ILayoutParams {
   container: IShape;
-  maxShapes: number;
-  minSpacing: number;
-  padding: number;
+  maxShapes: string | number;
+  minSpacing: string | number;
+  padding: string | number;
 }
 
 export interface IScatterShapeLayoutParams extends IScatterLayoutParams, IShapeLayoutParams {};
 
 
-// circle grid layout
+// circle grid layout params
 
 export interface ICircleGridLayoutParams extends ILayoutParams {
-  rings: number;
-  numPerRing: number;
-  spacing: number;
+  rings: string | number;
+  numPerRing: string | number;
+  spacing: string | number;
 }
 
 export interface ICircleGridShapeLayoutParams extends ICircleGridLayoutParams, IShapeLayoutParams {};
@@ -62,16 +64,23 @@ export interface ICircleGridShapeLayoutParams extends ICircleGridLayoutParams, I
 export interface ICircleGridStampLayoutParams extends ICircleGridLayoutParams, IStampLayoutParams {};
 
 
-// circle packing layout
+// circle packing layout params
 
 export interface ICirclePackingLayoutParams extends ILayoutParams {
-  radius: number;
-  count: number;
-  padding?: number;
+  radius: string | number;
+  count: string | number;
+  padding?: string | number;
   /** number between 0 - 100 */
-  spherify?: number;
+  spherify?: string | number;
 }
 
 export interface ICirclePackingShapeLayoutParams extends ICirclePackingLayoutParams, IShapeLayoutParams {};
 
 export interface ICirclePackingStampLayoutParams extends ICirclePackingLayoutParams, IStampLayoutParams {};
+
+// layout handlers
+
+export interface ILayoutHandler {
+  getCenters(): Ray[];
+  arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void;
+}
