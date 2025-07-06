@@ -14,7 +14,7 @@ export class StampShapeHandlerRegistry implements IShapeHandlerRegistry {
     if (this.hasHandler(shapeName)) {
       return this.handlers.get(shapeName);
     }
-    console.warn(`Shape handler for ${shapeName} not found in registry`);
+    //console.warn(`Shape handler for ${shapeName} not found in registry`);
     return undefined;
   }
 

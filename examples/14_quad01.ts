@@ -80,14 +80,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
   //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
   //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  const seeds = Sequence.fromStatement(
-    "repeat 35,98721,286897,98234210,239712873",
+  Sequence.fromStatement(
+    "repeat 35,98721,286897,98234210,239712873 AS seeds",
     12,
   );
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutationSequence: seeds,
+    permutationSequenceStatement: "seeds()",
     rows: 2,
     columns: 2,
     rowSpacing: 420,

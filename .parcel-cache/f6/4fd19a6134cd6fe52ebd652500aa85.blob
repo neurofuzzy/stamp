@@ -77,7 +77,7 @@ const draw = ctx => {
   // const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
   const grid = new _srcLibStampLayout.GridStampLayout(new _srcGeomCore.Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutationSequence: seeds,
+    permutationSequenceStatement: "SEEDS()",
     rows: 8,
     columns: 3,
     rowSpacing: 200,

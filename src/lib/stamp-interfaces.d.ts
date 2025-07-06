@@ -14,7 +14,7 @@ interface IShapeParams {
   offsetY?: number | string;
   skip?: number | string;
   style?: IStyle;
-  distribution?: IDistribution;
+  layout?: ILayout;
   tag?: string;
 }
 

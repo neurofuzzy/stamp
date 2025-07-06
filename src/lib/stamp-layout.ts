@@ -7,8 +7,8 @@ import * as arbit from "arbit";
 
 interface IStampLayoutParams {
   stamp: Stamp;
-  permutationSequence?: Sequence | null;
-  scaleSequence?: Sequence | null;
+  permutationSequenceStatement?: string;
+  scaleSequenceStatement?: string;
   seed?: number;
 }
 
@@ -62,10 +62,11 @@ export class GridStampLayout extends AbstractStampLayout {
         cols++;
       }
       for (let i = 0; i < cols; i++) {
-        const seed = params.permutationSequence?.next() || i;
+        const seed = params.permutationSequenceStatement ? Sequence.resolve(params.permutationSequenceStatement) : i;
+        console.log(Sequence.getSequence(params.permutationSequenceStatement || ""), params.scaleSequenceStatement);
         Sequence.resetAll(seed, [
-          params.permutationSequence,
-          params.scaleSequence,
+          Sequence.getSequence(params.permutationSequenceStatement || ""),
+          Sequence.getSequence(params.scaleSequenceStatement || ""),
         ]);
         Sequence.seed = seed;
         const x = params.columnSpacing * i;
@@ -97,10 +98,10 @@ export class CircleGridStampLayout extends AbstractStampLayout {
     const params = this.params as ICircleGridStampLayoutParams;
     for (let j = 0; j < params.rings; j++) {
       for (let i = 0; i < Math.max(1, params.numPerRing * j); i++) {
-        const seed = params.permutationSequence?.next() || i;
+        const seed = params.permutationSequenceStatement ? Sequence.resolve(params.permutationSequenceStatement) : i;
         Sequence.resetAll(seed, [
-          params.permutationSequence,
-          params.scaleSequence,
+          Sequence.getSequence(params.permutationSequenceStatement || ""),
+          Sequence.getSequence(params.scaleSequenceStatement || ""),
         ]);
         Sequence.seed = seed;
         const stamp = params.stamp.clone();
@@ -185,7 +186,7 @@ export class CirclePackingStampLayout extends AbstractStampLayout {
       const stamp = params.stamp.clone();
       stamp.center = farthest.clone();
       stamp.scale =
-        (params.scaleSequence?.next() || 1) *
+        (params.scaleSequenceStatement ? Sequence.resolve(params.scaleSequenceStatement) : 1) *
         (1 -
           distFromCenter / radius / Math.max(1, 100 - (params.spherify || 0)));
       //stamp.generate();
@@ -283,8 +284,8 @@ export class CirclePackingStampLayout extends AbstractStampLayout {
       }
     }
 
-    c.forEach((stamp) => {
-      const seed = params.permutationSequence?.next() || i;
+    c.forEach((stamp, idx) => {
+      const seed = params.permutationSequenceStatement ? Sequence.resolve(params.permutationSequenceStatement) : idx;
       Sequence.seed = seed;
       stamp.generate();
     });
