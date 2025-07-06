@@ -4,11 +4,14 @@ import { AbstractShape } from "../geom/shapes";
 import { Sequence } from "./sequence";
 import { Stamp } from "./stamp";
 import * as arbit from "arbit";
+import { resolveStringOrNumber } from "./stamp-helpers";
+
+const $ = resolveStringOrNumber;
 
 interface IStampLayoutParams {
   stamp: Stamp;
-  permutationSequenceStatement?: string;
-  scaleSequenceStatement?: string;
+  permutation?: string | number;
+  scale?: string | number;
   seed?: number;
 }
 
@@ -46,6 +49,19 @@ class AbstractStampLayout extends AbstractShape {
   }
 }
 
+function resetSequences(params: IStampLayoutParams) {
+  const seed = $(params.permutation) ?? i;
+  const skipSequences: Sequence[] = [];
+  if (typeof params.permutation === "string") {
+    skipSequences.push(Sequence.getSequence(params.permutation));
+  }
+  if (typeof params.scale === "string") {
+    skipSequences.push(Sequence.getSequence(params.scale));
+  }
+  Sequence.resetAll(seed, skipSequences);
+  Sequence.seed = seed;
+}
+
 export class GridStampLayout extends AbstractStampLayout {
   constructor(center: Ray, params: IGridStampLayoutParams) {
     super(center, params);
@@ -62,13 +78,7 @@ export class GridStampLayout extends AbstractStampLayout {
         cols++;
       }
       for (let i = 0; i < cols; i++) {
-        const seed = params.permutationSequenceStatement ? Sequence.resolve(params.permutationSequenceStatement) : i;
-        console.log(Sequence.getSequence(params.permutationSequenceStatement || ""), params.scaleSequenceStatement);
-        Sequence.resetAll(seed, [
-          Sequence.getSequence(params.permutationSequenceStatement || ""),
-          Sequence.getSequence(params.scaleSequenceStatement || ""),
-        ]);
-        Sequence.seed = seed;
+        resetSequences(params);
         const x = params.columnSpacing * i;
         const y = params.rowSpacing * j;
         const stamp = params.stamp.clone();
@@ -98,12 +108,7 @@ export class CircleGridStampLayout extends AbstractStampLayout {
     const params = this.params as ICircleGridStampLayoutParams;
     for (let j = 0; j < params.rings; j++) {
       for (let i = 0; i < Math.max(1, params.numPerRing * j); i++) {
-        const seed = params.permutationSequenceStatement ? Sequence.resolve(params.permutationSequenceStatement) : i;
-        Sequence.resetAll(seed, [
-          Sequence.getSequence(params.permutationSequenceStatement || ""),
-          Sequence.getSequence(params.scaleSequenceStatement || ""),
-        ]);
-        Sequence.seed = seed;
+        resetSequences(params);
         const stamp = params.stamp.clone();
         const center = new Ray(0, params.spacing * j);
         if (j > 0) {
@@ -186,7 +191,7 @@ export class CirclePackingStampLayout extends AbstractStampLayout {
       const stamp = params.stamp.clone();
       stamp.center = farthest.clone();
       stamp.scale =
-        (params.scaleSequenceStatement ? Sequence.resolve(params.scaleSequenceStatement) : 1) *
+        ($(params.scale) ?? 1) *
         (1 -
           distFromCenter / radius / Math.max(1, 100 - (params.spherify || 0)));
       //stamp.generate();
@@ -285,7 +290,7 @@ export class CirclePackingStampLayout extends AbstractStampLayout {
     }
 
     c.forEach((stamp, idx) => {
-      const seed = params.permutationSequenceStatement ? Sequence.resolve(params.permutationSequenceStatement) : idx;
+      const seed = $(params.permutation) ?? idx;
       Sequence.seed = seed;
       stamp.generate();
     });
