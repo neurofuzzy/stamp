@@ -63,7 +63,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     stamp: circle,
     permutationSequence: Sequence.fromStatement("repeat 4,6,40,9"),
     scaleSequence: Sequence.fromStatement("repeat 3,4,5"),
-    seed: 512,
+    layoutSeed: 512,
     radius: 300,
     count: 22,
     padding: 18,

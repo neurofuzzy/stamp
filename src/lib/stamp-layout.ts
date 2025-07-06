@@ -12,7 +12,7 @@ interface IStampLayoutParams {
   stamp: Stamp;
   stampSeed?: string | number;
   scale?: string | number;
-  seed?: number;
+  layoutSeed?: number;
 }
 
 interface IGridStampLayoutParams extends IStampLayoutParams {
@@ -142,7 +142,7 @@ export class CirclePackingStampLayout extends AbstractStampLayout {
   children(): Stamp[] {
     const c: Stamp[] = [];
     const params = this.params as ICirclePackingStampLayoutParams;
-    const layoutSeed = params.seed ?? 1;
+    const layoutSeed = params.layoutSeed ?? 1;
     const prng = arbit(layoutSeed);
     const numPoints = params.count ?? 20;
     const numTriesPerPoint = 200;
