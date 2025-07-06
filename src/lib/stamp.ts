@@ -71,6 +71,13 @@ export class Stamp extends AbstractShape implements IShapeContext {
   static readonly SUBTRACT = 2;
   static readonly INTERSECT = 3;
 
+  // Constants for clipping operations
+  private static readonly CLIPPER_SCALE_FACTOR = 100000;
+  private static readonly ARC_TOLERANCE = 5000;
+  private static readonly MAX_NODES_LIMIT = 8192;
+  private static readonly BOUNDS_TOLERANCE = 1.1;
+  private static readonly GROUP_OFFSET_FACTOR = 0.5;
+
   private _nodes: INode[] = [];
   private _tree: clipperLib.PolyTree | null = null;
   private _polys: Polygon[] = [];
@@ -391,7 +398,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
             }
             if (outln > 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: outln * 100000,
+                delta: outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -416,7 +423,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
               }
             } else if (outln < 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: -outln * 100000,
+                delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -424,7 +431,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
                     endType: clipperLib.EndType.ClosedPolygon,
                   },
                 ],
-                arcTolerance: 5000,
+                arcTolerance: Stamp.ARC_TOLERANCE,
               });
               if (offsetResult) {
                 let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
@@ -466,7 +473,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
                 this._tree = polyResult;
                 if (outln < 0) {
                   const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                    delta: -outln * 100000,
+                    delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
                     offsetInputs: [
                       {
                         data: b.data,
@@ -474,7 +481,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
                         endType: clipperLib.EndType.ClosedPolygon,
                       },
                     ],
-                    arcTolerance: 5000,
+                    arcTolerance: Stamp.ARC_TOLERANCE,
                   });
                   if (offsetResult) {
                     let paths = ClipperHelpers.clipper.polyTreeToPaths(
@@ -509,7 +516,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
             if (outln > 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: outln * 100000,
+                delta: outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -534,7 +541,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
               }
             } else if (outln < 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: -outln * 100000,
+                delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -542,7 +549,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
                     endType: clipperLib.EndType.ClosedPolygon,
                   },
                 ],
-                arcTolerance: 5000,
+                arcTolerance: Stamp.ARC_TOLERANCE,
               });
               if (offsetResult) {
                 let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
@@ -613,8 +620,8 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
   private _getGroupOffset(nx = 1, ny = 1, spx = 0, spy = 0): Point {
     const pt = new Point(0, 0);
-    pt.x = (nx - 1) * spx * 0.5;
-    pt.y = (ny - 1) * spy * 0.5;
+    pt.x = (nx - 1) * spx * Stamp.GROUP_OFFSET_FACTOR;
+    pt.y = (ny - 1) * spy * Stamp.GROUP_OFFSET_FACTOR;
     return pt;
   }
 
@@ -979,7 +986,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
       let styleArea = this._styleMap[i];
       for (let j = 0; j < this._polys.length; j++) {
         let poly = this._polys[j];
-        if (GeomHelpers.shapeWithinBoundingBox(poly, styleArea.bounds, 1.1)) {
+        if (GeomHelpers.shapeWithinBoundingBox(poly, styleArea.bounds, Stamp.BOUNDS_TOLERANCE)) {
           poly.style = styleArea.style;
           mappedPolys.push(poly);
         }
@@ -1034,12 +1041,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
       if (fName === "_repeatLast") {
         nodes.splice(i, 1);
-        //i--;
-        let len = nodes.length;
         let steps = args[0];
         let times = $(args[1]);
 
-        if (steps > 0 && steps <= len) {
+        if (steps > 0 && steps <= nodes.length) {
           let r = nodes.slice(i - steps, i);
           let tmp = nodes.slice(0, i);
           let tmp2 = nodes.slice(i, nodes.length);
@@ -1048,15 +1053,13 @@ export class Stamp extends AbstractShape implements IShapeContext {
             i += steps;
           }
           nodes = tmp.concat(tmp2);
-          if (i > 8192 || nodes.length > 8192) {
+          if (i > Stamp.MAX_NODES_LIMIT || nodes.length > Stamp.MAX_NODES_LIMIT) {
             console.error("too many nodes");
             break;
           }
         }
       }
     }
-
-
 
     // Core function map (for linter and type safety)
     const privateFunctionMap: { [key: string]: Function } = {
