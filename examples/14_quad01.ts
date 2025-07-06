@@ -77,9 +77,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate({ rotation: "RANGLE()" })
     .repeatLast({ steps: 3, times: 240 });
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
+  //Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923 AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899 AS SEEDS", 12);
+  //Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91, AS SEEDS", 12);
   Sequence.fromStatement(
     "repeat 35,98721,286897,98234210,239712873 AS seeds",
     12,

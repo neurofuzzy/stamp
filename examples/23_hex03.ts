@@ -46,7 +46,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     "shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,30  AS RANGLE",
   );
   Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP");
-  const seeds = Sequence.fromStatement("repeat 4,30,7,8,12,16,17,18,19", 12);
+  Sequence.fromStatement("repeat 4,30,7,8,12,16,17,18,19 AS SEEDS", 12);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({

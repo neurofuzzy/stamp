@@ -79,13 +79,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate({ rotation: "RANGLE()" })
     .repeatLast({ steps: 3, times: 240 });
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
-  //const seeds = Sequence.fromStatement("repeat 57,5,43,4,49,42,33,26,47,56", 12);
-  const seeds = Sequence.fromStatement(
-    "repeat 222,318,213,256,257,4,5,49,42,33",
+  //Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923 AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899 AS SEEDS", 12);
+  //Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91, AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462 AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 57,5,43,4,49,42,33,26,47,56 AS SEEDS", 12);
+  Sequence.fromStatement(
+    "repeat 222,318,213,256,257,4,5,49,42,33 AS SEEDS",
     12,
   );
 

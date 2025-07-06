@@ -68,7 +68,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   Sequence.fromStatement("repeat 30,30 AS RLEN");
   Sequence.fromStatement("shuffle 120,-60,60,180,60,-60 AS RANGLE");
-  const seeds = Sequence.fromStatement("repeat 240-360", 12);
+  Sequence.fromStatement("repeat 240-360 AS SEEDS", 12);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,

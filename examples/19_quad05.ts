@@ -57,7 +57,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   Sequence.fromStatement("shuffle -72,72,72,72 AS RINGLE");
   Sequence.fromStatement("shuffle -72,-72,72,72,RINGLE() AS RANGLE");
 
-  const seeds = Sequence.fromStatement("repeat 9,455,4,15", 12);
+  Sequence.fromStatement("repeat 9,455,4,15 AS SEEDS", 12);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()

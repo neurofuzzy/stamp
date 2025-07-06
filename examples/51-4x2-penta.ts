@@ -48,7 +48,7 @@ Sequence.fromStatement("shuffle 72, 72, 72, 72, 72, IA() AS RANGLE");
 Sequence.fromStatement("shuffle 90,90 AS RLEN");
 
 // 1,4,6,12,26,30,91,117,127
-const seeds = Sequence.fromStatement("repeat 1,6,12,26,30,91,117,127");
+Sequence.fromStatement("repeat 1,6,12,26,30,91,117,127 AS SEEDS");
 
 const draw = (ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, w, h);

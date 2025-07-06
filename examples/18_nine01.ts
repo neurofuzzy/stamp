@@ -70,7 +70,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     "repeat 156,1,10,15,17,26,20,24,32,45,97 AS SEEDS",
     12,
   );
-  //const seeds = Sequence.fromStatement("repeat 4,13,15,1926,50,22,25,41,48,47", 12);
+  //Sequence.fromStatement("repeat 4,13,15,1926,50,22,25,41,48,47 AS SEEDS", 12);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()

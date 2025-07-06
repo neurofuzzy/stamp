@@ -87,19 +87,19 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .rotate({ rotation: "RANGLE()" })
     .repeatLast({ steps: 3, times: 180 });
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
-  //const seeds = Sequence.fromStatement("repeat 11,13,16,22,23,110");
-  //const seeds = Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30");
-  //const seeds = Sequence.fromStatement("repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118");
-  //const seeds = Sequence.fromStatement("repeat 1,2,10, 18,107,22, 31,95,59, 69,100,103,105");
-  const seeds = Sequence.fromStatement(
-    "repeat 331,335,350, 384,461,456, 457,421,460, 459,473,494",
+  //Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923 AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899 AS SEEDS", 12);
+  //Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91, AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462 AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 11,13,16,22,23,110 AS SEEDS");
+  //Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30 AS SEEDS");
+  //Sequence.fromStatement("repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118 AS SEEDS");
+  //Sequence.fromStatement("repeat 1,2,10, 18,107,22, 31,95,59, 69,100,103,105 AS SEEDS");
+  Sequence.fromStatement(
+    "repeat 331,335,350, 384,461,456, 457,421,460, 459,473,494 AS SEEDS",
   );
-  //const seeds = Sequence.fromStatement("repeat 491,492,493, 494,495,496, 497,498,499, 500,501,502");
-  //const seeds = Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129", 11);
+  //Sequence.fromStatement("repeat 491,492,493, 494,495,496, 497,498,499, 500,501,502 AS SEEDS");
+  //Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129 AS SEEDS", 11);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,

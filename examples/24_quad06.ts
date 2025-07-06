@@ -73,8 +73,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   Sequence.fromStatement(
     "shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,-72,-72,-72 AS RANGLE",
   );
-  const seeds = Sequence.fromStatement(
-    "repeat 77763,836736,988787,988769,987636,987650",
+  Sequence.fromStatement(
+    "repeat 77763,836736,988787,988769,987636,987650 AS SEEDS",
     12,
   );
 
