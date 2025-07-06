@@ -1,18 +1,13 @@
 import * as arbit from "arbit";
-import { BoundingBox, IStyle, Ray } from "../geom/core";
+import { BoundingBox, Ray } from "../geom/core";
 import { AbstractShape } from "../geom/shapes";
 import { IShape } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
 
-interface IShapeLayoutParams {
-  shape: IShape;
-  style?: IStyle;
-}
+import { IShapeLayoutParams, IGridShapeLayoutParams, IScatterShapeLayoutParams } from "./layout-interfaces";
 
 class AbstractShapeLayout extends AbstractShape {
-  
   params: IShapeLayoutParams;
-
   constructor(center: Ray, params: IShapeLayoutParams) {
     super(center);
     this.params = params;
@@ -20,16 +15,6 @@ class AbstractShapeLayout extends AbstractShape {
   generate(): Ray[] {
     return [];
   }
-
-}
-
-interface IGridShapeLayoutParams extends IShapeLayoutParams {
-  columns: number;
-  rows: number;
-  columnSpacing: number;
-  rowSpacing?: number;
-  columnPadding?: number;
-  rowPadding?: number;
 }
 
 export class GridShapeLayout extends AbstractShapeLayout {
@@ -67,13 +52,6 @@ export class GridShapeLayout extends AbstractShapeLayout {
     return c;
   }
   
-}
-
-interface IScatterShapeLayoutParams extends IShapeLayoutParams {
-  container: IShape;
-  maxShapes: number;
-  minSpacing: number;
-  padding: number;
 }
 
 export class ScatterShapeLayout extends AbstractShapeLayout {

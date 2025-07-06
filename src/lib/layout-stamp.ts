@@ -5,37 +5,9 @@ import { Sequence } from "./sequence";
 import { Stamp } from "./stamp";
 import * as arbit from "arbit";
 import { resolveStringOrNumber } from "./stamp-helpers";
+import { IStampLayoutParams, IGridStampLayoutParams, ICircleGridStampLayoutParams, ICirclePackingStampLayoutParams } from "./layout-interfaces";
 
 const $ = resolveStringOrNumber;
-
-interface IStampLayoutParams {
-  stamp: Stamp;
-  stampSeed?: string | number;
-  scale?: string | number;
-  layoutSeed?: number;
-}
-
-interface IGridStampLayoutParams extends IStampLayoutParams {
-  columns: number;
-  rows: number;
-  columnSpacing: number;
-  rowSpacing: number;
-  offsetAlternateRows?: boolean;
-}
-
-interface ICircleGridStampLayoutParams extends IStampLayoutParams {
-  rings: number;
-  numPerRing: number;
-  spacing: number;
-}
-
-interface ICirclePackingStampLayoutParams extends IStampLayoutParams {
-  radius: number;
-  count: number;
-  padding?: number;
-  /** number between 0 - 100 */
-  spherify?: number;
-}
 
 class AbstractStampLayout extends AbstractShape {
   params: IStampLayoutParams;

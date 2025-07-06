@@ -8,7 +8,7 @@ import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
 import { HatchBooleanType } from "../src/geom/hatch-patterns";
-import { GridStampLayout } from "../src/lib/stamp-layout";
+import { GridStampLayout } from "../src/lib/layout-stamp";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
