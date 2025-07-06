@@ -1,4 +1,4 @@
-import { ILayout } from "./layout/layout-interfaces";
+import { IDistribute } from "./distributte/distribute-interfaces";
 
 interface IShapeParams {
   angle?: number | string;
@@ -14,7 +14,7 @@ interface IShapeParams {
   offsetY?: number | string;
   skip?: number | string;
   style?: IStyle;
-  layout?: ILayout;
+  distribute?: IDistributte;
   tag?: string;
 }
 

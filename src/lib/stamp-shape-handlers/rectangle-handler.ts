@@ -1,7 +1,7 @@
 import { IShape} from '../../geom/core';
 import { Rectangle } from '../../geom/shapes';
 import { IShapeContext, IRectangleParams } from '../stamp-interfaces';
-import { layoutHandlerFromParams } from '../layout';
+import { distributeHandlerFromParams } from '../distribute';
 import { resolveStringOrNumber } from '../stamp-helpers';
 import { BaseHandler } from './base-handler';
 
@@ -15,8 +15,8 @@ export class RectangleHandler extends BaseHandler {
   handle(params: IRectangleParams, context: IShapeContext): void {
     super.handle(params, context);
 
-    const layoutHandler = layoutHandlerFromParams(params.layout);
-    const centers = layoutHandler.getCenters();
+    const distributeHandler = distributeHandlerFromParams(params.distribute);
+    const centers = distributeHandler.getCenters();
     const shapes: IShape[] = [];
 
     for (let i = 0; i < centers.length; i++) {
@@ -28,7 +28,7 @@ export class RectangleHandler extends BaseHandler {
       shapes.push(s);
     }
 
-    layoutHandler.arrangeShapes(shapes, params, context);
+    distributeHandler.arrangeShapes(shapes, params, context);
     
     context.make(shapes, $(params.outlineThickness || 0), $(params.scale || 1));
 

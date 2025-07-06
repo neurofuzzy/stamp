@@ -8,8 +8,8 @@ export class BaseHandler implements IShapeHandler {
   handle(params: IRectangleParams, _: IShapeContext): void {
 
     // backwards compatibility
-    if (!params.layout) {
-      params.layout = {
+    if (!params.distribute) {
+      params.distribute = {
         type: "grid",
         columns: params.numX || 1,
         rows: params.numY || 1,

@@ -1,4 +1,4 @@
-import { ILayoutHandler, IGridLayoutParams } from "./layout-interfaces";
+import { IDistributeHandler, IGridDistributeParams } from "./distribute-interfaces";
 import { Ray, IShape, Point } from "../../geom/core";
 import { resolveStringOrNumber } from "../stamp-helpers";
 import { IShapeContext, IShapeParams } from "../stamp-interfaces";
@@ -6,11 +6,11 @@ import { GeomHelpers } from "../../geom/helpers";
 
 const $ = resolveStringOrNumber;
 
-export class GridLayoutHandler implements ILayoutHandler {
+export class GridDistributeHandler implements IDistributeHandler {
 
-  private _resolvedParams: IGridLayoutParams;
+  private _resolvedParams: IGridDistributeParams;
 
-  constructor(params: IGridLayoutParams) {
+  constructor(params: IGridDistributeParams) {
     this._resolvedParams = {
       ...params,
       columns: $(params?.columns) || 1,
