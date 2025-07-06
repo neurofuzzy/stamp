@@ -10,6 +10,7 @@ import { PolygonHandler } from './polygon-handler';
 import { TangramHandler } from './tangram-handler';
 import { RoundedTangramHandler } from './rounded-tangram-handler';
 import { BoneHandler } from './bone-handler';
+import { StampHandler } from './stamp-handler';
 
 // Export all handlers
 export { CircleHandler } from './circle-handler';
@@ -23,6 +24,7 @@ export { PolygonHandler } from './polygon-handler';
 export { TangramHandler } from './tangram-handler';
 export { RoundedTangramHandler } from './rounded-tangram-handler';
 export { BoneHandler } from './bone-handler';
+export { StampHandler } from './stamp-handler';
 
 // Create and export default registry
 export const defaultShapeRegistry = new StampShapeHandlerRegistry();
@@ -39,6 +41,7 @@ defaultShapeRegistry.register('polygon', new PolygonHandler());
 defaultShapeRegistry.register('tangram', new TangramHandler());
 defaultShapeRegistry.register('roundedTangram', new RoundedTangramHandler());
 defaultShapeRegistry.register('bone', new BoneHandler());
+defaultShapeRegistry.register('stamp', new StampHandler());
 
 // Export registry class for custom registries
 export { StampShapeHandlerRegistry as ShapeHandlerRegistry } from '../stamp-shape-handler-registry'; 

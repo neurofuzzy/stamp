@@ -663,50 +663,6 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this;
   }
 
-  private _stamp(params: IStampParams) {
-    if (params.providerIndex !== undefined) {
-      const stamp = StampProvider.getInstance(
-        params.providerIndex,
-      ).nextStamp();
-      if (stamp) {
-        params.subStampString = stamp.toString();
-      }
-    }
-    if (!params.subStampString) {
-      return;
-    }
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const center = new Ray(
-          nspx * i - o.x + $(params.offsetX),
-          nspy * j - o.y + $(params.offsetY),
-          params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-        );
-        const s = new Stamp(center, $(params.align)).fromString(
-          params.subStampString,
-        );
-        s.bake();
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
-  }
-
-
-
   reset() {
     this._nodes.push({ fName: "_reset", args: Array.from(arguments) });
     return this;
@@ -922,18 +878,16 @@ export class Stamp extends AbstractShape implements IShapeContext {
   }
 
   stamp(params: IStampParams) {
-    const processedParams = paramsWithDefaults<IStampParams>(params);
-    if (processedParams.subStamp instanceof StampProvider) {
-      processedParams.providerIndex = processedParams.subStamp.instanceIndex();
-    } else {
-      processedParams.subStampString = processedParams.subStamp.toString();
+    const newParams: IStampParams = { ...params };
+    if (newParams.subStamp) {
+        if (newParams.subStamp instanceof StampProvider) {
+            newParams.providerIndex = newParams.subStamp.instanceIndex();
+        } else {
+            newParams.subStampString = newParams.subStamp.toString();
+        }
+        delete newParams.subStamp;
     }
-    this._nodes.push({
-      fName: "_stamp",
-      tag: processedParams.tag,
-      args: [processedParams],
-    });
-    return this;
+    return this._addShapeNode("_stamp", newParams);
   }
 
   tangram(params: ITangramParams) {
@@ -1130,7 +1084,6 @@ export class Stamp extends AbstractShape implements IShapeContext {
       _rotateTo: this._rotateTo,
       _set: this._set,
       _setCursorBounds: this._setCursorBounds,
-      _stamp: this._stamp,
       _stepBack: this._stepBack,
       _subtract: this._subtract,
     };
