@@ -17,7 +17,7 @@ import {
 } from "../geom/shapes";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Optimize } from "./optimize";
-import { StampsProvider } from "./stamps-provider";
+import { StampProvider } from "./stamp-provider";
 import {
   cloneNode,
   paramsWithDefaults,
@@ -665,7 +665,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
   private _stamp(params: IStampParams) {
     if (params.providerIndex !== undefined) {
-      const stamp = StampsProvider.getInstance(
+      const stamp = StampProvider.getInstance(
         params.providerIndex,
       ).nextStamp();
       if (stamp) {
@@ -923,7 +923,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
   stamp(params: IStampParams) {
     const processedParams = paramsWithDefaults<IStampParams>(params);
-    if (processedParams.subStamp instanceof StampsProvider) {
+    if (processedParams.subStamp instanceof StampProvider) {
       processedParams.providerIndex = processedParams.subStamp.instanceIndex();
     } else {
       processedParams.subStampString = processedParams.subStamp.toString();

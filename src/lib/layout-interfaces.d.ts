@@ -1,0 +1,4 @@
+interface IDistribution {
+  type: string;
+  
+}

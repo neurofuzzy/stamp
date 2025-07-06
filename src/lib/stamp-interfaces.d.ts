@@ -1,3 +1,5 @@
+import { IDistribution } from "./layout-interfaces.d.ts";
+
 interface IShapeParams {
   angle?: number | string;
   divisions?: number | string;
@@ -12,6 +14,7 @@ interface IShapeParams {
   offsetY?: number | string;
   skip?: number | string;
   style?: IStyle;
+  distribution?: IDistribution;
   tag?: string;
 }
 

@@ -5,7 +5,7 @@ import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
-import { StampsProvider } from "../src/lib/stamps-provider";
+import { StampProvider } from "../src/lib/stamp-provider";
 
 const backgroundColor = "black";
 
@@ -327,10 +327,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
   Sequence.fromStatement("random 0,1,2,0,1,2,0,1,2,3 as BLDGS", seed);
   Sequence.fromStatement("random 4,4,4,0 as TREES", seed);
+  Sequence.fromStatement("random BLDGS(),TREES(),BLDGS(),TREES() AS CITYBLOCK", seed)
   // city objects
-  const blocks = new StampsProvider(
+  const blocks = new StampProvider(
     [bldg, bldg2, store, church, tree],
-    Sequence.fromStatement("random BLDGS(),TREES(),BLDGS(),TREES()", seed),
+    "CITYBLOCK()"
   );
 
   // city grid

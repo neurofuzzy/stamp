@@ -58,6 +58,9 @@ export class Sequence {
     }
   };
   static reset = (alias: string) => {
+    if (alias.indexOf("()") !== -1) {
+      alias = alias.split("()")[0];
+    }
     if (Sequence.sequences[alias]) {
       Sequence.sequences[alias].reset();
     }

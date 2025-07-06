@@ -10,22 +10,22 @@ import {
 import { AbstractShape } from "../geom/shapes";
 import { Sequence } from "./sequence";
 
-export class ShapesProvider implements IShape {
+export class ShapeProvider implements IShape {
   protected shapes: IShape[];
-  protected indexSequence: Sequence | null;
+  protected indexSequenceStatement: string | null;
   protected currentShapeIndex = 0;
   protected currentShape: IShape = new AbstractShape();
-  constructor(shapes: IShape[] = [], indexSequence: Sequence | null = null) {
+  constructor(shapes: IShape[] = [], indexSequenceStatement: string | null = null) {
     this.shapes = shapes;
-    this.indexSequence = indexSequence;
+    this.indexSequenceStatement = indexSequenceStatement;
   }
   protected next() {
     console.log("next");
     if (!this.shapes.length) {
       return;
     }
-    this.currentShapeIndex = this.indexSequence
-      ? this.indexSequence.next()
+    this.currentShapeIndex = this.indexSequenceStatement
+      ? Sequence.resolve(this.indexSequenceStatement)
       : this.currentShapeIndex + 1;
     const i = this.currentShapeIndex % this.shapes.length;
     this.currentShape = this.shapes[i]?.clone() || new AbstractShape();
@@ -77,7 +77,9 @@ export class ShapesProvider implements IShape {
     return this.shapes;
   }
   reset() {
-    this.indexSequence?.reset();
+    if (this.indexSequenceStatement) {
+      Sequence.reset(this.indexSequenceStatement);
+    }
   }
   clone() {
     this.next();
