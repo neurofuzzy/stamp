@@ -39,8 +39,11 @@ function draw(ctx: CanvasRenderingContext2D) {
   }
 
   const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
-    .circle({ 
-      radius: 10,
+    .roundedRectangle({ 
+      width: 30,
+      height: 30,
+      cornerRadius: 5,
+      divisions: 3,
       align: ShapeAlignment.CENTER,
       style: {
         fillColor: "#ff0000",
@@ -70,6 +73,7 @@ function draw(ctx: CanvasRenderingContext2D) {
     .circle({ 
       radius: 12,
       align: ShapeAlignment.CENTER,
+      style,
       distribute: {
         type: "phyllotaxis",
         count: 70,
@@ -83,6 +87,7 @@ function draw(ctx: CanvasRenderingContext2D) {
     .circle({ 
       radius: "SIZE()",
       align: ShapeAlignment.CENTER,
+      style,
       distribute: {
         type: "attractor",
         particleCount: 42,
@@ -100,6 +105,7 @@ function draw(ctx: CanvasRenderingContext2D) {
     .circle({ 
       radius: 10,
       align: ShapeAlignment.CENTER,
+      style,
       distribute: {
         type: 'poisson-disk',
         maxPoints: 100,
@@ -115,6 +121,7 @@ function draw(ctx: CanvasRenderingContext2D) {
     .circle({ 
       radius: 12,
       align: ShapeAlignment.CENTER,
+      style,
       distribute: {
         type: "poincare",
         count: 60,
@@ -129,6 +136,7 @@ function draw(ctx: CanvasRenderingContext2D) {
     .circle({ 
       radius: 10,
       align: ShapeAlignment.CENTER,
+      style,
       distribute: {
         type: 'hexagonal',
         columns: 10,
@@ -139,6 +147,7 @@ function draw(ctx: CanvasRenderingContext2D) {
     });
 
 
+  // draw stamp
   drawShape(ctx, distrib0);
   drawShape(ctx, distrib1);
   drawShape(ctx, distrib2);
@@ -146,6 +155,13 @@ function draw(ctx: CanvasRenderingContext2D) {
   drawShape(ctx, distrib4);
   drawShape(ctx, distrib5);
   drawShape(ctx, distrib6);
+  // draw stamp children
+  distrib0.children().forEach(child => drawShape(ctx, child));
+  distrib1.children().forEach(child => drawShape(ctx, child));
+  distrib2.children().forEach(child => drawShape(ctx, child));
+  distrib3.children().forEach(child => drawShape(ctx, child));
+  distrib4.children().forEach(child => drawShape(ctx, child));
+  distrib5.children().forEach(child => drawShape(ctx, child));
 }
 
 async function main() {

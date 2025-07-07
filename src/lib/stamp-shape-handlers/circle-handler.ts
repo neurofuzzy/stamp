@@ -15,7 +15,7 @@ export class CircleHandler extends BaseHandler {
   handle(params: ICircleParams, context: IShapeContext): void {
     super.handle(params, context);
 
-    const distributeHandler = distributeHandlerFromParams(params.distribute);
+    const distributeHandler = distributeHandlerFromParams(params.distribute!);
     const centers = distributeHandler.getCenters();
     const shapes: IShape[] = [];
 
@@ -42,7 +42,7 @@ export class CircleHandler extends BaseHandler {
       }
       
       if (params.style) {
-        s.style = params.style;
+        s.style = { ...params.style };
       }
       
       shapes.push(s);
