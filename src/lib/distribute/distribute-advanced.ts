@@ -431,6 +431,7 @@ export class PhyllotaxisDistributeHandler implements IDistributeHandler {
         }
       }
     });
+    shapes.reverse();
   }
 }
 

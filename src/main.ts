@@ -75,9 +75,10 @@ const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
   const distrib1 = new Stamp(new Ray(w/2 - 200, h/2 -300, 0))
     .defaultStyle(style)
     .circle({ 
-      radius: 10,
+      radius: 12,
       align: ShapeAlignment.CENTER,
       style,
+      outlineThickness: 4,
       distribute: {
         type: "grid",
         columns: 10,
@@ -92,9 +93,10 @@ const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
 
   const distrib2 = new Stamp(new Ray(w/2 + 200, h/2 -300, 0))
     .circle({ 
-      radius: 12,
+      radius: 24,
       align: ShapeAlignment.CENTER,
       style,
+      outlineThickness: 4,
       distribute: {
         type: "phyllotaxis",
         count: 70,
@@ -146,9 +148,10 @@ const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
   
   const distrib5 = new Stamp(new Ray(w/2 - 200, h/2 + 300, 0))
     .circle({ 
-      radius: 12,
+      radius: 16,
       align: ShapeAlignment.CENTER,
       style,
+      outlineThickness: 4,
       distribute: {
         type: "poincare",
         count: 60,
