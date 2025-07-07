@@ -1,9 +1,10 @@
 import { drawShape } from '../src/lib/draw';
-import { Ray, ShapeAlignment } from "../src/geom/core";
+import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
-import { Sequence } from './lib/sequence';
+import { Sequence } from '../src/lib/sequence';
+import colors from 'nice-color-palettes';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -22,16 +23,39 @@ ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
+const palette = colors[83];
+const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
+Sequence.fromStatement(colorSeq, 3);
+
 Sequence.fromStatement("repeat 15,20,25 AS SIZE");
 
 
 function draw(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, w, h);
 
-  const distrib1 = new Stamp(new Ray(w/2 - 200, h/2 -300, 0))
+  const style: IStyle = {
+    strokeThickness: 0,
+    fillColor: "COLOR()",
+  }
+
+  const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
     .circle({ 
       radius: 10,
       align: ShapeAlignment.CENTER,
+      style: {
+        fillColor: "#ff0000",
+        strokeColor: "#000000",
+        strokeThickness: 2,
+      }
+    }).move({ x: 0, y: 40 })
+    .repeatLast({ steps: 2, times: 5 });
+
+  const distrib1 = new Stamp(new Ray(w/2 - 200, h/2 -300, 0))
+    .defaultStyle(style)
+    .circle({ 
+      radius: 10,
+      align: ShapeAlignment.CENTER,
+      style,
       distribute: {
         type: "grid",
         columns: 10,
@@ -115,12 +139,13 @@ function draw(ctx: CanvasRenderingContext2D) {
     });
 
 
-  drawShape(ctx, distrib1, 0);
-  drawShape(ctx, distrib2, 0);
-  drawShape(ctx, distrib3, 0);
-  drawShape(ctx, distrib4, 0);
-  drawShape(ctx, distrib5, 0);
-  drawShape(ctx, distrib6, 0);
+  drawShape(ctx, distrib0);
+  drawShape(ctx, distrib1);
+  drawShape(ctx, distrib2);
+  drawShape(ctx, distrib3);
+  drawShape(ctx, distrib4);
+  drawShape(ctx, distrib5);
+  drawShape(ctx, distrib6);
 }
 
 async function main() {
