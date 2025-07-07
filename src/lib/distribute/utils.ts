@@ -940,7 +940,8 @@ export const generateGridPoints = (
   rows: number,
   width: number,
   height: number,
-  direction: string
+  direction: string,
+  seed: number = 1234
 ): Vec2[] => {
   switch (direction) {
     case 'horizontal': {
@@ -1015,10 +1016,11 @@ export const generateGridPoints = (
       const points: Vec2[] = [];
       const startX = -width / 2;
       const startY = -height / 2;
+      const prng = arbit(seed)
 
       for (let i = 0; i < rows * columns; i++) {
-        const x = startX + Math.random() * width;
-        const y = startY + Math.random() * height;
+        const x = startX + prng.random() * width;
+        const y = startY + prng.random() * height;
         points.push({ x, y });
       }
       return points;

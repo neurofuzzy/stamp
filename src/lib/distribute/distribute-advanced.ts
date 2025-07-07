@@ -4,6 +4,7 @@ import { resolveStringOrNumber } from "../stamp-helpers";
 import { IShapeContext, IShapeParams } from "../stamp-interfaces";
 import { GeomHelpers } from "../../geom/helpers";
 import * as arbit from "arbit";
+import { Sequence } from "../sequence";
 
 const $ = resolveStringOrNumber;
 
@@ -572,6 +573,7 @@ export class AttractorDistributeHandler implements IDistributeHandler {
       simulationSteps: $(params?.simulationSteps) || 100,
       itemScaleFalloff: $(params?.itemScaleFalloff) || 0,
       padding: $(params?.padding) || 0,
+      seed: $(params?.seed) || 1234,
     };
   }
 
@@ -590,8 +592,12 @@ export class AttractorDistributeHandler implements IDistributeHandler {
     const simulationSteps = Math.round(this._resolvedParams.simulationSteps as number);
     const falloffStrength = this._resolvedParams.itemScaleFalloff as number;
     const padding = this._resolvedParams.padding as number;
+    const seed = this._resolvedParams.seed as number;
     
-    // Pre-calculate item scales for each particle (following the working pattern)
+    // Reset sequences with seed for deterministic behavior (following nodeProcessor pattern)
+    Sequence.resetAll(seed);
+    
+    // Pre-calculate all item scales at once to ensure consistency
     const itemScales: number[] = [];
     for (let i = 0; i < particleCount; i++) {
       if (i < shapes.length) {
@@ -619,7 +625,7 @@ export class AttractorDistributeHandler implements IDistributeHandler {
       }
     }
     
-    // Run physics simulation with pre-calculated item scales (like the working version)
+    // Run physics simulation with pre-calculated item scales and seed for determinism
     this._particles = simulateAttractorPhysics(
       particleCount,
       initialRadius,

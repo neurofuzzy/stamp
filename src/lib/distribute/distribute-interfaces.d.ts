@@ -127,6 +127,7 @@ export interface IAttractorDistributeParams extends IDistributeParams {
   simulationSteps?: string | number;
   itemScaleFalloff?: string | number;
   padding?: string | number;
+  seed?: string | number;
 }
 
 export interface IPoincareDistributeParams extends IDistributeParams {
