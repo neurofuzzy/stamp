@@ -27,15 +27,13 @@ function draw(ctx: CanvasRenderingContext2D) {
 
   const distrib = new Stamp(new Ray(w/2, h/2, 0))
     .circle({ 
-      radius: 24,
+      radius: 10,
       align: ShapeAlignment.CENTER,
       distribute: {
-        type: "grid2",
-        columns: 5,
-        rows: 5,
-        columnSpacing: 56,
-        rowSpacing: 56,
-        itemScaleFalloff: 1
+        type: "phyllotaxis",
+        count: 100,
+        scaleFactor: 20,
+        itemScaleFalloff: 1,
       }
     });
     

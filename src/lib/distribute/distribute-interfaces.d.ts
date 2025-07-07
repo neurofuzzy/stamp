@@ -151,3 +151,16 @@ export interface ITriangularDistributeParams extends IDistributeParams {
   spacing?: string | number;
   itemScaleFalloff?: string | number;
 }
+
+export type IDistribution =
+  | IGridDistributeParams
+  | IGrid2DistributeParams
+  | IScatterDistributeParams
+  | ICircleGridDistributeParams
+  | ICirclePackingDistributeParams
+  | IPhyllotaxisDistributeParams
+  | IHexagonalDistributeParams
+  | IAttractorDistributeParams
+  | IPoincareDistributeParams
+  | IPoissonDiskDistributeParams
+  | ITriangularDistributeParams;
