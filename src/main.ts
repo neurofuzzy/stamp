@@ -1,3 +1,4 @@
+import * as C2S from "canvas2svg";
 import { drawHatchPattern, drawShape } from '../src/lib/draw';
 import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
@@ -40,7 +41,9 @@ function draw(ctx: CanvasRenderingContext2D) {
     fillColor: "COLOR()",
   }
 
-  const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
+// test pattern
+
+const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
   .defaultStyle({
     fillColor: "COLOR()",
     hatchPattern: HatchPatternType.LINE,
@@ -67,6 +70,8 @@ function draw(ctx: CanvasRenderingContext2D) {
     }).move({ x: 0, y: 60 })
     .repeatLast({ steps: 2, times: 5 });
 
+  // grid
+
   const distrib1 = new Stamp(new Ray(w/2 - 200, h/2 -300, 0))
     .defaultStyle(style)
     .circle({ 
@@ -83,6 +88,8 @@ function draw(ctx: CanvasRenderingContext2D) {
       }
     });
 
+  // phyllotaxis
+
   const distrib2 = new Stamp(new Ray(w/2 + 200, h/2 -300, 0))
     .circle({ 
       radius: 12,
@@ -96,6 +103,8 @@ function draw(ctx: CanvasRenderingContext2D) {
         skipFirst: 10,
       }
     });
+
+  // attractor
 
   const distrib3 = new Stamp(new Ray(w/2 - 200, h/2 +0, 0))
     .circle({ 
@@ -114,7 +123,9 @@ function draw(ctx: CanvasRenderingContext2D) {
         itemScaleFalloff: 1,
       }
     });
-    
+
+  // poisson-disk
+  
   const distrib4 = new Stamp(new Ray(w/2 + 200, h/2 +0, 0))
     .circle({ 
       radius: 10,
@@ -131,6 +142,8 @@ function draw(ctx: CanvasRenderingContext2D) {
       }
     });
 
+  // poincare
+  
   const distrib5 = new Stamp(new Ray(w/2 - 200, h/2 + 300, 0))
     .circle({ 
       radius: 12,
@@ -145,7 +158,9 @@ function draw(ctx: CanvasRenderingContext2D) {
         itemScaleFalloff: 1.0,
       }
     });
-    
+
+  // hexagonal
+  
   const distrib6 = new Stamp(new Ray(w/2 + 200, h/2 + 300, 0))
     .circle({ 
       radius: 10,
@@ -160,13 +175,21 @@ function draw(ctx: CanvasRenderingContext2D) {
       }
     });
 
+  // draw shape 0
+
   drawShape(ctx, distrib0);
+
+  // draw hatch patterns
+  
   distrib0.children().forEach(child => {
     if (child.style.hatchPattern) {
       const fillPattern = Hatch.applyHatchToShape(child);
       if (fillPattern) drawHatchPattern(ctx, fillPattern);
     }
   });
+
+  // draw remaining shapes
+
   drawShape(ctx, distrib1);
   drawShape(ctx, distrib2);
   drawShape(ctx, distrib3);
@@ -174,6 +197,33 @@ function draw(ctx: CanvasRenderingContext2D) {
   drawShape(ctx, distrib5);
   drawShape(ctx, distrib6);
 }
+
+// export the canvas as SVG
+
+document.onkeydown = function (e) {
+  // if enter
+  if (e.keyCode === 13) {
+    // reset Sequences
+    Sequence.resetAll();
+    // export the canvas as SVG
+    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
+    // draw the boundary
+    ctx2.backgroundColor = "#000";
+    // draw the shapes
+    draw(ctx2);
+    // download the SVG
+
+    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
+    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
+    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `stamp-${new Date().toISOString()}.svg`;
+    link.click();
+  }
+};
+
+// main function
 
 async function main() {
   await ClipperHelpers.init();
