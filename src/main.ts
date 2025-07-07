@@ -72,10 +72,23 @@ function draw(ctx: CanvasRenderingContext2D) {
       }
     });
     
-    
+    const distrib4 = new Stamp(new Ray(w/2 + 200, h/2 +200, 0))
+    .circle({ 
+      radius: 10,
+      align: ShapeAlignment.CENTER,
+      distribute: {
+        type: 'poisson-disk',
+        maxPoints: 100,
+        minDistance: 25,
+        width: 200,
+        height: 200,
+      }
+    });
+
   drawShape(ctx, distrib1, 0);
   drawShape(ctx, distrib2, 0);
   drawShape(ctx, distrib3, 0);
+  drawShape(ctx, distrib4, 0);
 }
 
 async function main() {

@@ -124,9 +124,9 @@ const generatePoissonDisk = (
     const point = activeList[randomIndex];
     let found = false;
     
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 90; i++) {
       const angle = prng.nextFloat(0, Math.PI * 2);
-      const distance = minDistance + prng.nextFloat(0, minDistance);
+      const distance = minDistance + prng.nextFloat(0, minDistance) * (300 / (i + 1));
       const newPoint = {
         x: point.x + Math.cos(angle) * distance,
         y: point.y + Math.sin(angle) * distance
