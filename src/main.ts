@@ -1,10 +1,12 @@
-import { drawShape } from '../src/lib/draw';
+import { drawHatchPattern, drawShape } from '../src/lib/draw';
 import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import { Sequence } from '../src/lib/sequence';
 import colors from 'nice-color-palettes';
+import { HatchPatternType } from './geom/hatch-patterns';
+import { Hatch } from './lib/hatch';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -23,7 +25,7 @@ ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-const palette = colors[83];
+const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 3);
 
@@ -39,18 +41,30 @@ function draw(ctx: CanvasRenderingContext2D) {
   }
 
   const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
+  .defaultStyle({
+    fillColor: "COLOR()",
+    hatchPattern: HatchPatternType.LINE,
+    hatchAngle: 45,
+    hatchScale: 1,
+    hatchStrokeColor: "0x000000",
+    hatchStrokeThickness: 2,
+  })
     .roundedRectangle({ 
-      width: 30,
-      height: 30,
+      width: 40,
+      height: 40,
       cornerRadius: 5,
       divisions: 3,
       align: ShapeAlignment.CENTER,
       style: {
-        fillColor: "#ff0000",
-        strokeColor: "#000000",
-        strokeThickness: 2,
+        fillColor: "COLOR()",
+        hatchPattern: HatchPatternType.LINE,
+        hatchAngle: 45,
+        hatchScale: 0.5,
+        hatchStrokeColor: "0x000000",
+        hatchStrokeThickness: 1,
+        hatchInset: 2,
       }
-    }).move({ x: 0, y: 40 })
+    }).move({ x: 0, y: 60 })
     .repeatLast({ steps: 2, times: 5 });
 
   const distrib1 = new Stamp(new Ray(w/2 - 200, h/2 -300, 0))
@@ -147,6 +161,12 @@ function draw(ctx: CanvasRenderingContext2D) {
     });
 
   drawShape(ctx, distrib0);
+  distrib0.children().forEach(child => {
+    if (child.style.hatchPattern) {
+      const fillPattern = Hatch.applyHatchToShape(child);
+      if (fillPattern) drawHatchPattern(ctx, fillPattern);
+    }
+  });
   drawShape(ctx, distrib1);
   drawShape(ctx, distrib2);
   drawShape(ctx, distrib3);
