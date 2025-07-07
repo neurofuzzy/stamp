@@ -35,12 +35,20 @@ export function drawShape(
   shape: IShape,
   shapeDepth = 0,
 ) {
+  const rays = shape.generate();
+  const children = shape.children();
+
+  // If this shape is a pure container (no geometry, only children),
+  // then draw its children individually and stop.
+  if (rays.length === 0 && children.length > 0) {
+    children.forEach((child) => drawShape(ctx, child, 0));
+    return;
+  }
+
   const style = applyDefaults(shape.style);
   if (style.fillAlpha === 0 && style.strokeThickness === 0) {
     return;
   }
-
-  const rays = shape.generate();
 
   if (shapeDepth === 0) {
     ctx.beginPath();
@@ -55,7 +63,7 @@ export function drawShape(
     }
     ctx.closePath();
   }
-  shape.children().forEach((child) => drawShape(ctx, child, shapeDepth + 1));
+  children.forEach((child) => drawShape(ctx, child, shapeDepth + 1));
 
   if (shapeDepth === 0) {
     if (style.fillAlpha === 0) {
