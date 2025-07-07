@@ -51,6 +51,7 @@ function draw(ctx: CanvasRenderingContext2D) {
         count: 70,
         scaleFactor: 10,
         itemScaleFalloff: 1.5,
+        skipFirst: 10,
       }
     });
 
@@ -61,12 +62,12 @@ function draw(ctx: CanvasRenderingContext2D) {
       distribute: {
         type: "attractor",
         particleCount: 20,
-        initialRadius: 200,
+        initialRadius: 300,
         simulationSteps: 1000,
-        hexSpacing: 40,
+        hexSpacing: 20,
         strength: 1,
         damping: 0,
-        padding: 5,
+        padding: 6,
         itemScaleFalloff: 0,
       }
     });

@@ -276,18 +276,19 @@ const simulateAttractorPhysics = (
   
   // Initialize particles with hexagonal positions and variable radius
   const particles: Particle[] = selectedPoints.map((point, index) => {
-    const baseItemScale = (itemScales[index % itemScales.length] || 100) / 100;
+    // itemScales now contains actual world-unit diameters, so radius = diameter / 2
+    const baseRadius = (itemScales[index % itemScales.length] || 40) / 2;
     
     // Calculate falloff based on initial position
     const distance = Math.sqrt((point.x - center.x) ** 2 + (point.y - center.y) ** 2);
     const falloffScale = 1 - (distance / initialRadius) * falloffStrength;
-    const finalScale = Math.max(0, baseItemScale * falloffScale);
+    const finalRadius = Math.max(0, baseRadius * falloffScale);
 
     return {
       position: { ...point },
       velocity: { x: 0, y: 0 },
-      mass: 1 * finalScale * finalScale, // Mass proportional to area
-      radius: (hexSpacing / 2) * finalScale
+      mass: 1 * finalRadius * finalRadius, // Mass proportional to area
+      radius: finalRadius // Use the actual collision radius in world units
     };
   });
   
@@ -592,12 +593,13 @@ export class AttractorDistributeHandler implements IDistributeHandler {
     // Reset sequences with seed for deterministic behavior (following nodeProcessor pattern)
     Sequence.resetAll(seed);
     
-    // Pre-calculate all item scales at once to ensure consistency
+    // FIXED: Calculate proper item scales for collision detection without hexSpacing feedback loop
+    // The key insight: itemScales should represent the actual collision radius in world units, not relative to hexSpacing
     const itemScales: number[] = [];
     for (let i = 0; i < particleCount; i++) {
       if (i < shapes.length) {
         const shape = shapes[i];
-        // Get the actual scale from the shape's bounding circle
+        // Get the actual size from the shape's bounding circle
         const boundingCircle = shape.boundingCircle();
         let effectiveRadius = boundingCircle.radius;
         
@@ -609,14 +611,13 @@ export class AttractorDistributeHandler implements IDistributeHandler {
         // Add padding to the effective radius for collision detection
         effectiveRadius += padding;
         
-        // Convert to scale factor relative to hexSpacing
-        const scaleValue = (effectiveRadius * 2 / hexSpacing) * 100;
-        itemScales.push(scaleValue);
+        // Store the actual world radius (not relative to hexSpacing!)
+        // This prevents the feedback loop while giving proper collision detection
+        itemScales.push(effectiveRadius * 2); // diameter for collision detection
       } else {
-        // Default scale for extra particles (with padding)
-        const defaultRadius = hexSpacing / 2 + padding;
-        const scaleValue = (defaultRadius * 2 / hexSpacing) * 100;
-        itemScales.push(scaleValue);
+        // Default size for extra particles
+        const defaultRadius = 20 + padding; // reasonable default size in world units
+        itemScales.push(defaultRadius * 2);
       }
     }
     
@@ -652,11 +653,20 @@ export class AttractorDistributeHandler implements IDistributeHandler {
         center.y = particle.position.y - simulationCenter.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
-        // Derive final scale from particle radius (like the working version)
-        // But don't include padding in the visual scale - padding is just for collision
-        const baseRadius = (hexSpacing / 2);
-        const finalScale = (particle.radius - padding) / baseRadius || 1;
-        // Always apply the final scale (the falloff is already baked into particle.radius)
+        // FIXED: Calculate visual scale from actual collision radius back to shape's original size
+        // particle.radius now contains the actual collision radius in world units (including padding)
+        // We need to scale the shape to match this collision radius
+        const originalBoundingCircle = shape.boundingCircle();
+        let originalRadius = originalBoundingCircle.radius;
+        
+        // Apply any existing scaling
+        if ((shape as any).scale) {
+          originalRadius *= (shape as any).scale;
+        }
+        
+        // Calculate scale factor: target collision radius / (original radius + padding)
+        const targetVisualRadius = Math.max(0, particle.radius - padding);
+        const finalScale = originalRadius > 0 ? targetVisualRadius / originalRadius : 0;
         shape.rescale(finalScale);
         
         if ($(params.skip || 0) > 0) {
