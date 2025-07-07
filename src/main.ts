@@ -147,21 +147,23 @@ function draw(ctx: CanvasRenderingContext2D) {
     });
 
 
-  // draw stamp
-  drawShape(ctx, distrib0);
-  drawShape(ctx, distrib1);
-  drawShape(ctx, distrib2);
-  drawShape(ctx, distrib3);
-  drawShape(ctx, distrib4);
-  drawShape(ctx, distrib5);
-  drawShape(ctx, distrib6);
-  // draw stamp children
+  // THIS IS BLACK AND WHITE: draw stamp
+  // drawShape(ctx, distrib0);
+  // drawShape(ctx, distrib1);
+  // drawShape(ctx, distrib2);
+  // drawShape(ctx, distrib3);
+  // drawShape(ctx, distrib4);
+  // drawShape(ctx, distrib5);
+  // drawShape(ctx, distrib6);
+
+  // THIS SHOWS COLOR: draw stamp children
   distrib0.children().forEach(child => drawShape(ctx, child));
   distrib1.children().forEach(child => drawShape(ctx, child));
   distrib2.children().forEach(child => drawShape(ctx, child));
   distrib3.children().forEach(child => drawShape(ctx, child));
   distrib4.children().forEach(child => drawShape(ctx, child));
   distrib5.children().forEach(child => drawShape(ctx, child));
+  distrib6.children().forEach(child => drawShape(ctx, child));
 }
 
 async function main() {
