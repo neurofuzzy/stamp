@@ -106,6 +106,7 @@ export interface IPhyllotaxisDistributeParams extends IDistributeParams {
   angle?: string | number;
   scaleFactor?: string | number;
   itemScaleFalloff?: string | number;
+  skipFirst?: string | number;
 }
 
 export interface IHexagonalDistributeParams extends IDistributeParams {
@@ -125,6 +126,7 @@ export interface IAttractorDistributeParams extends IDistributeParams {
   damping?: string | number;
   simulationSteps?: string | number;
   itemScaleFalloff?: string | number;
+  padding?: string | number;
 }
 
 export interface IPoincareDistributeParams extends IDistributeParams {

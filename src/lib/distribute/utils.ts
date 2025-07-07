@@ -143,12 +143,14 @@ export const generatePhyllotaxisPattern = (
   count: number,
   angle: number = 137.5,
   scaleFactor: number = 2,
-  center: Vec2 = { x: 0, y: 0 }
+  center: Vec2 = { x: 0, y: 0 },
+  skipFirst: number = 0
 ): Vec2[] => {
   const positions: Vec2[] = [];
   const angleRad = (angle * Math.PI) / 180;
   
-  for (let i = 0; i < count; i++) {
+  // Generate positions starting from skipFirst index
+  for (let i = skipFirst; i < count + skipFirst; i++) {
     const radius = scaleFactor * Math.sqrt(i);
     const theta = i * angleRad;
     

@@ -24,12 +24,14 @@ const generatePhyllotaxisPattern = (
   count: number,
   angle: number = 137.5,
   scaleFactor: number = 2,
-  center: Vec2 = { x: 0, y: 0 }
+  center: Vec2 = { x: 0, y: 0 },
+  skipFirst: number = 0
 ): Vec2[] => {
   const positions: Vec2[] = [];
   const angleRad = (angle * Math.PI) / 180;
   
-  for (let i = 0; i < count; i++) {
+  // Generate positions starting from skipFirst index
+  for (let i = skipFirst; i < count + skipFirst; i++) {
     const radius = scaleFactor * Math.sqrt(i);
     const theta = i * angleRad;
     
@@ -239,6 +241,8 @@ const simulateAttractorPhysics = (
   strength: number,
   damping: number,
   steps: number,
+  itemScales: number[],
+  falloffStrength: number = 0,
   bounds: { width: number; height: number } = { width: 800, height: 600 }
 ): Particle[] => {
   const center = { x: bounds.width / 2, y: bounds.height / 2 };
@@ -269,12 +273,22 @@ const simulateAttractorPhysics = (
   allHexPoints.sort((a, b) => a.distance - b.distance);
   const selectedPoints = allHexPoints.slice(0, particleCount).map(item => item.point);
   
-  const particles: Particle[] = selectedPoints.map(point => ({
-    position: { ...point },
-    velocity: { x: 0, y: 0 },
-    mass: 1,
-    radius: hexSpacing / 2
-  }));
+  // Initialize particles with hexagonal positions and variable radius
+  const particles: Particle[] = selectedPoints.map((point, index) => {
+    const baseItemScale = (itemScales[index % itemScales.length] || 100) / 100;
+    
+    // Calculate falloff based on initial position
+    const distance = Math.sqrt((point.x - center.x) ** 2 + (point.y - center.y) ** 2);
+    const falloffScale = 1 - (distance / initialRadius) * falloffStrength;
+    const finalScale = Math.max(0, baseItemScale * falloffScale);
+
+    return {
+      position: { ...point },
+      velocity: { x: 0, y: 0 },
+      mass: 1 * finalScale * finalScale, // Mass proportional to area
+      radius: (hexSpacing / 2) * finalScale
+    };
+  });
   
   // Run physics simulation
   for (let step = 0; step < steps; step++) {
@@ -370,6 +384,7 @@ export class PhyllotaxisDistributeHandler implements IDistributeHandler {
       angle: $(params?.angle) || 137.5,
       scaleFactor: $(params?.scaleFactor) || 2,
       itemScaleFalloff: $(params?.itemScaleFalloff) || 0,
+      skipFirst: $(params?.skipFirst) || 0,
     };
   }
 
@@ -377,8 +392,10 @@ export class PhyllotaxisDistributeHandler implements IDistributeHandler {
     const count = Math.round(this._resolvedParams.count as number);
     const angle = this._resolvedParams.angle as number;
     const scaleFactor = this._resolvedParams.scaleFactor as number;
+    const skipFirst = Math.round(this._resolvedParams.skipFirst as number);
     
-    this._positions = generatePhyllotaxisPattern(count, angle, scaleFactor);
+    // Generate the pattern with skipFirst built in
+    this._positions = generatePhyllotaxisPattern(count, angle, scaleFactor, { x: 0, y: 0 }, skipFirst);
     
     return this._positions.map(() => new Ray(0, 0, 0));
   }
@@ -405,8 +422,7 @@ export class PhyllotaxisDistributeHandler implements IDistributeHandler {
         center.y = position.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
-        // Apply falloff scaling
-        if (falloffScale < 1) {
+        if (falloffScale !== 1) {
           (shape as any).scale = falloffScale;
         }
         
@@ -555,17 +571,55 @@ export class AttractorDistributeHandler implements IDistributeHandler {
       damping: $(params?.damping) || 0.95,
       simulationSteps: $(params?.simulationSteps) || 100,
       itemScaleFalloff: $(params?.itemScaleFalloff) || 0,
+      padding: $(params?.padding) || 0,
     };
   }
 
   getCenters(): Ray[] {
+    const particleCount = Math.round(this._resolvedParams.particleCount as number);
+    
+    return Array(particleCount).fill(0).map(() => new Ray(0, 0, 0));
+  }
+
+  arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void {
     const particleCount = Math.round(this._resolvedParams.particleCount as number);
     const initialRadius = this._resolvedParams.initialRadius as number;
     const hexSpacing = this._resolvedParams.hexSpacing as number;
     const strength = this._resolvedParams.strength as number;
     const damping = this._resolvedParams.damping as number;
     const simulationSteps = Math.round(this._resolvedParams.simulationSteps as number);
+    const falloffStrength = this._resolvedParams.itemScaleFalloff as number;
+    const padding = this._resolvedParams.padding as number;
     
+    // Pre-calculate item scales for each particle (following the working pattern)
+    const itemScales: number[] = [];
+    for (let i = 0; i < particleCount; i++) {
+      if (i < shapes.length) {
+        const shape = shapes[i];
+        // Get the actual scale from the shape's bounding circle
+        const boundingCircle = shape.boundingCircle();
+        let effectiveRadius = boundingCircle.radius;
+        
+        // Apply any scaling that might be present
+        if ((shape as any).scale) {
+          effectiveRadius *= (shape as any).scale;
+        }
+        
+        // Add padding to the effective radius for collision detection
+        effectiveRadius += padding;
+        
+        // Convert to scale factor relative to hexSpacing
+        const scaleValue = (effectiveRadius * 2 / hexSpacing) * 100;
+        itemScales.push(scaleValue);
+      } else {
+        // Default scale for extra particles (with padding)
+        const defaultRadius = hexSpacing / 2 + padding;
+        const scaleValue = (defaultRadius * 2 / hexSpacing) * 100;
+        itemScales.push(scaleValue);
+      }
+    }
+    
+    // Run physics simulation with pre-calculated item scales (like the working version)
     this._particles = simulateAttractorPhysics(
       particleCount,
       initialRadius,
@@ -573,14 +627,11 @@ export class AttractorDistributeHandler implements IDistributeHandler {
       strength,
       damping,
       simulationSteps,
+      itemScales,
+      falloffStrength,
       { width: initialRadius * 2, height: initialRadius * 2 }
     );
     
-    return this._particles.map(() => new Ray(0, 0, 0));
-  }
-
-  arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void {
-    const initialRadius = this._resolvedParams.initialRadius as number;
     const simulationCenter = { x: initialRadius, y: initialRadius };
     
     shapes.forEach((shape, index) => {
@@ -599,10 +650,12 @@ export class AttractorDistributeHandler implements IDistributeHandler {
         center.y = particle.position.y - simulationCenter.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
-        // Apply scaling based on particle radius (which includes physics effects)
-        const baseScale = particle.radius / (this._resolvedParams.hexSpacing as number / 2);
-        if (baseScale !== 1) {
-          (shape as any).scale = baseScale;
+        // Derive final scale from particle radius (like the working version)
+        // But don't include padding in the visual scale - padding is just for collision
+        const baseRadius = (hexSpacing / 2);
+        const finalScale = (particle.radius - padding) / baseRadius || 1;
+        if (finalScale !== 1) {
+          (shape as any).scale = finalScale;
         }
         
         if ($(params.skip || 0) > 0) {
