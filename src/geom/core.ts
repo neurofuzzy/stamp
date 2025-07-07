@@ -1,4 +1,4 @@
-import { makeCircle } from "../lib/smallest-enclosing-circle";
+import { makeCircle } from "./smallest-enclosing-circle";
 import { GeomHelpers } from "./helpers";
 
 export enum Heading {
@@ -29,6 +29,7 @@ export interface IShape {
   alignment: ShapeAlignment;
   hidden: boolean;
   style: IStyle;
+  rescale(scale: number): void;
   generate(withinArea?: BoundingBox): Ray[];
   toSegments(): Segment[];
   clone(atScale?: number): IShape;

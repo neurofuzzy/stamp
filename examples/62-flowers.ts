@@ -5,7 +5,7 @@ import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
-import { CirclePackingStampLayout } from "../src/lib/stamp-layout";
+import { CirclePackingStampLayout } from "../src/lib/layout/layout-stamp";
 import { HatchPatternType } from "../src/geom/hatch-patterns";
 import { Hatch } from "../src/lib/hatch";
 
@@ -63,7 +63,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     stamp: circle,
     permutationSequence: Sequence.fromStatement("repeat 4,6,40,9"),
     scaleSequence: Sequence.fromStatement("repeat 3,4,5"),
-    seed: 512,
+    layoutSeed: 512,
     radius: 300,
     count: 22,
     padding: 18,

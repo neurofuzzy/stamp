@@ -1,4 +1,4 @@
-import { makeCircle } from "../lib/smallest-enclosing-circle";
+import { makeCircle } from "./smallest-enclosing-circle";
 import {
   Point,
   Ray,
@@ -118,18 +118,26 @@ export class GeomHelpers {
       origin.y;
   }
 
+  static scalePointRelativeToCenter(
+    pt: { x: number; y: number },
+    center: { x: number; y: number },
+    scale: number,
+  ) {
+    pt.x -= center.x;
+    pt.y -= center.y;
+    pt.x *= scale;
+    pt.y *= scale;
+    pt.x += center.x;
+    pt.y += center.y;
+  }
+
   static scalePointsRelativeToCenter(
     points: { x: number; y: number }[],
     center: { x: number; y: number },
     scale: number,
   ) {
     points.forEach((pt) => {
-      pt.x -= center.x;
-      pt.y -= center.y;
-      pt.x *= scale;
-      pt.y *= scale;
-      pt.x += center.x;
-      pt.y += center.y;
+      GeomHelpers.scalePointRelativeToCenter(pt, center, scale);
     });
   }
 

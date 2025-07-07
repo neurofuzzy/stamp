@@ -60,19 +60,19 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       align: ShapeAlignment.TOP,
       outlineThickness: 0
     })
-    .forward("RLENGTH")
-    .rotate("RANGLE()")
-    .repeatLast(3, 4)
+    .forward({ distance: "RLENGTH" })
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 4 })
     .circle({
       radius: "BERRY()",
       innerRadius: 5,
       outlineThickness: 5,
       divisions: 36
     })
-    .stepBack(10)
-    .repeatLast(6,15)
-    .rotate(120)
-    .repeatLast(8,2)
+    .stepBack({ steps: 10 })
+    .repeatLast({ steps: 6, times: 15 })
+    .rotate({ rotation: 120 })
+    .repeatLast({ steps: 8, times: 2 })
 
   // draw children
   tree.children().forEach(child => {

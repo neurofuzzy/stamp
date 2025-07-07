@@ -5,7 +5,7 @@ import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
-import { CirclePackingStampLayout } from "../src/lib/stamp-layout";
+import { CirclePackingStampLayout } from "../src/lib/layout/layout-stamp";
 import { HatchPatternType } from "../src/geom/hatch-patterns";
 import { Hatch } from "../src/lib/hatch";
 
@@ -55,11 +55,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       hatchScale: 0.3,
       hatchInset: 0.5,
     })
-    .set("R")
-    .set("S")
-    .set("B")
-    .set("B2")
-    .rotate("R")
+    .set({ sequenceCall: "R" })
+    .set({ sequenceCall: "S" })
+    .set({ sequenceCall: "B" })
+    .set({ sequenceCall: "B2" })
+    .rotate({ rotation: "R" })
     .circle({
       radius: 18,
       divisions: "S",
@@ -69,24 +69,24 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: "S",
       angle: "90 / S",
     })
-    .boolean("B")
+    .boolean({ type: "B" })
     .circle({
       radius: 12,
       divisions: "S",
     })
-    .boolean("B2")
+    .boolean({ type: "B2" })
     .circle({
       radius: "B2 * 5",
       divisions: "S",
       angle: "90 / S",
     })
-    .setBounds(46, 46);
+    .setBounds({ width: 46, height: 46 });
 
   const grid = new CirclePackingStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: circle,
     permutationSequence: Sequence.fromStatement("repeat 4,6,40,9"),
     scaleSequence: Sequence.fromStatement("repeat 3,4,5"),
-    seed: 512,
+    layoutSeed: 512,
     radius: 300,
     count: 22,
     padding: 18,

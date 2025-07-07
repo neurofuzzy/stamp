@@ -33,7 +33,7 @@ Sequence.fromStatement("random 0,0,0,0 AS BANG", seed)
 Sequence.fromStatement("repeat 1,2,3 AS STORIES", seed)
 Sequence.fromStatement("repeat 1,4,5,6,7 AS HATCH", seed)
 Sequence.fromStatement("repeat 45,90,45,90,45 AS HATCHANG", seed)
-Sequence.fromStatement("repeat 35[6],0[6] AS BOFFSET")
+Sequence.fromStatement("repeat 0[6],35[6] AS BOFFSET")
 Sequence.fromStatement("repeat 0[5],1,0[6] AS BSKIP")
 Sequence.fromStatement("random 0x111111, 0x222222, 0x333333, 0x444444, 0x555555 AS BCOL", 12)
 
@@ -44,14 +44,14 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   // building
   const building = new Stamp(new Ray(100, 100, 0))
     .rectangle({ width: 50, height: "BHEIGHT()"})
-    .moveTo(0, "0 - BHEIGHT / 2")
+    .moveTo({ x: 0, y: "0 - BHEIGHT / 2" })
     .circle({
       radius: 25,
       divisions: 4,
       align: ShapeAlignment.CENTER,
       skip: "BHEIGHT - 41"
     })
-    .moveTo(0, 0)
+    .moveTo({ x: 0, y: 0 })
     .subtract()
     .rectangle({
       width: 10,
@@ -63,7 +63,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       spacingY: 30
     })
     .add()
-    .moveTo(0, "0 - BHEIGHT / 2")
+    .moveTo({ x: 0, y: "0 - BHEIGHT / 2" })
     .rectangle({
       width: 20,
       height: 10,

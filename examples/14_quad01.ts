@@ -6,7 +6,7 @@ import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { GridStampLayout } from "../src/lib/stamp-layout";
+import { GridStampLayout } from "../src/lib/layout/layout-stamp";
 import { GeomHelpers } from "../src/geom/helpers";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
@@ -68,26 +68,26 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 0,
       fillColor: "cyan",
     })
-    .forward(len)
+    .forward({ distance: len })
     .circle({
       radius: 2,
       divisions: 3,
       skip: 1,
     })
-    .rotate("RANGLE()")
-    .repeatLast(3, 240);
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 240 });
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  const seeds = Sequence.fromStatement(
-    "repeat 35,98721,286897,98234210,239712873",
+  //Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923 AS SEEDS", 12);
+  //Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899 AS SEEDS", 12);
+  //Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91, AS SEEDS", 12);
+  Sequence.fromStatement(
+    "repeat 35,98721,286897,98234210,239712873 AS seeds",
     12,
   );
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutationSequence: seeds,
+    stampSeed: "seeds()",
     rows: 2,
     columns: 2,
     rowSpacing: 420,
@@ -95,11 +95,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 200 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });

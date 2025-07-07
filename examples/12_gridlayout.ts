@@ -6,7 +6,7 @@ import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { GridStampLayout } from "../src/lib/stamp-layout";
+import { GridStampLayout } from "../src/lib/layout/layout-stamp";
 import { GeomHelpers } from "../src/geom/helpers";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
@@ -55,6 +55,10 @@ Sequence.fromStatement(
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
 Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP");
 Sequence.fromStatement("repeat 10,10 AS BERRY");
+Sequence.fromStatement(
+  "repeat 755,316,251,1092,3043305,277,293,1202,305 AS PERM",
+  12,
+);
 
 const len = 30;
 const weight = 2;
@@ -68,22 +72,19 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 0,
       fillColor: "cyan",
     })
-    .forward(len)
+    .forward({ distance: len })
     .circle({
       radius: 2,
       divisions: 6,
       skip: 1,
     })
-    .rotate("RANGLE()")
-    .repeatLast(3, 240);
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 240 });
 
   // Sequence.fromStatement("repeat 181,270,254,17,316,778,759,266,62,29,7,2493251,238", 7),
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutationSequence: Sequence.fromStatement(
-      "repeat 755,316,251,1092,3043305,277,293,1202,305",
-      12,
-    ),
+    stampSeed: "PERM()",
     rows: 3,
     columns: 3,
     rowSpacing: 240,
@@ -91,11 +92,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 90 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });

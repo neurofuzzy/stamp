@@ -5,8 +5,8 @@ import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { GridShapeLayout } from "../src/lib/shapes-layout";
-import { ShapesProvider } from "../src/lib/shapes-provider";
+import { GridShapeLayout } from "../src/lib/layout/layout-shape";
+import { ShapeProvider } from "../src/lib/shape-provider";
 import { Circle } from "../src/geom/shapes";
 import { Donut } from "../src/geom/compoundshapes";
 
@@ -35,6 +35,7 @@ Sequence.seed = 1;
 const palette = colors[8];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 122);
+Sequence.fromStatement("shuffle 0,1,2,3,4 AS SHAPE", 1);
 
 Sequence.seed = 2;
 
@@ -47,7 +48,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     strokeThickness: 8,
   };
 
-  const shapeProvider = new ShapesProvider(
+  const shapeProvider = new ShapeProvider(
     [
       new Circle(),
       // new Rectangle(),
@@ -55,7 +56,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       // new Circle(new Ray(0, 0, 0 - Math.PI / 4), 50, 5),
       new Donut(new Ray(0, 0, 0), 30, 50, 32),
     ],
-    Sequence.fromStatement("shuffle 0,1,2,3,4", 1),
+    "SHAPE()"
   );
 
   const grid = new GridShapeLayout(new Ray(w / 2, h / 2, 0), {

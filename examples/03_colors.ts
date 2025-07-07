@@ -54,10 +54,27 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .roundedRectangle({ width: "RW()", height: 30, cornerRadius: 15, divisions: 3, align: ShapeAlignment.RIGHT, style })
     .subtract()
     .circle({ radius: 10, divisions: 32, align: ShapeAlignment.RIGHT, offsetX: "OFFSET()", skip: "SKIP()", style })
-    .move("RW + 10", 0)
-    .repeatLast(5, 5)
-    .move(-510, 40)
-    .repeatLast(7, 11)
+    .move({ x: "RW + 10", y: 0 })
+    .repeatLast({ steps: 5, times: 5 })
+    .move({ x: -510, y: 40 })
+    .repeatLast({ steps: 7, times: 11 })
+
+  
+    const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
+    .roundedRectangle({ 
+      width: 30,
+      height: 30,
+      cornerRadius: 5,
+      divisions: 3,
+      align: ShapeAlignment.CENTER,
+      style: {
+        fillColor: "#ff0000",
+        strokeColor: "#000000",
+        strokeThickness: 2,
+      }
+    }).move({ x: 0, y: 40 })
+    .repeatLast({ steps: 2, times: 5 });
+
 
   // draw children
   grid.children().forEach(child => drawShape(ctx, child));

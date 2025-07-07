@@ -1,3 +1,5 @@
+import { IDistribution } from "./distribute/distribute-interfaces";
+
 interface IShapeParams {
   angle?: number | string;
   divisions?: number | string;
@@ -12,6 +14,7 @@ interface IShapeParams {
   offsetY?: number | string;
   skip?: number | string;
   style?: IStyle;
+  distribute?: IDistribution;
   tag?: string;
 }
 
@@ -92,4 +95,125 @@ interface INode {
 
 interface IBoundsParams {
   padding?: number | string;
+}
+
+/**
+ * Context interface providing access to Stamp's internal methods and state
+ */
+export interface IShapeContext {
+  getGroupOffset(nx: number, ny: number, spx: number, spy: number): Point;
+  make(shapes: IShape[], outlineThickness?: number, scale?: number): void;
+  getCursor(): Ray;
+  getCursorDirection(): number;
+  resolveStringOrNumber(value: string | number): number;
+}
+
+/**
+ * Interface for shape handler extensions
+ */
+export interface IShapeHandler {
+  /**
+   * Handles the creation of a specific shape type
+   * @param params - Shape-specific parameters
+   * @param context - Context providing access to core functionality
+   */
+  handle(params: any, context: IShapeContext): void;
+}
+
+/**
+ * Registry interface for managing shape handlers
+ */
+export interface IShapeHandlerRegistry {
+  register(shapeName: string, handler: IShapeHandler): void;
+  getHandler(shapeName: string): IShapeHandler | undefined;
+  hasHandler(shapeName: string): boolean;
+}
+
+// Params interfaces for public methods that need to be converted
+export interface ISetBoundsParams {
+  width: number | string;
+  height: number | string;
+}
+
+export interface ISetCursorBoundsParams {
+  x: number | string;
+  y: number | string;
+  width: number | string;
+  height: number | string;
+}
+
+export interface IMoveToParams {
+  x?: number | string;
+  y?: number | string;
+}
+
+export interface IMoveParams {
+  x?: number | string;
+  y?: number | string;
+}
+
+export interface IMoveOverParams {
+  direction: number | string;
+  percentage?: number | string;
+}
+
+export interface IForwardParams {
+  distance?: number | string;
+}
+
+export interface IOffsetParams {
+  x: number | string;
+  y?: number | string;
+}
+
+export interface IRotateToParams {
+  rotation?: number | string;
+}
+
+export interface IRotateParams {
+  rotation?: number | string;
+}
+
+export interface ICropParams {
+  x: number | string;
+  y: number | string;
+  width: number | string;
+  height: number | string;
+}
+
+export interface IBooleanParams {
+  type: number | string;
+}
+
+export interface ISetParams {
+  sequenceCall: string;
+}
+
+export interface IRemoveTagParams {
+  tag: string;
+}
+
+export interface ISkipTagParams {
+  tag: string;
+  condition: string;
+}
+
+export interface IReplaceVariableParams {
+  oldName: string;
+  newName: string;
+}
+
+export interface IRepeatLastParams {
+  steps: number | string;
+  times?: number | string;
+}
+
+export interface IStepBackParams {
+  steps: number | string;
+}
+
+export interface IPathParams {
+  scale?: number | string;
+  optimize?: boolean;
+  mergeConnectedPaths?: boolean;
 }

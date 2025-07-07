@@ -34,6 +34,13 @@ export class Sequence {
   static seed = 0;
   static sequences: { [key: string]: Sequence } = {};
   static __prng: { (): number } | null = null;
+  static normalizeAlias = (alias: string) => {
+    alias = alias.trim().toLowerCase();
+    if (alias.indexOf("()") !== -1) {
+      alias = alias.split("()")[0];
+    }
+    return alias;
+  };
   static random = () => {
     if (!Sequence.__prng === null) {
       Sequence.__prng = arbit(Sequence.seed);
@@ -43,11 +50,12 @@ export class Sequence {
   };
   static resetAll = (
     seed: number = NaN,
-    skipSequeces: (Sequence | null | undefined)[] = [],
+    skipSequences: (Sequence | null | undefined)[] = [],
   ) => {
     Sequence.__prng = arbit(!isNaN(seed) ? seed : Sequence.seed);
     for (let alias in Sequence.sequences) {
-      if (skipSequeces.indexOf(Sequence.sequences[alias]) !== -1) {
+      alias = Sequence.normalizeAlias(alias);
+      if (skipSequences.indexOf(Sequence.sequences[alias]) !== -1) {
         continue;
       }
       if (!isNaN(seed)) {
@@ -57,12 +65,18 @@ export class Sequence {
       }
     }
   };
+  static getSequence = (alias: string) => {
+    alias = Sequence.normalizeAlias(alias);
+    return Sequence.sequences[alias];
+  };
   static reset = (alias: string) => {
+    alias = Sequence.normalizeAlias(alias);
     if (Sequence.sequences[alias]) {
       Sequence.sequences[alias].reset();
     }
   };
   static updateSeed = (alias: string, seed: number) => {
+    alias = Sequence.normalizeAlias(alias);
     if (Sequence.sequences[alias]) {
       Sequence.sequences[alias].updateSeed(seed);
     }
@@ -384,8 +398,8 @@ export class Sequence {
     } else {
       alias = stmt.split(" ").join("_");
     }
-
     if (alias && !Sequence.sequences[alias]) {
+      alias = Sequence.normalizeAlias(alias);
       Sequence.sequences[alias] = seq;
     }
 
@@ -585,7 +599,7 @@ export class Sequence {
       }
 
       // if literal alias, use it
-      let seq: Sequence | null = Sequence.sequences[alias];
+      let seq: Sequence | null = Sequence.sequences[Sequence.normalizeAlias(alias)];
 
       if (seq) {
         if (getNext) {
@@ -601,6 +615,7 @@ export class Sequence {
       // if already defined, use that
       if (expr.indexOf(" as ") !== -1) {
         alias = expr.split(" as ")[1];
+        alias = Sequence.normalizeAlias(alias);
         seq = Sequence.sequences[alias];
         if (seq) {
           return seq.next() || 0;

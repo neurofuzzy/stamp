@@ -13,21 +13,11 @@ import {
 import { GeomHelpers } from "../geom/helpers";
 import {
   AbstractShape,
-  Arch,
-  Bone,
-  Circle,
-  Ellipse,
-  LeafShape,
   Polygon,
-  Rectangle,
-  RoundedRectangle,
-  Trapezoid,
 } from "../geom/shapes";
-import { Donut } from "../geom/compoundshapes";
-import { RoundedTangram, Tangram } from "../geom/tangram";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Optimize } from "./optimize";
-import { StampsProvider } from "./stamps-provider";
+import { StampProvider } from "./stamp-provider";
 import {
   cloneNode,
   paramsWithDefaults,
@@ -49,15 +39,44 @@ import {
   IStyleMap,
   ITangramParams,
   ITrapezoidParams,
+  IShapeContext,
+  IShapeHandlerRegistry,
+  IShapeHandler,
+  ISetBoundsParams,
+  ISetCursorBoundsParams,
+  IMoveToParams,
+  IMoveParams,
+  IMoveOverParams,
+  IForwardParams,
+  IOffsetParams,
+  IRotateToParams,
+  IRotateParams,
+  ICropParams,
+  IBooleanParams,
+  ISetParams,
+  IRemoveTagParams,
+  ISkipTagParams,
+  IReplaceVariableParams,
+  IRepeatLastParams,
+  IStepBackParams,
+  IPathParams,
 } from "./stamp-interfaces";
+import { defaultShapeRegistry } from "./stamp-shape-handlers";
 
 const $ = resolveStringOrNumber;
 
-export class Stamp extends AbstractShape {
+export class Stamp extends AbstractShape implements IShapeContext {
   static readonly NONE = 0;
   static readonly UNION = 1;
   static readonly SUBTRACT = 2;
   static readonly INTERSECT = 3;
+
+  // Constants for clipping operations
+  private static readonly CLIPPER_SCALE_FACTOR = 100000;
+  private static readonly ARC_TOLERANCE = 5000;
+  private static readonly MAX_NODES_LIMIT = 8192;
+  private static readonly BOUNDS_TOLERANCE = 1.1;
+  private static readonly GROUP_OFFSET_FACTOR = 0.5;
 
   private _nodes: INode[] = [];
   private _tree: clipperLib.PolyTree | null = null;
@@ -81,13 +100,16 @@ export class Stamp extends AbstractShape {
   private _cropBounds: BoundingBox = new BoundingBox(0, 0, 0, 0);
   private _baked: boolean = false;
   private _bakedAlignmentOffset: Point = new Point(0, 0);
+  private _shapeRegistry: IShapeHandlerRegistry;
 
   constructor(
     center?: Ray,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false,
+    shapeRegistry?: IShapeHandlerRegistry,
   ) {
     super(center, 1, alignment, reverse);
+    this._shapeRegistry = shapeRegistry || defaultShapeRegistry;
   }
 
   boundingCircle(): BoundingCircle {
@@ -212,7 +234,6 @@ export class Stamp extends AbstractShape {
     if (x !== undefined) {
       this._cursor.x = $(x);
     }
-    console.log(y);
     if (y !== undefined) {
       this._cursor.y = $(y);
     }
@@ -226,9 +247,8 @@ export class Stamp extends AbstractShape {
     this._cursor.y += v.y;
   }
 
-  private _markBoundsStart(params: IBoundsParams) {
+  private _markBoundsStart() {
     this._boundsStart = this._unclippedShapes.length;
-    this._boundsParams = params || {};
     this._boundsEnd = 100000;
   }
 
@@ -292,58 +312,6 @@ export class Stamp extends AbstractShape {
         this._cursor = c;
       } else {
         break;
-      }
-    }
-  }
-
-  private _align(shapes: IShape[], align: number) {
-    if (align) {
-      const boundingBox = GeomHelpers.shapesBoundingBox(shapes);
-      switch (align) {
-        case ShapeAlignment.TOP:
-          shapes.forEach((s) => {
-            s.center.y -= boundingBox.height / 2;
-          });
-          break;
-        case ShapeAlignment.BOTTOM:
-          shapes.forEach((s) => {
-            s.center.y += boundingBox.height / 2;
-          });
-          break;
-        case ShapeAlignment.LEFT:
-          shapes.forEach((s) => {
-            s.center.x -= boundingBox.width / 2;
-          });
-          break;
-        case ShapeAlignment.RIGHT:
-          shapes.forEach((s) => {
-            s.center.x += boundingBox.width / 2;
-          });
-          break;
-        case ShapeAlignment.TOP_LEFT:
-          shapes.forEach((s) => {
-            s.center.x -= boundingBox.width / 2;
-            s.center.y -= boundingBox.height / 2;
-          });
-          break;
-        case ShapeAlignment.TOP_RIGHT:
-          shapes.forEach((s) => {
-            s.center.x += boundingBox.width / 2;
-            s.center.y -= boundingBox.height / 2;
-          });
-          break;
-        case ShapeAlignment.BOTTOM_LEFT:
-          shapes.forEach((s) => {
-            s.center.x -= boundingBox.width / 2;
-            s.center.y += boundingBox.height / 2;
-          });
-          break;
-        case ShapeAlignment.BOTTOM_RIGHT:
-          shapes.forEach((s) => {
-            s.center.x += boundingBox.width / 2;
-            s.center.y += boundingBox.height / 2;
-          });
-          break;
       }
     }
   }
@@ -430,7 +398,7 @@ export class Stamp extends AbstractShape {
             }
             if (outln > 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: outln * 100000,
+                delta: outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -455,7 +423,7 @@ export class Stamp extends AbstractShape {
               }
             } else if (outln < 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: -outln * 100000,
+                delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -463,7 +431,7 @@ export class Stamp extends AbstractShape {
                     endType: clipperLib.EndType.ClosedPolygon,
                   },
                 ],
-                arcTolerance: 5000,
+                arcTolerance: Stamp.ARC_TOLERANCE,
               });
               if (offsetResult) {
                 let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
@@ -505,7 +473,7 @@ export class Stamp extends AbstractShape {
                 this._tree = polyResult;
                 if (outln < 0) {
                   const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                    delta: -outln * 100000,
+                    delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
                     offsetInputs: [
                       {
                         data: b.data,
@@ -513,7 +481,7 @@ export class Stamp extends AbstractShape {
                         endType: clipperLib.EndType.ClosedPolygon,
                       },
                     ],
-                    arcTolerance: 5000,
+                    arcTolerance: Stamp.ARC_TOLERANCE,
                   });
                   if (offsetResult) {
                     let paths = ClipperHelpers.clipper.polyTreeToPaths(
@@ -548,7 +516,7 @@ export class Stamp extends AbstractShape {
 
             if (outln > 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: outln * 100000,
+                delta: outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -573,7 +541,7 @@ export class Stamp extends AbstractShape {
               }
             } else if (outln < 0) {
               const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: -outln * 100000,
+                delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
                 offsetInputs: [
                   {
                     data: b2.data,
@@ -581,7 +549,7 @@ export class Stamp extends AbstractShape {
                     endType: clipperLib.EndType.ClosedPolygon,
                   },
                 ],
-                arcTolerance: 5000,
+                arcTolerance: Stamp.ARC_TOLERANCE,
               });
               if (offsetResult) {
                 let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
@@ -652,478 +620,53 @@ export class Stamp extends AbstractShape {
 
   private _getGroupOffset(nx = 1, ny = 1, spx = 0, spy = 0): Point {
     const pt = new Point(0, 0);
-    pt.x = (nx - 1) * spx * 0.5;
-    pt.y = (ny - 1) * spy * 0.5;
+    pt.x = (nx - 1) * spx * Stamp.GROUP_OFFSET_FACTOR;
+    pt.y = (ny - 1) * spy * Stamp.GROUP_OFFSET_FACTOR;
     return pt;
   }
 
-  private _circle(params: ICircleParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        let s;
-        let innerRadius = $(params.innerRadius);
-        let cen = new Ray(
-          nspx * i - o.x + offset.x,
-          nspy * j - o.y + offset.y,
-          params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-        );
-        if (!innerRadius) {
-          s = new Circle(
-            cen,
-            $(params.radius),
-            $(params.divisions),
-            $(params.align),
-          );
-        } else {
-          s = new Donut(
-            cen,
-            $(params.radius),
-            innerRadius,
-            $(params.divisions),
-            $(params.align),
-          );
-        }
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  // IShapeContext interface methods
+  getGroupOffset(nx: number, ny: number, spx: number, spy: number): Point {
+    return this._getGroupOffset(nx, ny, spx, spy);
   }
 
-  private _ellipse(params: IEllipseParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        const s = new Ellipse(
-          new Ray(
-            nspx * i - o.x + offset.x,
-            nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.radiusX),
-          $(params.radiusY),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  make(shapes: IShape[], outlineThickness: number = 0, scale: number = 1): void {
+    this._make(shapes, outlineThickness, scale);
   }
 
-  private _arch(params: IArchParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        let cen = new Ray(
-          nspx * i - o.x + offset.x,
-          nspy * j - o.y + offset.y,
-          params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-        );
-        let s = new Arch(
-          cen,
-          $(params.width),
-          $(params.sweepAngle),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    //this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  getCursorDirection(): number {
+    return this._cursor.direction;
   }
 
-  private _leafShape(params: ILeafShapeParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          0 - $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        const s = new LeafShape(
-          new Ray(
-            nspx * i - o.x + offset.x,
-            nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.radius),
-          $(params.divisions),
-          $(params.splitAngle) || 60,
-          $(params.splitAngle2) || $(params.splitAngle),
-          $(params.serration) || 0,
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  resolveStringOrNumber(value: string | number): number {
+    return $(value);
   }
 
-  private _rectangle(params: IRectangleParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        const s = new Rectangle(
-          new Ray(
-            nspx * i - o.x + offset.x,
-            +nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.width),
-          $(params.height),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  /**
+   * Register a custom shape handler
+   */
+  registerShapeHandler(shapeName: string, handler: IShapeHandler): void {
+    this._shapeRegistry.register(shapeName, handler);
   }
 
-  private _trapezoid(params: ITrapezoidParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        const s = new Trapezoid(
-          new Ray(
-            nspx * i - o.x + offset.x,
-            +nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.width),
-          $(params.height),
-          $(params.taper),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  /**
+   * Get the shape registry (for advanced use cases)
+   */
+  getShapeRegistry(): IShapeHandlerRegistry {
+    return this._shapeRegistry;
   }
 
-  private _roundedRectangle(params: IRoundedRectangleParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        const s = new RoundedRectangle(
-          new Ray(
-            nspx * i - o.x + offset.x,
-            +nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.width),
-          $(params.height),
-          $(params.cornerRadius),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          const s = shapes[shapes.length - 1];
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
-  }
-
-  private _polygon(params: IPolygonParams) {
-    if (!params.rayStrings?.length) {
-      return;
-    }
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const offset = new Point(
-          $(params.offsetX || 0),
-          $(params.offsetY || 0),
-        );
-        GeomHelpers.rotatePoint(offset, Math.PI - this._cursor.direction);
-        const s = new Polygon(
-          new Ray(
-            nspx * i - o.x + offset.x,
-            +nspy * j - o.y + offset.y,
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          params.rayStrings.map((s) => new Ray(0, 0).fromString(s)),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
-  }
-
-  private _stamp(params: IStampParams) {
-    if (params.providerIndex !== undefined) {
-      const stamp = StampsProvider.getInstance(
-        params.providerIndex,
-      ).nextStamp();
-      if (stamp) {
-        params.subStampString = stamp.toString();
-      }
-    }
-    if (!params.subStampString) {
-      return;
-    }
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const center = new Ray(
-          nspx * i - o.x + $(params.offsetX),
-          nspy * j - o.y + $(params.offsetY),
-          params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-        );
-        const s = new Stamp(center, $(params.align)).fromString(
-          params.subStampString,
-        );
-        s.bake();
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
-  }
-
-  private _tangram(params: ITangramParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const s = new Tangram(
-          new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.width),
-          $(params.height),
-          $(params.type),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
-  }
-
-  private _roundedTangram(params: ITangramParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const s = new RoundedTangram(
-          new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.width),
-          $(params.height),
-          $(params.type),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
-  }
-
-  private _bone(params: IBoneParams) {
-    let shapes: IShape[] = [];
-    let nnx = $(params.numX),
-      nny = $(params.numY),
-      nspx = $(params.spacingX),
-      nspy = $(params.spacingY);
-    let o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    for (let j = 0; j < nny; j++) {
-      for (let i = 0; i < nnx; i++) {
-        const s = new Bone(
-          new Ray(
-            nspx * i - o.x + $(params.offsetX),
-            +nspy * j - o.y + $(params.offsetY),
-            params.angle ? ($(params.angle) * Math.PI) / 180 : 0,
-          ),
-          $(params.length),
-          $(params.bottomRadius),
-          $(params.topRadius),
-          $(params.divisions),
-          $(params.align),
-        );
-        if ($(params.skip) > 0) {
-          s.hidden = true;
-        }
-        if (params.style) {
-          s.style = params.style;
-        }
-        shapes.push(s);
-      }
-    }
-    // TODO: this._align(shapes, $(params.align));
-    this._make(shapes, $(params.outlineThickness), $(params.scale));
+  /**
+   * Helper method to add shape nodes with consistent processing
+   */
+  private _addShapeNode<T extends { tag?: string }>(functionName: string, params: T): this {
+    const processedParams = paramsWithDefaults<T>(params);
+    this._nodes.push({
+      fName: functionName,
+      tag: processedParams.tag,
+      args: [processedParams],
+    });
+    return this;
   }
 
   reset() {
@@ -1156,8 +699,8 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  boolean(type: number | string) {
-    this._nodes.push({ fName: "_boolean", args: [type] });
+  boolean(params: IBooleanParams) {
+    this._nodes.push({ fName: "_boolean", args: [params.type] });
     return this;
   }
 
@@ -1181,71 +724,68 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  set(sequenceCall: string) {
-    this._nodes.push({ fName: "_set", args: [sequenceCall] });
+  set(params: ISetParams) {
+    this._nodes.push({ fName: "_set", args: [params.sequenceCall] });
     return this;
   }
 
-  setBounds(width: number, height: number) {
-    this._overrideBounds = new BoundingBox(0, 0, width, height);
+  setBounds(params: ISetBoundsParams) {
+    this._overrideBounds = new BoundingBox(0, 0, $(params.width), $(params.height));
     return this;
   }
 
-  setCursorBounds(x: number, y: number, width: number, height: number) {
+  setCursorBounds(params: ISetCursorBoundsParams) {
     this._nodes.push({
       fName: "_setCursorBounds",
-      args: [x, y, width, height],
+      args: [params.x, params.y, params.width, params.height],
     });
     return this;
   }
 
-  moveTo(
-    x: number | string | undefined = undefined,
-    y: number | string | undefined = undefined,
-  ) {
-    this._nodes.push({ fName: "_moveTo", args: [x, y] });
+  moveTo(params: IMoveToParams) {
+    this._nodes.push({ fName: "_moveTo", args: [params.x, params.y] });
     return this;
   }
 
-  move(x: number | string = 0, y: number | string = 0) {
-    this._nodes.push({ fName: "_move", args: [x, y] });
+  move(params: IMoveParams) {
+    this._nodes.push({ fName: "_move", args: [params.x || 0, params.y || 0] });
     return this;
   }
 
-  moveOver(direction: number, perc: number) {
-    this._nodes.push({ fName: "_moveOver", args: [direction, perc] });
+  moveOver(params: IMoveOverParams) {
+    this._nodes.push({ fName: "_moveOver", args: [params.direction, params.percentage || 1] });
     return this;
   }
 
-  forward(distance: number | string = 0) {
-    this._nodes.push({ fName: "_forward", args: [distance] });
+  forward(params: IForwardParams) {
+    this._nodes.push({ fName: "_forward", args: [params.distance || 0] });
     return this;
   }
 
-  offset(x: number, y: number = 0) {
-    this._nodes.push({ fName: "_offset", args: [x, y] });
+  offset(params: IOffsetParams) {
+    this._nodes.push({ fName: "_offset", args: [params.x, params.y || 0] });
     return this;
   }
 
-  rotateTo(r: number | string = 0) {
-    this._nodes.push({ fName: "_rotateTo", args: [r] });
+  rotateTo(params: IRotateToParams) {
+    this._nodes.push({ fName: "_rotateTo", args: [params.rotation || 0] });
     return this;
   }
 
-  rotate(r: number | string = 0) {
-    this._nodes.push({ fName: "_rotate", args: [r] });
+  rotate(params: IRotateParams) {
+    this._nodes.push({ fName: "_rotate", args: [params.rotation || 0] });
     return this;
   }
 
   /**
    * removes any nodes with the given tag
-   * @param tag
+   * @param params
    * @returns
    */
-  removeTag(tag: string) {
+  removeTag(params: IRemoveTagParams) {
     let i = this._nodes.length;
     while (i--) {
-      if (this._nodes[i].tag === tag) {
+      if (this._nodes[i].tag === params.tag) {
         this._nodes.splice(i, 1);
         // reduce any repeatLasts steps by 1
         for (let j = i; j < this._nodes.length; j++) {
@@ -1258,12 +798,12 @@ export class Stamp extends AbstractShape {
     return this;
   }
 
-  skipTag(tag: string, condition: string) {
+  skipTag(params: ISkipTagParams) {
     let i = this._nodes.length;
     while (i--) {
-      if (this._nodes[i].tag === tag) {
+      if (this._nodes[i].tag === params.tag) {
         if (typeof this._nodes[i].args[0] === "object") {
-          this._nodes[i].args[0].skip = condition;
+          this._nodes[i].args[0].skip = params.condition;
         }
       }
     }
@@ -1272,18 +812,17 @@ export class Stamp extends AbstractShape {
 
   /**
    * replaces any occurances of named sequences
-   * @param oldName
-   * @param newName
+   * @param params
    * @returns
    */
-  replaceVariable(oldName: string, newName: string) {
+  replaceVariable(params: IReplaceVariableParams) {
     this._nodes.forEach((node) => {
       node.args.forEach((arg, idx) => {
-        if (arg === oldName) {
-          arg = newName;
+        if (arg === params.oldName) {
+          arg = params.newName;
         }
-        if (arg === `${oldName}()`) {
-          arg = `${newName}()`;
+        if (arg === `${params.oldName}()`) {
+          arg = `${params.newName}()`;
         }
         node.args[idx] = arg;
       });
@@ -1293,150 +832,85 @@ export class Stamp extends AbstractShape {
 
   /**
    * crops the stamp to the given bounds
-   * @param x
-   * @param y
-   * @param width
-   * @param height
+   * @param params
    * @returns
    */
-  crop(x: number, y: number, width: number, height: number) {
-    this._nodes.push({ fName: "_crop", args: [x, y, width, height] });
+  crop(params: ICropParams) {
+    this._nodes.push({ fName: "_crop", args: [params.x, params.y, params.width, params.height] });
     return this;
   }
 
   circle(params: ICircleParams) {
-    params = paramsWithDefaults<ICircleParams>(params);
-    this._nodes.push({
-      fName: "_circle",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_circle", params);
   }
 
   arch(params: IArchParams) {
-    params = paramsWithDefaults<IArchParams>(params);
-    this._nodes.push({
-      fName: "_arch",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_arch", params);
   }
 
   ellipse(params: IEllipseParams) {
-    params = paramsWithDefaults<IEllipseParams>(params);
-    this._nodes.push({
-      fName: "_ellipse",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_ellipse", params);
   }
 
   leafShape(params: ILeafShapeParams) {
-    params = paramsWithDefaults<ILeafShapeParams>(params);
-    this._nodes.push({
-      fName: "_leafShape",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_leafShape", params);
   }
 
   rectangle(params: IRectangleParams) {
-    params = paramsWithDefaults<IRectangleParams>(params);
-    this._nodes.push({
-      fName: "_rectangle",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_rectangle", params);
   }
 
   trapezoid(params: ITrapezoidParams) {
-    params = paramsWithDefaults<ITrapezoidParams>(params);
-    this._nodes.push({
-      fName: "_trapezoid",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_trapezoid", params);
   }
 
   roundedRectangle(params: IRoundedRectangleParams) {
-    params = paramsWithDefaults<IRoundedRectangleParams>(params);
-    this._nodes.push({
-      fName: "_roundedRectangle",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_roundedRectangle", params);
   }
 
   bone(params: IBoneParams) {
-    params = paramsWithDefaults<IBoneParams>(params);
-    this._nodes.push({
-      fName: "_bone",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_bone", params);
   }
 
   polygon(params: IPolygonParams) {
-    params = paramsWithDefaults<IPolygonParams>(params);
-    params.rayStrings = params.rays.map((r) => r.toString());
+    const processedParams = paramsWithDefaults<IPolygonParams>(params);
+    processedParams.rayStrings = processedParams.rays.map((r) => r.toString());
     this._nodes.push({
       fName: "_polygon",
-      tag: params.tag,
-      args: [params],
+      tag: processedParams.tag,
+      args: [processedParams],
     });
     return this;
   }
 
   stamp(params: IStampParams) {
-    params = paramsWithDefaults<IStampParams>(params);
-    if (params.subStamp instanceof StampsProvider) {
-      params.providerIndex = params.subStamp.instanceIndex();
-    } else {
-      params.subStampString = params.subStamp.toString();
+    const newParams: IStampParams = { ...params };
+    if (newParams.subStamp) {
+        if (newParams.subStamp instanceof StampProvider) {
+            newParams.providerIndex = newParams.subStamp.instanceIndex();
+        } else {
+            newParams.subStampString = newParams.subStamp.toString();
+        }
+        delete newParams.subStamp;
     }
-    this._nodes.push({
-      fName: "_stamp",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_stamp", newParams);
   }
 
   tangram(params: ITangramParams) {
-    params = paramsWithDefaults<ITangramParams>(params);
-    this._nodes.push({
-      fName: "_tangram",
-      tag: params.tag,
-      args: [params],
-    });
-    return this;
+    return this._addShapeNode("_tangram", params);
   }
 
   roundedTangram(params: ITangramParams) {
-    params = paramsWithDefaults<ITangramParams>(params);
-    this._nodes.push({
-      fName: "_roundedTangram",
-      tag: params.tag,
-      args: [params],
-    });
+    return this._addShapeNode("_roundedTangram", params);
+  }
+
+  repeatLast(params: IRepeatLastParams) {
+    this._nodes.push({ fName: "_repeatLast", args: [params.steps, params.times || 1] });
     return this;
   }
 
-  repeatLast(steps: number, times: number | string = 1) {
-    this._nodes.push({ fName: "_repeatLast", args: [steps, times] });
-    return this;
-  }
-
-  stepBack(steps: number | string) {
-    this._nodes.push({ fName: "_stepBack", args: [steps] });
+  stepBack(params: IStepBackParams) {
+    this._nodes.push({ fName: "_stepBack", args: [params.steps] });
     return this;
   }
 
@@ -1458,11 +932,11 @@ export class Stamp extends AbstractShape {
     return this._cursor.clone();
   }
 
-  path(
-    scale: number = 1,
-    optimize: boolean = true,
-    mergeConnectedPaths: boolean = true,
-  ): Path[] {
+  path(params: IPathParams = {}): Path[] {
+    const scale = $(params.scale || 1);
+    const optimize = params.optimize !== false;
+    const mergeConnectedPaths = params.mergeConnectedPaths !== false;
+    
     if (!this._baked) {
       this.bake();
     }
@@ -1486,14 +960,7 @@ export class Stamp extends AbstractShape {
     }
 
     if (scale !== 1) {
-      points.forEach((p) => {
-        p.x -= this.center.x;
-        p.y -= this.center.y;
-        p.x *= scale;
-        p.y *= scale;
-        p.x += this.center.x;
-        p.y += this.center.y;
-      });
+      points.forEach((p) => GeomHelpers.scalePointRelativeToCenter(p, this.center, scale));
     }
 
     let seg = new Path(points);
@@ -1519,7 +986,7 @@ export class Stamp extends AbstractShape {
       let styleArea = this._styleMap[i];
       for (let j = 0; j < this._polys.length; j++) {
         let poly = this._polys[j];
-        if (GeomHelpers.shapeWithinBoundingBox(poly, styleArea.bounds, 1.1)) {
+        if (GeomHelpers.shapeWithinBoundingBox(poly, styleArea.bounds, Stamp.BOUNDS_TOLERANCE)) {
           poly.style = styleArea.style;
           mappedPolys.push(poly);
         }
@@ -1574,12 +1041,10 @@ export class Stamp extends AbstractShape {
 
       if (fName === "_repeatLast") {
         nodes.splice(i, 1);
-        //i--;
-        let len = nodes.length;
         let steps = args[0];
         let times = $(args[1]);
 
-        if (steps > 0 && steps <= len) {
+        if (steps > 0 && steps <= nodes.length) {
           let r = nodes.slice(i - steps, i);
           let tmp = nodes.slice(0, i);
           let tmp2 = nodes.slice(i, nodes.length);
@@ -1588,7 +1053,7 @@ export class Stamp extends AbstractShape {
             i += steps;
           }
           nodes = tmp.concat(tmp2);
-          if (i > 8192 || nodes.length > 8192) {
+          if (i > Stamp.MAX_NODES_LIMIT || nodes.length > Stamp.MAX_NODES_LIMIT) {
             console.error("too many nodes");
             break;
           }
@@ -1596,50 +1061,51 @@ export class Stamp extends AbstractShape {
       }
     }
 
+    // Core function map (for linter and type safety)
     const privateFunctionMap: { [key: string]: Function } = {
       _add: this._add,
-      _arch: this._arch,
-      _bone: this._bone,
       _boolean: this._boolean,
-      _breakApart: this._breakApart,
-      _circle: this._circle,
       _crop: this._crop,
       _defaultStyle: this._defaultStyle,
-      _ellipse: this._ellipse,
       _forward: this._forward,
       _intersect: this._intersect,
-      _leafShape: this._leafShape,
       _markBoundsEnd: this._markBoundsEnd,
       _markBoundsStart: this._markBoundsStart,
       _move: this._move,
       _moveOver: this._moveOver,
       _moveTo: this._moveTo,
-      _polygon: this._polygon,
-      _rectangle: this._rectangle,
       _reset: this._reset,
       _rotate: this._rotate,
       _rotateTo: this._rotateTo,
-      _roundedRectangle: this._roundedRectangle,
-      _roundedTangram: this._roundedTangram,
       _set: this._set,
       _setCursorBounds: this._setCursorBounds,
-      _stamp: this._stamp,
       _stepBack: this._stepBack,
       _subtract: this._subtract,
-      _tangram: this._tangram,
-      _trapezoid: this._trapezoid,
     };
 
     let breakApartTimes = 0;
 
     for (let i = 0; i < nodes.length; i++) {
       let fName = nodes[i].fName;
-      let fn: Function = privateFunctionMap[fName];
       let args = nodes[i].args;
+      
       if (fName === "_breakApart") {
         breakApartTimes++;
         continue;
       }
+      
+      // Try shape handler first (convention: _shapeName -> shapeName handler)
+      if (fName.startsWith('_')) {
+        const handlerName = fName.substring(1); // Remove the underscore
+        const handler = this._shapeRegistry.getHandler(handlerName);
+        if (handler) {
+          handler.handle(args[0], this);
+          continue;
+        }
+      }
+      
+      // Fallback to core private functions
+      const fn: Function = privateFunctionMap[fName];
       if (fn) {
         fn.apply(this, args);
       }
@@ -1695,14 +1161,7 @@ export class Stamp extends AbstractShape {
     };
 
     const applyScaleToPoly = (p: Polygon) => {
-      p.rays.forEach((r) => {
-        r.x -= this.center.x;
-        r.y -= this.center.y;
-        r.x *= this.scale;
-        r.y *= this.scale;
-        r.x += this.center.x;
-        r.y += this.center.y;
-      });
+      p.rays.forEach((r) => GeomHelpers.scalePointRelativeToCenter(r, this.center, this.scale));
       p.children().forEach((child) => {
         if (child instanceof Polygon) {
           applyScaleToPoly(child as Polygon);
@@ -1745,7 +1204,7 @@ export class Stamp extends AbstractShape {
     stamp.isHole = this.isHole;
     stamp.scale = this.scale;
     if (this._overrideBounds) {
-      stamp.setBounds(this._overrideBounds.width, this._overrideBounds.height);
+      stamp.setBounds({ width: this._overrideBounds.width, height: this._overrideBounds.height });
     }
     if (this._baked && this._tree) {
       // clone the tree by unioning it with an empty path

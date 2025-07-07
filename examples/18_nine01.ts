@@ -6,7 +6,7 @@ import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { GridStampLayout } from "../src/lib/stamp-layout";
+import { GridStampLayout } from "../src/lib/layout/layout-stamp";
 import { GeomHelpers } from "../src/geom/helpers";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
@@ -62,15 +62,15 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
   //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
 
-  //const seeds = Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923", 12);
-  //const seeds = Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899", 12);
-  //const seeds = Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91,", 12);
-  //const seeds = Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462", 12);
-  const seeds = Sequence.fromStatement(
-    "repeat 156,1,10,15,17,26,20,24,32,45,97",
+  // Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923 AS SEEDS", 12);
+  // Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899 AS SEEDS", 12);
+  // Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91 AS SEEDS", 12);
+  // Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462 AS SEEDS", 12);
+  Sequence.fromStatement(
+    "repeat 156,1,10,15,17,26,20,24,32,45,97 AS SEEDS",
     12,
   );
-  //const seeds = Sequence.fromStatement("repeat 4,13,15,1926,50,22,25,41,48,47", 12);
+  //Sequence.fromStatement("repeat 4,13,15,1926,50,22,25,41,48,47 AS SEEDS", 12);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()
@@ -78,18 +78,18 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       strokeThickness: 0,
       fillColor: "cyan",
     })
-    .forward(len)
+    .forward({ distance: len })
     .circle({
       radius: 2,
       divisions: 3,
       skip: 1,
     })
-    .rotate("RANGLE()")
-    .repeatLast(3, 240);
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 3, times: 240 });
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutationSequence: seeds,
+    stampSeed: "SEEDS()",
     rows: 3,
     columns: 3,
     rowSpacing: 280,
@@ -97,11 +97,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 120 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });

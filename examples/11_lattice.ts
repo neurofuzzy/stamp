@@ -65,18 +65,18 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions: 6,
       skip: "repeat 0,1,0"
     })
-    .forward(len)
+    .forward({ distance: len })
     .circle({
       radius: 2,
       divisions: 6,
       skip: "repeat 0,1,0"
     })
-    .rotate("RANGLE()")
-    .repeatLast(4, 200)
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 4, times: 200 })
 
   const tree = lattice;
 
-  let paths = tree.path();
+  let paths = tree.path({});
 
   paths.forEach(seg => {
     drawPath(ctx, seg, 0);

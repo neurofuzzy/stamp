@@ -6,7 +6,7 @@ import { Sequence } from "../src/lib/sequence";
 import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import colors from "nice-color-palettes";
-import { GridStampLayout } from "../src/lib/stamp-layout";
+import { GridStampLayout } from "../src/lib/layout/layout-stamp";
 import { GeomHelpers } from "../src/geom/helpers";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
@@ -46,7 +46,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     "shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,30  AS RANGLE",
   );
   Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP");
-  const seeds = Sequence.fromStatement("repeat 4,30,7,8,12,16,17,18,19", 12);
+  Sequence.fromStatement("repeat 4,30,7,8,12,16,17,18,19 AS SEEDS", 12);
 
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
@@ -69,13 +69,13 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       angle: 15,
       skip: "RANGLE",
     })
-    .forward(len)
-    .rotate("RANGLE()")
-    .repeatLast(4, 180);
+    .forward({ distance: len })
+    .rotate({ rotation: "RANGLE()" })
+    .repeatLast({ steps: 4, times: 180 });
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
     stamp: lattice,
-    permutationSequence: seeds,
+    stampSeed: "SEEDS()",
     rows: 3,
     columns: 3,
     rowSpacing: 260,
@@ -83,11 +83,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   });
 
   let pathSets = grid.children().map((x) => {
-    let path = x.path();
+    let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
       let scale = 100 / c.radius;
-      return x.path(scale);
+      return x.path({ scale: scale });
     }
     return path;
   });
