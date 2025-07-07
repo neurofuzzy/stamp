@@ -70,6 +70,7 @@ export interface IPoissonDiskDistributeParams extends IDistributeParams {
   minDistance?: string | number;
   maxPoints?: string | number;
   seed?: string | number;
+  itemScaleFalloff?: string | number;
 }
 
 export interface ITriangularDistributeParams extends IDistributeParams {

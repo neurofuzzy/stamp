@@ -748,6 +748,7 @@ export class PoissonDiskDistributeHandler implements IDistributeHandler {
       minDistance: $(params?.minDistance) || 30,
       maxPoints: $(params?.maxPoints) || 100,
       seed: $(params?.seed) || 1234,
+      itemScaleFalloff: $(params?.itemScaleFalloff) || 0,
     };
   }
 
@@ -770,9 +771,16 @@ export class PoissonDiskDistributeHandler implements IDistributeHandler {
   }
 
   arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void {
+    const falloffStrength = this._resolvedParams.itemScaleFalloff as number;
+    const width = this._resolvedParams.width as number;
+    const height = this._resolvedParams.height as number;
+    const maxDistance = Math.sqrt(Math.pow(width / 2, 2) + Math.pow(height / 2, 2)) || 1;
+
     shapes.forEach((shape, index) => {
       if (index < this._positions.length) {
         const position = this._positions[index];
+        const distance = Math.sqrt(position.x * position.x + position.y * position.y);
+        const falloffScale = 1 - (distance / maxDistance / 1.67) * falloffStrength;
         
         const offsetX = $(params.offsetX || 0);
         const offset = new Point(
@@ -786,6 +794,8 @@ export class PoissonDiskDistributeHandler implements IDistributeHandler {
         center.y = position.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
+        shape.rescale(falloffScale);
+
         if ($(params.skip || 0) > 0) {
           shape.hidden = true;
         }

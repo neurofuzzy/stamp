@@ -83,21 +83,21 @@ function draw(ctx: CanvasRenderingContext2D) {
         width: 200,
         height: 200,
         seed: 121,
-        itemScaleFalloff: 1.5,
+        itemScaleFalloff: 1.0,
       }
     });
 
   const distrib5 = new Stamp(new Ray(w/2 - 200, h/2 + 300, 0))
     .circle({ 
-      radius: 10,
+      radius: 12,
       align: ShapeAlignment.CENTER,
       distribute: {
         type: "poincare",
-        count: 50,
-        radius: 100,
-        density: 0.5,
+        count: 60,
+        radius: 130,
+        density: 0.76,
         seed: 120,
-        itemScaleFalloff: 1.5,
+        itemScaleFalloff: 1.0,
       }
     });
     
