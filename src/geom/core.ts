@@ -29,6 +29,7 @@ export interface IShape {
   alignment: ShapeAlignment;
   hidden: boolean;
   style: IStyle;
+  rescale(scale: number): void;
   generate(withinArea?: BoundingBox): Ray[];
   toSegments(): Segment[];
   clone(atScale?: number): IShape;

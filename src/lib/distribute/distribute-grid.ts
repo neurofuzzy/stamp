@@ -43,7 +43,7 @@ export class GridDistributeHandler implements IDistributeHandler {
     const nspx = this._resolvedParams.columnSpacing as number;
     const nspy = this._resolvedParams.rowSpacing as number;
     const o = this._getGroupOffset(nnx, nny, nspx, nspy);
-    
+
     for (let j = 0; j < nny; j++) {
       for (let i = 0; i < nnx; i++) {
         const s = shapes[j * nnx + i];
@@ -108,7 +108,7 @@ export class GridDistributeHandler2 implements IDistributeHandler {
         const x = nspx * i - o.x;
         const y = nspy * j - o.y;
         this._positions.push({ x, y });
-        centers.push(new Ray(0, 0, 0));
+        centers.push(new Ray(x, y, 0));
       }
     }
     
@@ -126,6 +126,7 @@ export class GridDistributeHandler2 implements IDistributeHandler {
     const halfWidth = (nnx - 1) * nspx / 2;
     const halfHeight = (nny - 1) * nspy / 2;
     const maxDistance = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight) || 1;
+
     
     shapes.forEach((shape, index) => {
       if (index < this._positions.length) {
@@ -149,7 +150,7 @@ export class GridDistributeHandler2 implements IDistributeHandler {
 
         // Apply falloff scaling
         if (falloffScale < 1 && falloffStrength > 0) {
-          (shape as any).scale = falloffScale;
+          shape.rescale(falloffScale);
         }
 
         if ($(params.skip || 0) > 0) {

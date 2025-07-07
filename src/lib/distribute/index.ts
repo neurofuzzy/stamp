@@ -44,9 +44,9 @@ export type {
 
 export const distributeHandlerFromParams = (params: IDistributeParams): IDistributeHandler => {
   switch (params?.type) {
-    case "grid3":
-      return new GridDistributeHandler(params as IGridDistributeParams);
     case "grid":
+      return new GridDistributeHandler(params as IGridDistributeParams);
+    case "grid2":
       return new GridDistributeHandler2(params as IGrid2DistributeParams);
     case "phyllotaxis":
       return new PhyllotaxisDistributeHandler(params as IPhyllotaxisDistributeParams);

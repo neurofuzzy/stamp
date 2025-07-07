@@ -24,7 +24,7 @@ export class AbstractShape implements IShape {
   };
   id: number = ++AbstractShape.id;
   center: Ray;
-  scale: number = 1;
+  protected scale: number = 1;
   divisions: number;
   reverse: boolean;
   childShapes: IShape[];
@@ -157,6 +157,12 @@ export class AbstractShape implements IShape {
   addChild(shape: IShape) {
     this.childShapes.push(shape);
   }
+  rescale(scale: number): void {
+    // NOOP FOR SELF
+    this.childShapes.forEach((shape) => {
+      shape.rescale(scale);
+    });
+  }
   clone(): IShape {
     throw new Error("Clone method not implemented.");
   }
@@ -212,6 +218,14 @@ export class Arc extends AbstractShape {
     }
     this.fit(rays, withinArea);
     return rays;
+  }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.radius *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
   }
   clone(atScale = 1) {
     const scale = atScale || 1;
@@ -306,6 +320,14 @@ export class Arch extends AbstractShape {
       this._height,
     );
   }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.width *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
+  }
   clone(atScale = 1) {
     const scale = atScale || 1;
     const s = new Arch(
@@ -364,6 +386,17 @@ export class Polygon extends AbstractShape {
     }
     this.fit(rays, withinArea);
     return rays;
+  }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.rays.forEach((r) => {
+        r.x *= scale;
+        r.y *= scale;
+      });   
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
   }
   clone(atScale = 1) {
     const scale = atScale || 1;
@@ -455,6 +488,14 @@ export class Circle extends AbstractShape {
     this.fit(rays, withinArea);
     return rays;
   }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.radius *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
+  }
   clone(atScale = 1) {
     const scale = atScale || 1;
     const s = new Circle(
@@ -543,6 +584,15 @@ export class Ellipse extends AbstractShape {
     }
     this.fit(rays, withinArea);
     return rays;
+  }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.radiusX *= scale;
+      this.radiusY *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
   }
   clone(atScale = 1) {
     const scale = atScale || 1;
@@ -652,6 +702,15 @@ export class Rectangle extends AbstractShape {
     this.fit(rays, withinArea);
     return rays;
   }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.width *= scale;
+      this.height *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
+  }
   clone(atScale = 1) {
     const scale = atScale || 1;
     const s = new Rectangle(
@@ -728,6 +787,15 @@ export class Trapezoid extends Rectangle {
     }
     this.fit(rays, withinArea);
     return rays;
+  }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.width *= scale;
+      this.height *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
   }
   clone(atScale = 1) {
     const scale = atScale || 1;
@@ -869,6 +937,15 @@ export class RoundedRectangle extends Rectangle {
     this.fit(rays, withinArea);
     return rays;
   }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.width *= scale;
+      this.height *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
+  }
   clone(atScale = 1) {
     const scale = atScale || 1;
     const s = new RoundedRectangle(
@@ -998,6 +1075,14 @@ export class Bone extends AbstractShape {
     this.fit(rays, withinArea);
     return rays;
   }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.length *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
+  }
   clone(atScale = 1) {
     const scale = atScale || 1;
     const s = new Bone(
@@ -1123,6 +1208,14 @@ export class LeafShape extends AbstractShape {
     }
     this.fit(rays, withinArea);
     return rays;
+  }
+  rescale(scale: number): void {
+    if (scale > 0) {
+      this.radius *= scale;
+      this.childShapes.forEach((shape) => {
+        shape.rescale(scale);
+      });
+    }
   }
   clone(atScale = 1) {
     const scale = atScale || 1;
