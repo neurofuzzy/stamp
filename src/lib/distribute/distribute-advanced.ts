@@ -626,6 +626,7 @@ export class AttractorDistributeHandler implements IDistributeHandler {
     }
     
     // Run physics simulation with pre-calculated item scales and seed for determinism
+    // The falloffStrength is applied within the physics simulation to the initial hex grid
     this._particles = simulateAttractorPhysics(
       particleCount,
       initialRadius,
