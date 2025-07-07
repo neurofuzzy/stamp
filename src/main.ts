@@ -62,13 +62,13 @@ function draw(ctx: CanvasRenderingContext2D) {
       distribute: {
         type: "attractor",
         particleCount: 20,
-        initialRadius: 300,
+        initialRadius: 200,
         simulationSteps: 1000,
-        hexSpacing: 20,
+        hexSpacing: 40,
         strength: 1,
         damping: 0,
         padding: 6,
-        itemScaleFalloff: 0,
+        itemScaleFalloff: 1,
       }
     });
     
