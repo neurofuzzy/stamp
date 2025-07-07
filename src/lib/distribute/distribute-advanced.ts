@@ -423,9 +423,8 @@ export class PhyllotaxisDistributeHandler implements IDistributeHandler {
         center.y = position.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
-        if (falloffScale !== 1) {
-          (shape as any).scale = falloffScale;
-        }
+        // Always apply falloff scaling (even if it's 1.0)
+        shape.rescale(falloffScale);
         
         if ($(params.skip || 0) > 0) {
           shape.hidden = true;
@@ -483,10 +482,8 @@ export class HexagonalDistributeHandler implements IDistributeHandler {
         center.y = position.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
-        // Apply falloff scaling
-        if (falloffScale < 1) {
-          (shape as any).scale = falloffScale;
-        }
+        // Always apply falloff scaling
+        shape.rescale(falloffScale);
         
         if ($(params.skip || 0) > 0) {
           shape.hidden = true;
@@ -544,10 +541,8 @@ export class TriangularDistributeHandler implements IDistributeHandler {
         center.y = position.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
-        // Apply falloff scaling
-        if (falloffScale < 1) {
-          (shape as any).scale = falloffScale;
-        }
+        // Always apply falloff scaling
+        shape.rescale(falloffScale);
         
         if ($(params.skip || 0) > 0) {
           shape.hidden = true;
@@ -661,9 +656,8 @@ export class AttractorDistributeHandler implements IDistributeHandler {
         // But don't include padding in the visual scale - padding is just for collision
         const baseRadius = (hexSpacing / 2);
         const finalScale = (particle.radius - padding) / baseRadius || 1;
-        if (finalScale !== 1) {
-          (shape as any).scale = finalScale;
-        }
+        // Always apply the final scale (the falloff is already baked into particle.radius)
+        shape.rescale(finalScale);
         
         if ($(params.skip || 0) > 0) {
           shape.hidden = true;
@@ -720,10 +714,8 @@ export class PoincareDistributeHandler implements IDistributeHandler {
         center.y = position.y + offset.y;
         center.direction = params.angle ? ($(params.angle) * Math.PI) / 180 : 0;
         
-        // Apply falloff scaling
-        if (falloffScale < 1) {
-          (shape as any).scale = falloffScale;
-        }
+        // Always apply falloff scaling
+        shape.rescale(falloffScale);
         
         if ($(params.skip || 0) > 0) {
           shape.hidden = true;

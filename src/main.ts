@@ -22,7 +22,7 @@ ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
 const h = canvas.height / ratio;
 
-Sequence.fromStatement("repeat 10,10,10 AS SIZE");
+Sequence.fromStatement("repeat 15,20,25 AS SIZE");
 
 
 function draw(ctx: CanvasRenderingContext2D) {
@@ -61,13 +61,13 @@ function draw(ctx: CanvasRenderingContext2D) {
       distribute: {
         type: "attractor",
         particleCount: 20,
-        initialRadius: 300,
-        simulationSteps: 10,
+        initialRadius: 200,
+        simulationSteps: 1000,
         hexSpacing: 40,
         strength: 1,
         damping: 0,
-        padding: 3,
-        itemScaleFalloff: 1.5,
+        padding: 5,
+        itemScaleFalloff: 0,
       }
     });
     
