@@ -14,9 +14,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
 const ratio = 2;
 canvas.width = 768 * ratio
-canvas.height = 768 * ratio
+canvas.height = 1024 * ratio
 canvas.style.width = '768px'
-canvas.style.height = '768px'
+canvas.style.height = '1024px'
 const ctx = canvas.getContext('2d')!
 ctx.scale(ratio, ratio)
 const w = canvas.width / ratio;
@@ -28,12 +28,12 @@ Sequence.fromStatement("repeat 15,20,25 AS SIZE");
 function draw(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, w, h);
 
-  const distrib1 = new Stamp(new Ray(w/2 - 200, h/2 -200, 0))
+  const distrib1 = new Stamp(new Ray(w/2 - 200, h/2 -300, 0))
     .circle({ 
-      radius: 6,
+      radius: 10,
       align: ShapeAlignment.CENTER,
       distribute: {
-        type: "grid2",
+        type: "grid",
         columns: 10,
         rows: 10,
         columnSpacing: 30,
@@ -42,26 +42,26 @@ function draw(ctx: CanvasRenderingContext2D) {
       }
     });
 
-  const distrib2 = new Stamp(new Ray(w/2 + 200, h/2 -200, 0))
+  const distrib2 = new Stamp(new Ray(w/2 + 200, h/2 -300, 0))
     .circle({ 
-      radius: 6,
+      radius: 12,
       align: ShapeAlignment.CENTER,
       distribute: {
         type: "phyllotaxis",
         count: 70,
-        scaleFactor: 10,
+        scaleFactor: 16,
         itemScaleFalloff: 1.5,
         skipFirst: 10,
       }
     });
 
-  const distrib3 = new Stamp(new Ray(w/2 - 200, h/2 +200, 0))
+  const distrib3 = new Stamp(new Ray(w/2 - 200, h/2 +0, 0))
     .circle({ 
       radius: "SIZE()",
       align: ShapeAlignment.CENTER,
       distribute: {
         type: "attractor",
-        particleCount: 20,
+        particleCount: 42,
         initialRadius: 200,
         simulationSteps: 1000,
         hexSpacing: 40,
@@ -72,7 +72,7 @@ function draw(ctx: CanvasRenderingContext2D) {
       }
     });
     
-    const distrib4 = new Stamp(new Ray(w/2 + 200, h/2 +200, 0))
+  const distrib4 = new Stamp(new Ray(w/2 + 200, h/2 +0, 0))
     .circle({ 
       radius: 10,
       align: ShapeAlignment.CENTER,
@@ -82,13 +82,45 @@ function draw(ctx: CanvasRenderingContext2D) {
         minDistance: 25,
         width: 200,
         height: 200,
+        seed: 121,
+        itemScaleFalloff: 1.5,
       }
     });
+
+  const distrib5 = new Stamp(new Ray(w/2 - 200, h/2 + 300, 0))
+    .circle({ 
+      radius: 10,
+      align: ShapeAlignment.CENTER,
+      distribute: {
+        type: "poincare",
+        count: 50,
+        radius: 100,
+        density: 0.5,
+        seed: 120,
+        itemScaleFalloff: 1.5,
+      }
+    });
+    
+  const distrib6 = new Stamp(new Ray(w/2 + 200, h/2 + 300, 0))
+    .circle({ 
+      radius: 10,
+      align: ShapeAlignment.CENTER,
+      distribute: {
+        type: 'hexagonal',
+        columns: 10,
+        rows: 10,
+        spacing: 30,
+        itemScaleFalloff: 1.5,
+      }
+    });
+
 
   drawShape(ctx, distrib1, 0);
   drawShape(ctx, distrib2, 0);
   drawShape(ctx, distrib3, 0);
   drawShape(ctx, distrib4, 0);
+  drawShape(ctx, distrib5, 0);
+  drawShape(ctx, distrib6, 0);
 }
 
 async function main() {

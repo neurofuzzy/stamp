@@ -1,4 +1,4 @@
-import { GridDistributeHandler, GridDistributeHandler2 } from "./distribute-grid";
+import { GridDistributeHandler } from "./distribute-grid";
 import { 
   PhyllotaxisDistributeHandler,
   HexagonalDistributeHandler,
@@ -9,7 +9,6 @@ import {
 } from "./distribute-advanced";
 import { 
   IGridDistributeParams,
-  IGrid2DistributeParams,
   IDistributeHandler, 
   IDistributeParams,
   IPhyllotaxisDistributeParams,
@@ -20,7 +19,7 @@ import {
   IPoissonDiskDistributeParams
 } from "./distribute-interfaces";
 
-export { GridDistributeHandler, GridDistributeHandler2 } from "./distribute-grid";
+export { GridDistributeHandler } from "./distribute-grid";
 export { 
   PhyllotaxisDistributeHandler,
   HexagonalDistributeHandler,
@@ -33,7 +32,6 @@ export {
 export type { 
   IDistributeHandler,
   IGridDistributeParams,
-  IGrid2DistributeParams,
   IPhyllotaxisDistributeParams,
   IHexagonalDistributeParams,
   ITriangularDistributeParams,
@@ -46,8 +44,6 @@ export const distributeHandlerFromParams = (params: IDistributeParams): IDistrib
   switch (params?.type) {
     case "grid":
       return new GridDistributeHandler(params as IGridDistributeParams);
-    case "grid2":
-      return new GridDistributeHandler2(params as IGrid2DistributeParams);
     case "phyllotaxis":
       return new PhyllotaxisDistributeHandler(params as IPhyllotaxisDistributeParams);
     case "hexagonal":

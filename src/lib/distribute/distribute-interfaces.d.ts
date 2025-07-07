@@ -3,26 +3,14 @@ import { IStyle } from "../../geom/core";
 import { Stamp } from "../stamp";
 import { IShapeParams, IShapeContext } from "../stamp-interfaces";
 
-// distribute params
-
 export interface IDistributeParams {
   type: string;
 }
 
-export interface IShapeDistributeParams {
-  shape: IShape;
-  style?: IStyle;
+export interface IDistributeHandler {
+  getCenters(): Ray[];
+  arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void;
 }
-
-export interface IStampDistributeParams {
-  stamp: Stamp;
-  stampSeed?: string | number;
-  scale?: string | number;
-  distributeSeed?: number;
-}
-
-
-// grid distribute params
 
 export interface IGridDistributeParams extends IDistributeParams {
   type: "grid";
@@ -34,70 +22,7 @@ export interface IGridDistributeParams extends IDistributeParams {
   rowPadding?: string | number;
   offsetAlternateRows?: boolean;
   negateOffsetX?: boolean;
-}
-
-export interface IGrid2DistributeParams extends IDistributeParams {
-  type: "grid2";
-  columns: string | number;
-  rows: string | number;
-  columnSpacing: string | number;
-  rowSpacing: string | number;
-  columnPadding?: string | number;
-  rowPadding?: string | number;
-  offsetAlternateRows?: boolean;
-  negateOffsetX?: boolean;
   itemScaleFalloff?: string | number;
-}
-
-export interface IGridShapeDistributeParams extends IGridDistributeParams, IShapeDistributeParams {}
-
-export interface IGridStampDistributeParams extends IGridDistributeParams, IStampDistributeParams {}
-
-
-// scatter distribute params
-
-export interface IScatterDistributeParams extends IDistributeParams {
-  container: IShape;
-  maxShapes: string | number;
-  minSpacing: string | number;
-  padding: string | number;
-}
-
-export interface IScatterShapeDistributeParams extends IScatterDistributeParams, IShapeDistributeParams {}
-
-
-// circle grid distribute params
-
-export interface ICircleGridDistributeParams extends IDistributeParams {
-  rings: string | number;
-  numPerRing: string | number;
-  spacing: string | number;
-}
-
-export interface ICircleGridShapeDistributeParams extends ICircleGridDistributeParams, IShapeDistributeParams {}
-
-export interface ICircleGridStampDistributeParams extends ICircleGridDistributeParams, IStampDistributeParams {}
-
-
-// circle packing distribute params
-
-export interface ICirclePackingDistributeParams extends IDistributeParams {
-  radius: string | number;
-  count: string | number;
-  padding?: string | number;
-  /** number between 0 - 100 */
-  spherify?: string | number;
-}
-
-export interface ICirclePackingShapeDistributeParams extends ICirclePackingDistributeParams, IShapeDistributeParams {}
-
-export interface ICirclePackingStampDistributeParams extends ICirclePackingDistributeParams, IStampDistributeParams {}
-
-// distribute handlers
-
-export interface IDistributeHandler {
-  getCenters(): Ray[];
-  arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void;
 }
 
 export interface IPhyllotaxisDistributeParams extends IDistributeParams {
@@ -127,7 +52,6 @@ export interface IAttractorDistributeParams extends IDistributeParams {
   simulationSteps?: string | number;
   itemScaleFalloff?: string | number;
   padding?: string | number;
-  seed?: string | number;
 }
 
 export interface IPoincareDistributeParams extends IDistributeParams {
@@ -136,6 +60,7 @@ export interface IPoincareDistributeParams extends IDistributeParams {
   radius?: string | number;
   density?: string | number;
   itemScaleFalloff?: string | number;
+  seed?: string | number;
 }
 
 export interface IPoissonDiskDistributeParams extends IDistributeParams {
@@ -157,10 +82,6 @@ export interface ITriangularDistributeParams extends IDistributeParams {
 
 export type IDistribution =
   | IGridDistributeParams
-  | IGrid2DistributeParams
-  | IScatterDistributeParams
-  | ICircleGridDistributeParams
-  | ICirclePackingDistributeParams
   | IPhyllotaxisDistributeParams
   | IHexagonalDistributeParams
   | IAttractorDistributeParams

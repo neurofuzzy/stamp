@@ -4,7 +4,6 @@ import { resolveStringOrNumber } from "../stamp-helpers";
 import { IShapeContext, IShapeParams } from "../stamp-interfaces";
 import { GeomHelpers } from "../../geom/helpers";
 import * as arbit from "arbit";
-import { Sequence } from "../sequence";
 
 const $ = resolveStringOrNumber;
 
@@ -464,10 +463,11 @@ export class HexagonalDistributeHandler implements IDistributeHandler {
     const falloffStrength = this._resolvedParams.itemScaleFalloff as number;
     const spacing = this._resolvedParams.spacing as number;
     const maxDistance = spacing * Math.max(this._resolvedParams.columns as number, this._resolvedParams.rows as number) || 1;
-    
+    const bb = GeomHelpers.pointsBoundingBox(this._positions as Point[]);
     shapes.forEach((shape, index) => {
       if (index < this._positions.length) {
-        const position = this._positions[index];
+        const position = { x: this._positions[index].x - bb.width / 2, y: this._positions[index].y - bb.height / 2 };
+        
         const distance = Math.sqrt(position.x * position.x + position.y * position.y);
         const falloffScale = 1 - (distance / maxDistance) * falloffStrength;
         
@@ -523,10 +523,10 @@ export class TriangularDistributeHandler implements IDistributeHandler {
     const falloffStrength = this._resolvedParams.itemScaleFalloff as number;
     const spacing = this._resolvedParams.spacing as number;
     const maxDistance = spacing * Math.max(this._resolvedParams.columns as number, this._resolvedParams.rows as number) || 1;
-    
+    const bb = GeomHelpers.pointsBoundingBox(this._positions as Point[]);
     shapes.forEach((shape, index) => {
       if (index < this._positions.length) {
-        const position = this._positions[index];
+        const position = { x: this._positions[index].x - bb.width / 2, y: this._positions[index].y - bb.height / 2 };
         const distance = Math.sqrt(position.x * position.x + position.y * position.y);
         const falloffScale = 1 - (distance / maxDistance) * falloffStrength;
         
@@ -568,8 +568,7 @@ export class AttractorDistributeHandler implements IDistributeHandler {
       damping: $(params?.damping) || 0.95,
       simulationSteps: $(params?.simulationSteps) || 100,
       itemScaleFalloff: $(params?.itemScaleFalloff) || 0,
-      padding: $(params?.padding) || 0,
-      seed: $(params?.seed) || 1234,
+      padding: $(params?.padding) || 0
     };
   }
 
@@ -588,10 +587,9 @@ export class AttractorDistributeHandler implements IDistributeHandler {
     const simulationSteps = Math.round(this._resolvedParams.simulationSteps as number);
     const falloffStrength = this._resolvedParams.itemScaleFalloff as number;
     const padding = this._resolvedParams.padding as number;
-    const seed = this._resolvedParams.seed as number;
-    
+
     // Reset sequences with seed for deterministic behavior (following nodeProcessor pattern)
-    Sequence.resetAll(seed);
+    //Sequence.resetAll(seed);
     
     // FIXED: Calculate proper item scales for collision detection without hexSpacing feedback loop
     // The key insight: itemScales should represent the actual collision radius in world units, not relative to hexSpacing
@@ -688,6 +686,7 @@ export class PoincareDistributeHandler implements IDistributeHandler {
       count: $(params?.count) || 80,
       radius: $(params?.radius) || 150,
       density: $(params?.density) || 0.5,
+      seed: $(params?.seed) || 1234,
       itemScaleFalloff: $(params?.itemScaleFalloff) || 0,
     };
   }
@@ -696,8 +695,9 @@ export class PoincareDistributeHandler implements IDistributeHandler {
     const count = Math.round(this._resolvedParams.count as number);
     const radius = this._resolvedParams.radius as number;
     const density = this._resolvedParams.density as number;
+    const seed = this._resolvedParams.seed as number;
     
-    this._positions = generatePoincareDiscPoints(count, radius, density);
+    this._positions = generatePoincareDiscPoints(count, radius, density, { x: 0, y: 0 }, seed);
     
     return this._positions.map(() => new Ray(0, 0, 0));
   }
