@@ -115,7 +115,7 @@ const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
       style,
       distribute: {
         type: "attractor",
-        particleCount: 42,
+        count: 38,
         initialRadius: 200,
         simulationSteps: 1000,
         hexSpacing: 40,
@@ -135,7 +135,7 @@ const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
       style,
       distribute: {
         type: 'poisson-disk',
-        maxPoints: 100,
+        count: 100,
         minDistance: 25,
         width: 200,
         height: 200,

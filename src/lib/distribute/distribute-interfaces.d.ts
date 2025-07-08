@@ -12,7 +12,35 @@ export interface IDistributeHandler {
   arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void;
 }
 
-export interface IGridDistributeParams extends IDistributeParams {
+// Base interfaces for common parameter groups
+export interface IScaleFalloffParams {
+  itemScaleFalloff?: string | number;
+}
+
+export interface IGridLayoutParams {
+  columns?: string | number;
+  rows?: string | number;
+  spacing?: string | number;
+}
+
+export interface ICountBasedParams {
+  count?: string | number;
+}
+
+export interface IRandomizedParams {
+  seed?: string | number;
+}
+
+export interface IDimensionParams {
+  width?: string | number;
+  height?: string | number;
+}
+
+export interface IPaddingParams {
+  padding?: string | number;
+}
+
+export interface IGridDistributeParams extends IDistributeParams, IScaleFalloffParams {
   type: "grid";
   columns: string | number;
   rows: string | number;
@@ -22,63 +50,43 @@ export interface IGridDistributeParams extends IDistributeParams {
   rowPadding?: string | number;
   offsetAlternateRows?: boolean;
   negateOffsetX?: boolean;
-  itemScaleFalloff?: string | number;
 }
 
-export interface IPhyllotaxisDistributeParams extends IDistributeParams {
+export interface IPhyllotaxisDistributeParams extends IDistributeParams, IScaleFalloffParams, ICountBasedParams {
   type: "phyllotaxis";
-  count?: string | number;
   angle?: string | number;
   scaleFactor?: string | number;
-  itemScaleFalloff?: string | number;
   skipFirst?: string | number;
 }
 
-export interface IHexagonalDistributeParams extends IDistributeParams {
+export interface IHexagonalDistributeParams extends IDistributeParams, IScaleFalloffParams, IGridLayoutParams {
   type: "hexagonal";
-  columns?: string | number;
-  rows?: string | number;
-  spacing?: string | number;
-  itemScaleFalloff?: string | number;
 }
 
-export interface IAttractorDistributeParams extends IDistributeParams {
+export interface IAttractorDistributeParams extends IDistributeParams, IScaleFalloffParams, IPaddingParams {
   type: "attractor";
-  particleCount?: string | number;
+  count?: string | number;
   initialRadius?: string | number;
   hexSpacing?: string | number;
   strength?: string | number;
   damping?: string | number;
   simulationSteps?: string | number;
-  itemScaleFalloff?: string | number;
-  padding?: string | number;
 }
 
-export interface IPoincareDistributeParams extends IDistributeParams {
+export interface IPoincareDistributeParams extends IDistributeParams, IScaleFalloffParams, ICountBasedParams, IRandomizedParams {
   type: "poincare";
-  count?: string | number;
   radius?: string | number;
   density?: string | number;
-  itemScaleFalloff?: string | number;
-  seed?: string | number;
 }
 
-export interface IPoissonDiskDistributeParams extends IDistributeParams {
+export interface IPoissonDiskDistributeParams extends IDistributeParams, IScaleFalloffParams, IRandomizedParams, IDimensionParams {
   type: "poisson-disk";
-  width?: string | number;
-  height?: string | number;
   minDistance?: string | number;
-  maxPoints?: string | number;
-  seed?: string | number;
-  itemScaleFalloff?: string | number;
+  count?: string | number;
 }
 
-export interface ITriangularDistributeParams extends IDistributeParams {
+export interface ITriangularDistributeParams extends IDistributeParams, IScaleFalloffParams, IGridLayoutParams {
   type: "triangular";
-  columns?: string | number;
-  rows?: string | number;
-  spacing?: string | number;
-  itemScaleFalloff?: string | number;
 }
 
 export type IDistribution =

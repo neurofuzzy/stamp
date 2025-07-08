@@ -235,7 +235,7 @@ const generatePoincareDiscPoints = (
 };
 
 const simulateAttractorPhysics = (
-  particleCount: number,
+  count: number,
   initialRadius: number,
   hexSpacing: number,
   strength: number,
@@ -271,7 +271,7 @@ const simulateAttractorPhysics = (
   }
   
   allHexPoints.sort((a, b) => a.distance - b.distance);
-  const selectedPoints = allHexPoints.slice(0, particleCount).map(item => item.point);
+  const selectedPoints = allHexPoints.slice(0, count).map(item => item.point);
   
   // Initialize particles with hexagonal positions and variable radius
   const particles: Particle[] = selectedPoints.map((point, index) => {
@@ -562,7 +562,7 @@ export class AttractorDistributeHandler implements IDistributeHandler {
   constructor(params: IAttractorDistributeParams) {
     this._resolvedParams = {
       ...params,
-      particleCount: $(params?.particleCount) || 50,
+      count: $(params?.count) || 50,
       initialRadius: $(params?.initialRadius) || 200,
       hexSpacing: $(params?.hexSpacing) || 40,
       strength: $(params?.strength) || 5,
@@ -574,13 +574,13 @@ export class AttractorDistributeHandler implements IDistributeHandler {
   }
 
   getCenters(): Ray[] {
-    const particleCount = Math.round(this._resolvedParams.particleCount as number);
+    const count = Math.round(this._resolvedParams.count as number);
     
-    return Array(particleCount).fill(0).map(() => new Ray(0, 0, 0));
+    return Array(count).fill(0).map(() => new Ray(0, 0, 0));
   }
 
   arrangeShapes(shapes: IShape[], params: IShapeParams, context: IShapeContext): void {
-    const particleCount = Math.round(this._resolvedParams.particleCount as number);
+    const count = Math.round(this._resolvedParams.count as number);
     const initialRadius = this._resolvedParams.initialRadius as number;
     const hexSpacing = this._resolvedParams.hexSpacing as number;
     const strength = this._resolvedParams.strength as number;
@@ -595,7 +595,7 @@ export class AttractorDistributeHandler implements IDistributeHandler {
     // FIXED: Calculate proper item scales for collision detection without hexSpacing feedback loop
     // The key insight: itemScales should represent the actual collision radius in world units, not relative to hexSpacing
     const itemScales: number[] = [];
-    for (let i = 0; i < particleCount; i++) {
+    for (let i = 0; i < count; i++) {
       if (i < shapes.length) {
         const shape = shapes[i];
         // Get the actual size from the shape's bounding circle
@@ -623,7 +623,7 @@ export class AttractorDistributeHandler implements IDistributeHandler {
     // Run physics simulation with pre-calculated item scales and seed for determinism
     // The falloffStrength is applied within the physics simulation to the initial hex grid
     this._particles = simulateAttractorPhysics(
-      particleCount,
+      count,
       initialRadius,
       hexSpacing,
       strength,
@@ -747,7 +747,7 @@ export class PoissonDiskDistributeHandler implements IDistributeHandler {
       width: $(params?.width) || 400,
       height: $(params?.height) || 400,
       minDistance: $(params?.minDistance) || 30,
-      maxPoints: $(params?.maxPoints) || 100,
+      count: $(params?.count) || 100,
       seed: $(params?.seed) || 1234,
       itemScaleFalloff: $(params?.itemScaleFalloff) || 0,
     };
@@ -757,7 +757,7 @@ export class PoissonDiskDistributeHandler implements IDistributeHandler {
     const width = this._resolvedParams.width as number;
     const height = this._resolvedParams.height as number;
     const minDistance = this._resolvedParams.minDistance as number;
-    const maxPoints = Math.round(this._resolvedParams.maxPoints as number);
+    const maxPoints = Math.round(this._resolvedParams.count as number);
     const seed = this._resolvedParams.seed as number;
     
     this._positions = generatePoissonDisk(width, height, minDistance, maxPoints, seed);
