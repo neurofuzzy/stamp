@@ -11,10 +11,7 @@ import {
   ShapeAlignment,
 } from "../geom/core";
 import { GeomHelpers } from "../geom/helpers";
-import {
-  AbstractShape,
-  Polygon,
-} from "../geom/shapes";
+import { AbstractShape, Polygon } from "../geom/shapes";
 import { ClipperHelpers } from "./clipper-helpers";
 import { Optimize } from "./optimize";
 import { StampProvider } from "./stamp-provider";
@@ -62,22 +59,12 @@ import {
   IPathParams,
 } from "./stamp-interfaces";
 import { defaultShapeRegistry } from "./stamp-shape-handlers";
+import * as StampConstants from "./stamp-constants";
+import { clipUnclippedShapes } from "./shape-clipper";
 
 const $ = resolveStringOrNumber;
 
 export class Stamp extends AbstractShape implements IShapeContext {
-  static readonly NONE = 0;
-  static readonly UNION = 1;
-  static readonly SUBTRACT = 2;
-  static readonly INTERSECT = 3;
-
-  // Constants for clipping operations
-  private static readonly CLIPPER_SCALE_FACTOR = 100000;
-  private static readonly ARC_TOLERANCE = 5000;
-  private static readonly MAX_NODES_LIMIT = 8192;
-  private static readonly BOUNDS_TOLERANCE = 1.1;
-  private static readonly GROUP_OFFSET_FACTOR = 0.5;
-
   private _nodes: INode[] = [];
   private _tree: clipperLib.PolyTree | null = null;
   private _polys: Polygon[] = [];
@@ -93,7 +80,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
   private _overrideBounds: BoundingBox | null = null;
   private _flipBeforeClip: boolean = false;
   private _styleMap: IStyleMap[] = [];
-  private _mode: number = Stamp.UNION;
+  private _mode: number = StampConstants.UNION;
   private _cursor: Ray = new Ray(0, 0, 0);
   private _cursorHistory: Ray[] = [];
   private _cursorBounds: BoundingBox = new BoundingBox(0, 0, 0, 0);
@@ -106,7 +93,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     center?: Ray,
     alignment: ShapeAlignment = ShapeAlignment.CENTER,
     reverse: boolean = false,
-    shapeRegistry?: IShapeHandlerRegistry,
+    shapeRegistry?: IShapeHandlerRegistry
   ) {
     super(center, 1, alignment, reverse);
     this._shapeRegistry = shapeRegistry || defaultShapeRegistry;
@@ -120,8 +107,8 @@ export class Stamp extends AbstractShape implements IShapeContext {
         this.center.y,
         Math.max(
           this._overrideBounds.width * scale,
-          this._overrideBounds.height * scale,
-        ) / 2,
+          this._overrideBounds.height * scale
+        ) / 2
       );
     }
     return super.boundingCircle();
@@ -134,7 +121,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
         this.center.x - (this._overrideBounds.width / 2) * scale,
         this.center.y - (this._overrideBounds.height / 2) * scale,
         this._overrideBounds.width * scale,
-        this._overrideBounds.height * scale,
+        this._overrideBounds.height * scale
       );
     }
     return super.boundingBox();
@@ -145,7 +132,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     this._polys = [];
     this._unclippedShapes = [];
     this._styleMap = [];
-    this._mode = Stamp.UNION;
+    this._mode = StampConstants.UNION;
     this._baked = false;
     this._cursor.x = this._cursor.y = this._cursor.direction = 0;
     this._cursorHistory = [];
@@ -156,15 +143,15 @@ export class Stamp extends AbstractShape implements IShapeContext {
   }
 
   private _add() {
-    this._mode = Stamp.UNION;
+    this._mode = StampConstants.UNION;
   }
 
   private _subtract() {
-    this._mode = Stamp.SUBTRACT;
+    this._mode = StampConstants.SUBTRACT;
   }
 
   private _intersect() {
-    this._mode = Stamp.INTERSECT;
+    this._mode = StampConstants.INTERSECT;
   }
 
   private _boolean(type: string | number) {
@@ -173,19 +160,19 @@ export class Stamp extends AbstractShape implements IShapeContext {
     }
     switch (type) {
       case 0:
-        this._mode = Stamp.NONE;
+        this._mode = StampConstants.NONE;
         break;
       case 1:
-        this._mode = Stamp.UNION;
+        this._mode = StampConstants.UNION;
         break;
       case 2:
-        this._mode = Stamp.SUBTRACT;
+        this._mode = StampConstants.SUBTRACT;
         break;
       case 3:
-        this._mode = Stamp.INTERSECT;
+        this._mode = StampConstants.INTERSECT;
         break;
       default:
-        this._mode = Stamp.UNION;
+        this._mode = StampConstants.UNION;
         break;
     }
   }
@@ -221,7 +208,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     x: number,
     y: number,
     width: number,
-    height: number,
+    height: number
   ) {
     this._cursorBounds.x = x;
     this._cursorBounds.y = y;
@@ -293,7 +280,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     const rdeg = $(r);
     const rn = (rdeg * Math.PI) / 180;
     this._cursor.direction = GeomHelpers.normalizeAngle(
-      this._cursor.direction + rn,
+      this._cursor.direction + rn
     );
   }
 
@@ -354,274 +341,14 @@ export class Stamp extends AbstractShape implements IShapeContext {
     this._currentBounds = GeomHelpers.shapesBoundingBox(
       this._unclippedShapes
         .slice(this._boundsStart, this._boundsEnd)
-        .map((s) => s.shape),
+        .map((s) => s.shape)
     );
-  }
-
-  private _clipShapes() {
-    for (let i = 0; i < this._unclippedShapes.length; i++) {
-      let g = this._unclippedShapes[i].shape;
-      let outln = this._unclippedShapes[i].outln;
-      let mode = this._unclippedShapes[i].mode;
-      let scale = this._unclippedShapes[i].scale;
-
-      if (g.style && g.style !== AbstractShape.defaultStyle) {
-        const style = resolveStyle(g.style);
-        if (mode !== Stamp.SUBTRACT && !g.hidden) {
-          this._styleMap.push({
-            bounds: g.boundingBox(),
-            style,
-          });
-        }
-      }
-
-      let gbb = g.boundingBox();
-      if (gbb.width === 0 || gbb.height === 0) {
-        continue;
-      }
-
-      let b: clipperLib.SubjectInput;
-      let b2 = null;
-
-      switch (mode) {
-        case Stamp.NONE:
-          if (!this._polys) {
-            this._polys = [];
-          }
-          this._polys.push(new Polygon(g.center, g.generate()));
-          break;
-        case Stamp.UNION:
-          if (this._tree) {
-            b2 = ClipperHelpers.shapeToClipperPaths(g, scale);
-            if (g.hidden) {
-              continue;
-            }
-            if (outln > 0) {
-              const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: outln * Stamp.CLIPPER_SCALE_FACTOR,
-                offsetInputs: [
-                  {
-                    data: b2.data,
-                    joinType: clipperLib.JoinType.Miter,
-                    endType: clipperLib.EndType.ClosedPolygon,
-                  },
-                ],
-              });
-              if (offsetResult) {
-                let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-                let offsetPaths =
-                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
-                const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                  clipType: clipperLib.ClipType.Difference,
-                  subjectInputs: [{ data: paths, closed: true }],
-                  clipInputs: [{ data: offsetPaths }],
-                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
-                });
-                this._tree = polyResult;
-              } else {
-                console.log("error offseting", outln);
-              }
-            } else if (outln < 0) {
-              const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
-                offsetInputs: [
-                  {
-                    data: b2.data,
-                    joinType: clipperLib.JoinType.Round,
-                    endType: clipperLib.EndType.ClosedPolygon,
-                  },
-                ],
-                arcTolerance: Stamp.ARC_TOLERANCE,
-              });
-              if (offsetResult) {
-                let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-                let offsetPaths =
-                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
-                const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                  clipType: clipperLib.ClipType.Union,
-                  subjectInputs: [{ data: paths, closed: true }],
-                  clipInputs: [{ data: offsetPaths }],
-                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
-                });
-                this._tree = polyResult;
-              } else {
-                console.log("error offseting", outln);
-              }
-            }
-            let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-            const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-              clipType: clipperLib.ClipType.Union,
-              subjectInputs: [{ data: paths, closed: true }],
-              clipInputs: [b2],
-              subjectFillType: clipperLib.PolyFillType.EvenOdd,
-            });
-            this._tree = polyResult;
-          } else {
-            b = ClipperHelpers.shapeToClipperPaths(g, scale);
-            if (g.hidden) {
-              continue;
-            }
-            let polyResult: clipperLib.PolyTree;
-
-            try {
-              polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                clipType: clipperLib.ClipType.Union,
-                subjectInputs: [b],
-                subjectFillType: clipperLib.PolyFillType.EvenOdd,
-              });
-              if (polyResult) {
-                this._tree = polyResult;
-                if (outln < 0) {
-                  const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                    delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
-                    offsetInputs: [
-                      {
-                        data: b.data,
-                        joinType: clipperLib.JoinType.Round,
-                        endType: clipperLib.EndType.ClosedPolygon,
-                      },
-                    ],
-                    arcTolerance: Stamp.ARC_TOLERANCE,
-                  });
-                  if (offsetResult) {
-                    let paths = ClipperHelpers.clipper.polyTreeToPaths(
-                      this._tree,
-                    );
-                    let offsetPaths =
-                      ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
-                    const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                      clipType: clipperLib.ClipType.Union,
-                      subjectInputs: [{ data: paths, closed: true }],
-                      clipInputs: [{ data: offsetPaths }],
-                      subjectFillType: clipperLib.PolyFillType.EvenOdd,
-                    });
-                    this._tree = polyResult;
-                  } else {
-                    console.log("error offseting", outln);
-                  }
-                }
-              }
-            } catch (e) {
-              console.log("error unioning", e);
-            }
-          }
-          break;
-
-        case Stamp.SUBTRACT:
-          if (this._tree) {
-            b2 = ClipperHelpers.shapeToClipperPaths(g, scale);
-            if (g.hidden) {
-              continue;
-            }
-
-            if (outln > 0) {
-              const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: outln * Stamp.CLIPPER_SCALE_FACTOR,
-                offsetInputs: [
-                  {
-                    data: b2.data,
-                    joinType: clipperLib.JoinType.Miter,
-                    endType: clipperLib.EndType.ClosedPolygon,
-                  },
-                ],
-              });
-              if (offsetResult) {
-                let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-                let offsetPaths =
-                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
-                const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                  clipType: clipperLib.ClipType.Union,
-                  subjectInputs: [{ data: paths, closed: true }],
-                  clipInputs: [{ data: offsetPaths }],
-                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
-                });
-                this._tree = polyResult;
-              } else {
-                console.log("error offseting", outln);
-              }
-            } else if (outln < 0) {
-              const offsetResult = ClipperHelpers.clipper.offsetToPolyTree({
-                delta: -outln * Stamp.CLIPPER_SCALE_FACTOR,
-                offsetInputs: [
-                  {
-                    data: b2.data,
-                    joinType: clipperLib.JoinType.Round,
-                    endType: clipperLib.EndType.ClosedPolygon,
-                  },
-                ],
-                arcTolerance: Stamp.ARC_TOLERANCE,
-              });
-              if (offsetResult) {
-                let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-                let offsetPaths =
-                  ClipperHelpers.clipper.polyTreeToPaths(offsetResult);
-                const polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                  clipType: clipperLib.ClipType.Difference,
-                  subjectInputs: [{ data: paths, closed: true }],
-                  clipInputs: [{ data: offsetPaths }],
-                  subjectFillType: clipperLib.PolyFillType.EvenOdd,
-                });
-                this._tree = polyResult;
-              } else {
-                console.log("error offseting", outln);
-              }
-            }
-
-            let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-
-            let polyResult: clipperLib.PolyTree;
-
-            try {
-              polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                clipType: clipperLib.ClipType.Difference,
-                subjectInputs: [{ data: paths, closed: true }],
-                clipInputs: [b2],
-                subjectFillType: clipperLib.PolyFillType.EvenOdd,
-              });
-              if (polyResult) {
-                this._tree = polyResult;
-              }
-            } catch (e) {
-              console.log("error subtracting", e);
-            }
-          }
-          break;
-
-        case Stamp.INTERSECT:
-          if (this._tree) {
-            b2 = ClipperHelpers.shapeToClipperPaths(g, scale);
-            if (g.hidden) {
-              continue;
-            }
-            let paths = ClipperHelpers.clipper.polyTreeToPaths(this._tree);
-
-            let polyResult: clipperLib.PolyTree;
-
-            try {
-              polyResult = ClipperHelpers.clipper.clipToPolyTree({
-                clipType: clipperLib.ClipType.Intersection,
-                subjectInputs: [{ data: paths, closed: true }],
-                clipInputs: [b2],
-                subjectFillType: clipperLib.PolyFillType.EvenOdd,
-              });
-              if (polyResult) {
-                this._tree = polyResult;
-              }
-            } catch (e) {
-              console.log("error intersecting", e);
-            }
-          }
-          break;
-      }
-    }
-
-    return this;
   }
 
   private _getGroupOffset(nx = 1, ny = 1, spx = 0, spy = 0): Point {
     const pt = new Point(0, 0);
-    pt.x = (nx - 1) * spx * Stamp.GROUP_OFFSET_FACTOR;
-    pt.y = (ny - 1) * spy * Stamp.GROUP_OFFSET_FACTOR;
+    pt.x = (nx - 1) * spx * StampConstants.GROUP_OFFSET_FACTOR;
+    pt.y = (ny - 1) * spy * StampConstants.GROUP_OFFSET_FACTOR;
     return pt;
   }
 
@@ -630,7 +357,11 @@ export class Stamp extends AbstractShape implements IShapeContext {
     return this._getGroupOffset(nx, ny, spx, spy);
   }
 
-  make(shapes: IShape[], outlineThickness: number = 0, scale: number = 1): void {
+  make(
+    shapes: IShape[],
+    outlineThickness: number = 0,
+    scale: number = 1
+  ): void {
     this._make(shapes, outlineThickness, scale);
   }
 
@@ -659,7 +390,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
   /**
    * Helper method to add shape nodes with consistent processing
    */
-  private _addShapeNode<T extends { tag?: string }>(functionName: string, params: T): this {
+  private _addShapeNode<T extends { tag?: string }>(
+    functionName: string,
+    params: T
+  ): this {
     const processedParams = paramsWithDefaults<T>(params);
     this._nodes.push({
       fName: functionName,
@@ -680,7 +414,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
   }
 
   noBoolean() {
-    this._nodes.push({ fName: "_boolean", args: [Stamp.NONE] });
+    this._nodes.push({ fName: "_boolean", args: [StampConstants.NONE] });
     return this;
   }
 
@@ -730,7 +464,12 @@ export class Stamp extends AbstractShape implements IShapeContext {
   }
 
   setBounds(params: ISetBoundsParams) {
-    this._overrideBounds = new BoundingBox(0, 0, $(params.width), $(params.height));
+    this._overrideBounds = new BoundingBox(
+      0,
+      0,
+      $(params.width),
+      $(params.height)
+    );
     return this;
   }
 
@@ -753,7 +492,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
   }
 
   moveOver(params: IMoveOverParams) {
-    this._nodes.push({ fName: "_moveOver", args: [params.direction, params.percentage || 1] });
+    this._nodes.push({
+      fName: "_moveOver",
+      args: [params.direction, params.percentage || 1],
+    });
     return this;
   }
 
@@ -836,7 +578,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
    * @returns
    */
   crop(params: ICropParams) {
-    this._nodes.push({ fName: "_crop", args: [params.x, params.y, params.width, params.height] });
+    this._nodes.push({
+      fName: "_crop",
+      args: [params.x, params.y, params.width, params.height],
+    });
     return this;
   }
 
@@ -886,12 +631,12 @@ export class Stamp extends AbstractShape implements IShapeContext {
   stamp(params: IStampParams) {
     const newParams: IStampParams = { ...params };
     if (newParams.subStamp) {
-        if (newParams.subStamp instanceof StampProvider) {
-            newParams.providerIndex = newParams.subStamp.instanceIndex();
-        } else {
-            newParams.subStampString = newParams.subStamp.toString();
-        }
-        delete newParams.subStamp;
+      if (newParams.subStamp instanceof StampProvider) {
+        newParams.providerIndex = newParams.subStamp.instanceIndex();
+      } else {
+        newParams.subStampString = newParams.subStamp.toString();
+      }
+      delete newParams.subStamp;
     }
     return this._addShapeNode("_stamp", newParams);
   }
@@ -905,7 +650,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
   }
 
   repeatLast(params: IRepeatLastParams) {
-    this._nodes.push({ fName: "_repeatLast", args: [params.steps, params.times || 1] });
+    this._nodes.push({
+      fName: "_repeatLast",
+      args: [params.steps, params.times || 1],
+    });
     return this;
   }
 
@@ -936,7 +684,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
     const scale = $(params.scale || 1);
     const optimize = params.optimize !== false;
     const mergeConnectedPaths = params.mergeConnectedPaths !== false;
-    
+
     if (!this._baked) {
       this.bake();
     }
@@ -960,7 +708,9 @@ export class Stamp extends AbstractShape implements IShapeContext {
     }
 
     if (scale !== 1) {
-      points.forEach((p) => GeomHelpers.scalePointRelativeToCenter(p, this.center, scale));
+      points.forEach((p) =>
+        GeomHelpers.scalePointRelativeToCenter(p, this.center, scale)
+      );
     }
 
     let seg = new Path(points);
@@ -986,14 +736,20 @@ export class Stamp extends AbstractShape implements IShapeContext {
       let styleArea = this._styleMap[i];
       for (let j = 0; j < this._polys.length; j++) {
         let poly = this._polys[j];
-        if (GeomHelpers.shapeWithinBoundingBox(poly, styleArea.bounds, Stamp.BOUNDS_TOLERANCE)) {
+        if (
+          GeomHelpers.shapeWithinBoundingBox(
+            poly,
+            styleArea.bounds,
+            StampConstants.BOUNDS_TOLERANCE
+          )
+        ) {
           poly.style = styleArea.style;
           mappedPolys.push(poly);
         }
       }
     }
     const unmappedPolys = this._polys.filter(
-      (poly) => !mappedPolys.includes(poly),
+      (poly) => !mappedPolys.includes(poly)
     );
     unmappedPolys.forEach((poly) => {
       poly.style = resolveStyle(this.style);
@@ -1028,6 +784,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
 
     this._baked = true;
 
+    if (!this._nodes) {
+      this._nodes = [];
+    }
+
     let nodes = this._nodes.concat();
     let i = nodes.length;
 
@@ -1053,7 +813,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
             i += steps;
           }
           nodes = tmp.concat(tmp2);
-          if (i > Stamp.MAX_NODES_LIMIT || nodes.length > Stamp.MAX_NODES_LIMIT) {
+          if (
+            i > StampConstants.MAX_NODES_LIMIT ||
+            nodes.length > StampConstants.MAX_NODES_LIMIT
+          ) {
             console.error("too many nodes");
             break;
           }
@@ -1081,6 +844,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
       _setCursorBounds: this._setCursorBounds,
       _stepBack: this._stepBack,
       _subtract: this._subtract,
+      _breakApart: this._breakApart,
     };
 
     let breakApartTimes = 0;
@@ -1088,14 +852,14 @@ export class Stamp extends AbstractShape implements IShapeContext {
     for (let i = 0; i < nodes.length; i++) {
       let fName = nodes[i].fName;
       let args = nodes[i].args;
-      
+
       if (fName === "_breakApart") {
         breakApartTimes++;
         continue;
       }
-      
+
       // Try shape handler first (convention: _shapeName -> shapeName handler)
-      if (fName.startsWith('_')) {
+      if (fName.startsWith("_")) {
         const handlerName = fName.substring(1); // Remove the underscore
         const handler = this._shapeRegistry.getHandler(handlerName);
         if (handler) {
@@ -1103,7 +867,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
           continue;
         }
       }
-      
+
       // Fallback to core private functions
       const fn: Function = privateFunctionMap[fName];
       if (fn) {
@@ -1115,7 +879,13 @@ export class Stamp extends AbstractShape implements IShapeContext {
       this._unclippedShapes.reverse();
     }
 
-    this._clipShapes();
+    const { tree, polys, styleMap } = clipUnclippedShapes(
+      this._unclippedShapes,
+      this._tree
+    );
+    this._tree = tree;
+    this._polys = polys;
+    this._styleMap = styleMap;
 
     if (this._tree) {
       if (this._cropBounds.width > 0 && this._cropBounds.height > 0) {
@@ -1127,7 +897,7 @@ export class Stamp extends AbstractShape implements IShapeContext {
         });
         const clipRect = ClipperHelpers.shapeToClipperPaths(
           new Polygon(new Ray(0, 0), pts),
-          1,
+          1
         );
         const polyResult = ClipperHelpers.clipper.clipToPolyTree({
           clipType: clipperLib.ClipType.Intersection,
@@ -1161,7 +931,9 @@ export class Stamp extends AbstractShape implements IShapeContext {
     };
 
     const applyScaleToPoly = (p: Polygon) => {
-      p.rays.forEach((r) => GeomHelpers.scalePointRelativeToCenter(r, this.center, this.scale));
+      p.rays.forEach((r) =>
+        GeomHelpers.scalePointRelativeToCenter(r, this.center, this.scale)
+      );
       p.children().forEach((child) => {
         if (child instanceof Polygon) {
           applyScaleToPoly(child as Polygon);
@@ -1204,7 +976,10 @@ export class Stamp extends AbstractShape implements IShapeContext {
     stamp.isHole = this.isHole;
     stamp.scale = this.scale;
     if (this._overrideBounds) {
-      stamp.setBounds({ width: this._overrideBounds.width, height: this._overrideBounds.height });
+      stamp.setBounds({
+        width: this._overrideBounds.width,
+        height: this._overrideBounds.height,
+      });
     }
     if (this._baked && this._tree) {
       // clone the tree by unioning it with an empty path
