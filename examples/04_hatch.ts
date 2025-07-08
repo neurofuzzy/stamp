@@ -1,14 +1,12 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { drawShapeWithChildren } from '../src/lib/draw';
 import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
-import { Hatch } from '../src/lib/hatch';
 import { Sequence } from '../src/lib/sequence';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
 import colors from 'nice-color-palettes';
-import { TangramType } from '../src/geom/tangram';
-import { HatchBooleanType, HatchPattern, HatchPatternType, LineHatchPattern, SinewaveHatchPattern } from '../src/geom/hatch-patterns';
+import { HatchBooleanType } from '../src/geom/hatch-patterns';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -86,22 +84,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
       divisions
     })
 
-  // draw children
-  grid.children().forEach(child => {
-    if (child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || child.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
-      const shape = Hatch.subtractHatchFromShape(child);
-      if (shape) drawShape(ctx, shape)
-    } else {
-      drawShape(ctx, child)
-    }
-  });
-  grid.children().forEach(child => {
-    if (child.style.hatchPattern && child.style.hatchBooleanType !== HatchBooleanType.DIFFERENCE && child.style.hatchBooleanType !== HatchBooleanType.INTERSECT) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern)
-        drawHatchPattern(ctx, fillPattern);
-    }
-  });
+  // draw children with automatic hatch handling
+  drawShapeWithChildren(ctx, grid);
 
 }
 

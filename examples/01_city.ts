@@ -1,8 +1,7 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { drawShapeWithChildren } from '../src/lib/draw';
 import { Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
-import { Hatch } from '../src/lib/hatch';
 import { Sequence } from '../src/lib/sequence';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
@@ -100,13 +99,7 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   //drawShape(ctx, city);
 
   // draw children
-  city.children().forEach(child => drawShape(ctx, child));
-  city.children().forEach(child => {
-    if (child.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern) drawHatchPattern(ctx, fillPattern);
-    }
-  });
+  drawShapeWithChildren(ctx, city);
 }
 
 document.onkeydown = function (e) {

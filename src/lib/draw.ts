@@ -1,4 +1,4 @@
-import { IHatchPattern } from "../geom/hatch-patterns";
+import { IHatchPattern, HatchBooleanType } from "../geom/hatch-patterns";
 import {
   BoundingBox,
   BoundingCircle,
@@ -12,6 +12,7 @@ import {
 import { GeomHelpers } from "../geom/helpers";
 import { Sequence } from "./sequence";
 import { Optimize } from "./optimize";
+import { Hatch } from "./hatch";
 
 const $ = (arg: unknown) =>
   typeof arg === "string"
@@ -313,4 +314,49 @@ export function drawPathGhosted(
       ctx.closePath();
     }
   }
+}
+
+/**
+ * Unified function to draw a shape with automatic hatch pattern handling
+ * This eliminates the need for manual conditional logic in user code
+ */
+export function drawShapeComplete(
+  ctx: CanvasRenderingContext2D,
+  shape: IShape,
+  optimize: boolean = false
+) {
+  // Handle shapes with special hatch boolean types (DIFFERENCE/INTERSECT)
+  if (shape.style.hatchBooleanType === HatchBooleanType.DIFFERENCE || 
+      shape.style.hatchBooleanType === HatchBooleanType.INTERSECT) {
+    const modifiedShape = Hatch.subtractHatchFromShape(shape);
+    if (modifiedShape) {
+      drawShape(ctx, modifiedShape);
+    }
+  } else {
+    // Draw the shape normally
+    drawShape(ctx, shape);
+  }
+
+  // Draw hatch patterns (only for non-DIFFERENCE/INTERSECT shapes)
+  if (shape.style.hatchPattern && 
+      shape.style.hatchBooleanType !== HatchBooleanType.DIFFERENCE && 
+      shape.style.hatchBooleanType !== HatchBooleanType.INTERSECT) {
+    const fillPattern = Hatch.applyHatchToShape(shape);
+    if (fillPattern) {
+      drawHatchPattern(ctx, fillPattern, optimize);
+    }
+  }
+}
+
+/**
+ * Convenience function to draw all children of a shape with complete hatch handling
+ */
+export function drawShapeWithChildren(
+  ctx: CanvasRenderingContext2D,
+  parentShape: IShape,
+  optimize: boolean = false
+) {
+  parentShape.children().forEach(child => {
+    drawShapeComplete(ctx, child, optimize);
+  });
 }

@@ -1,8 +1,8 @@
 import * as C2S from 'canvas2svg';
-import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { drawHatchPattern, drawShape, drawShapeWithChildren } from '../src/lib/draw';
 import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
-import { Hatch } from '../src/lib/hatch';
+
 import { Sequence } from '../src/lib/sequence';
 import { Stamp } from '../src/lib/stamp';
 import '../src/style.css';
@@ -76,14 +76,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     .repeatLast({ steps: 2, times: 5 });
 
 
-  // draw children
-  grid.children().forEach(child => drawShape(ctx, child));
-  grid.children().forEach(child => {
-    if (child.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      drawHatchPattern(ctx, fillPattern);
-    }
-  });
+  // draw children with automatic hatch handling
+  drawShapeWithChildren(ctx, grid);
 
 }
 

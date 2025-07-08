@@ -1,5 +1,5 @@
 import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawShape } from '../src/lib/draw';
+import { drawHatchPattern, drawShape, drawShapeComplete, drawShapeWithChildren } from '../src/lib/draw';
 import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Stamp } from '../src/lib/stamp';
