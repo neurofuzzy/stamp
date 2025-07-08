@@ -60,7 +60,7 @@ import {
 } from "./stamp-interfaces";
 import { defaultShapeRegistry } from "./stamp-shape-handlers";
 import * as StampConstants from "./stamp-constants";
-import { clipUnclippedShapes } from "./shape-clipper";
+import { clipUnclippedShapes } from "./stamp-clipper";
 
 const $ = resolveStringOrNumber;
 
