@@ -3,6 +3,7 @@ import {
   IStyle,
   Point,
   BoundingBox,
+  Path,
 } from '../geom/core';
 import {
   IHatchPattern,
@@ -256,7 +257,7 @@ export function createSVGFromShapeComplete(
   return elements;
 }
 
-interface SvgElement {
+export interface SvgElement {
   path: string;
   style: {
     fill?: string;
@@ -333,4 +334,39 @@ export function renderSVGElements(elements: SvgElement[], width: number, height:
   ${backgroundRect}
   ${svgPaths}
 </svg>`;
+}
+
+export function createSVGFromPath(
+  path: Path,
+  style: {
+    stroke?: string;
+    strokeWidth?: number;
+    fill?: string;
+  },
+  transform?: (p: Point) => Point,
+): SvgElement | null {
+  if (path.points.length === 0) {
+    return null;
+  }
+
+  let points = path.points;
+  if (transform) {
+    points = points.map(p => transform(p));
+  }
+
+  const pathData = points.map((p, i) => {
+    const command = i === 0 ? 'M' : 'L';
+    return `${command} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`;
+  }).join(' ');
+
+  const finalStyle = {
+    fill: style.fill ?? 'none',
+    stroke: style.stroke ?? '#000000',
+    strokeWidth: style.strokeWidth ?? 1,
+  };
+
+  return {
+    path: pathData,
+    style: finalStyle,
+  };
 } 
