@@ -69,9 +69,7 @@ Sequence.fromStatement("repeat 10,10 AS BERRY");
 const len = 90;
 const weight = 2;
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()
     .defaultStyle({

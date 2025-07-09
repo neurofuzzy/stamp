@@ -1,5 +1,7 @@
 import * as C2S from "canvas2svg";
 import { drawHatchPattern, drawShape } from "../src/lib/draw";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
 import { IStyle, Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Hatch } from "../src/lib/hatch";
@@ -57,9 +59,7 @@ Sequence.fromStatement(
   `repeat ${"HS5(),".repeat(reps)}${"HS4(),".repeat(reps)}${"HS3(),".repeat(reps)}${"HS2(),".repeat(reps)}${"HS1(),".repeat(reps + 10)}HS1() AS HS`,
 );
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const style: IStyle = {
     strokeThickness: 0,
     fillAlpha: 0,

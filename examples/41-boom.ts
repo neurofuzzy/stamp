@@ -41,9 +41,7 @@ Sequence.fromStatement("repeat 0.7 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
 Sequence.fromStatement("repeat 100,60 AS BERRY");
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   // compound leaf
   const leaf = new Stamp(new Ray(0, 0)).rotate({ rotation: 90 }).ellipse({
     radiusX: "1.3 * RSCALE() * RSCALE()",

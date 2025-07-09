@@ -1,5 +1,7 @@
 import * as C2S from "canvas2svg";
 import { drawHatchPattern, drawShape } from "../src/lib/draw";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
 import { IStyle, Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Hatch } from "../src/lib/hatch";
@@ -46,9 +48,7 @@ Sequence.fromStatement("repeat 1.02 ADD AS RLA");
 Sequence.fromStatement("repeat 16,11,13,15,14,35 AS HATCH");
 Sequence.fromStatement("shuffle 30,45,60 AS HANG");
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const style: IStyle = {
     strokeThickness: 0,
     fillAlpha: 0,

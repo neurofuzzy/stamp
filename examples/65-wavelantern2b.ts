@@ -169,18 +169,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 };
 
 document.onkeydown = function (e) {
-  // if enter
   if (e.keyCode === 13) {
-    // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
-    // draw the boundary
-    ctx2.backgroundColor = "#000";
-
-    // draw the shapes
-    draw(ctx2);
-    // download the SVG
-    const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
-    const blob = new Blob([svg], { type: "image/svg+xml" });
+    Sequence.resetAll();
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;

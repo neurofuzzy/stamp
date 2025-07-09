@@ -60,9 +60,7 @@ Sequence.fromStatement("repeat 120,80,120,80 AS STH", seed);
 Sequence.fromStatement("random 2,2,3,4 AS STNWX", seed);
 Sequence.fromStatement("repeat 2,1,2,1 AS STNWY", seed);
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   // building
   const bldg = new Stamp(new Ray(0, 0, 0))
     .set({ sequenceCall: "BW" })
@@ -367,20 +365,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 };
 
 document.onkeydown = function (e) {
-  // if enter
   if (e.keyCode === 13) {
-    // reset Sequences
     Sequence.resetAll();
-    // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
-    // draw the boundary
-    //ctx2.backgroundColor = "#000";
-
-    // draw the shapes
-    draw(ctx2);
-    // download the SVG
-    const svg = ctx2.getSerializedSvg(true).split("#FFFFFF").join("#000000");
-    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;

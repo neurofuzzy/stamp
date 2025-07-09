@@ -1,5 +1,7 @@
 import * as C2S from "canvas2svg";
 import { drawShape } from "../src/lib/draw";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
 import { IStyle, Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
@@ -39,9 +41,7 @@ Sequence.fromStatement("shuffle 0,1,2,3,4 AS SHAPE", 1);
 
 Sequence.seed = 2;
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const style: IStyle = {
     fillColor: "COLOR()",
     strokeColor: "COLOR()",

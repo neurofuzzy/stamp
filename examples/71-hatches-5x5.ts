@@ -1,5 +1,7 @@
 import * as C2S from "canvas2svg";
 import { drawHatchPattern, drawShape } from "../src/lib/draw";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
 import { IStyle, Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Hatch } from "../src/lib/hatch";
@@ -42,9 +44,7 @@ Sequence.fromStatement(
 
 Sequence.fromStatement("repeat 144,72,60,30,45 AS HATCHANGLE");
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const style: IStyle = {
     strokeThickness: 0,
     fillAlpha: 0,

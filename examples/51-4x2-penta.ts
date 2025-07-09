@@ -50,9 +50,7 @@ Sequence.fromStatement("shuffle 90,90 AS RLEN");
 // 1,4,6,12,26,30,91,117,127
 Sequence.fromStatement("repeat 1,6,12,26,30,91,117,127 AS SEEDS");
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()
     .rotate({ rotation: 18 })

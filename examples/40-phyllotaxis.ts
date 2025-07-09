@@ -41,9 +41,7 @@ Sequence.fromStatement("repeat 90 LOG10 AS ROFFSET", 0);
 Sequence.fromStatement("repeat 1 ADD AS RLA");
 Sequence.fromStatement("repeat 100 AS BERRY");
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const tree = new Stamp(new Ray(w / 2, h / 2, 0))
     .defaultStyle({
       // fillColor: "COLOR()",

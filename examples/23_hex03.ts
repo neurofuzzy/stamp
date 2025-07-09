@@ -35,9 +35,7 @@ const palette = colors[83];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
 Sequence.fromStatement(colorSeq, 125);
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   const len = 30;
   const weight = len / 3;
   Sequence.seed = 256;
