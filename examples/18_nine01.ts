@@ -51,9 +51,7 @@ Sequence.seed = 316;
 const len = 30;
 const weight = 2;
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
-
+const draw = () => {
   //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
   //Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,-72,72,72,72,72 AS RANGLE");
   Sequence.fromStatement("shuffle -72,-72,-72,-72,72,72,36 AS RANGLE");
