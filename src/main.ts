@@ -1,5 +1,4 @@
-import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawShape, drawShapeComplete, drawShapeWithChildren } from '../src/lib/draw';
+import * as DrawSVG from './lib/draw-svg';
 import { IStyle, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Stamp } from '../src/lib/stamp';
@@ -8,23 +7,16 @@ import { Sequence } from '../src/lib/sequence';
 import colors from 'nice-color-palettes';
 import { HatchPatternType } from './geom/hatch-patterns';
 import { Hatch } from './lib/hatch';
+import { IShape } from '../src/geom/core';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
-  </div>
+  <div id="svg-container"></div>
 `;
 
-const canvas = document.getElementById('canvas') as HTMLCanvasElement
-const ratio = 2;
-canvas.width = 768 * ratio
-canvas.height = 1024 * ratio
-canvas.style.width = '768px'
-canvas.style.height = '1024px'
-const ctx = canvas.getContext('2d')!
-ctx.scale(ratio, ratio)
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
+const w = 768;
+const h = 1024;
+
+let svgContent = '';
 
 const palette = colors[96];
 const colorSeq = `random ${palette.join(",").split("#").join("0x")} AS COLOR`;
@@ -33,9 +25,7 @@ Sequence.fromStatement(colorSeq, 3);
 Sequence.fromStatement("repeat 15,20,25 AS SIZE");
 
 
-function draw(ctx: CanvasRenderingContext2D) {
-  ctx.clearRect(0, 0, w, h);
-
+function draw() {
   const style: IStyle = {
     strokeThickness: 0,
     fillColor: "COLOR()",
@@ -178,27 +168,17 @@ const distrib0 = new Stamp(new Ray(w/2, h/2, 0))
       }
     });
 
-  // draw shape 0
+  const stamps = [distrib0, distrib1, distrib2, distrib3, distrib4, distrib5, distrib6];
+  const shapes: IShape[] = [];
 
-  drawShape(ctx, distrib0);
-
-  // draw hatch patterns
-  
-  distrib0.children().forEach(child => {
-    if (child.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern) drawHatchPattern(ctx, fillPattern);
-    }
+  stamps.forEach(stamp => {
+    // A stamp is a container, so we process each of its children
+    stamp.children().forEach(shape => {
+      shapes.push(shape)
+    });
   });
 
-  // draw remaining shapes
-
-  drawShape(ctx, distrib1);
-  drawShape(ctx, distrib2);
-  drawShape(ctx, distrib3);
-  drawShape(ctx, distrib4);
-  drawShape(ctx, distrib5);
-  drawShape(ctx, distrib6);
+  return shapes;
 }
 
 // export the canvas as SVG
@@ -208,17 +188,9 @@ document.onkeydown = function (e) {
   if (e.keyCode === 13) {
     // reset Sequences
     Sequence.resetAll();
-    // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
-    // draw the boundary
-    ctx2.backgroundColor = "#000";
-    // draw the shapes
-    draw(ctx2);
-    // download the SVG
-
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    
+    // The svgContent is already generated, just download it.
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -232,7 +204,19 @@ async function main() {
   await ClipperHelpers.init();
 
   const now = new Date().getTime();
-  draw(ctx);
+  const shapes = draw();
+  svgContent = DrawSVG.renderSVG(shapes, { 
+    width: w,
+    height: h,
+    margin: 60,
+    backgroundColor: '#000000',
+  });
+  
+  const container = document.getElementById('svg-container');
+  if (container) {
+    container.innerHTML = svgContent;
+  }
+  
   console.log(`${new Date().getTime() - now}ms`);
 }
 
