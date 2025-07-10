@@ -1,5 +1,4 @@
-import * as C2S from "canvas2svg";
-import { drawShape } from "../src/lib/draw";
+import * as DrawSVG from '../src/lib/draw-svg';
 import { Heading, Ray, ShapeAlignment } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
@@ -7,29 +6,16 @@ import { Stamp } from "../src/lib/stamp";
 import "../src/style.css";
 import { StampProvider } from "../src/lib/stamp-provider";
 
-const backgroundColor = "black";
-
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
-    <canvas id="canvas" width="768" height="768" style="background-color: ${backgroundColor};"></canvas>
+    <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
   </div>
 `;
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const pageWidth = 16 * 96;
-const pageHeight = 11 * 96;
-const ratio = 2;
-const zoom = 1;
-canvas.width = pageWidth * ratio;
-canvas.height = pageHeight * ratio;
-canvas.style.width = pageWidth * zoom + "px";
-canvas.style.height = pageHeight * zoom + "px";
-const ctx = canvas.getContext("2d")!;
-ctx.scale(ratio, ratio);
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
+const w = 768;
+const h = 768;
 
-ctx.fillStyle = "white";
+let cachedSVG = '';
 
 let seed = 27;
 
@@ -361,13 +347,31 @@ const draw = () => {
   //drawShape(ctx, city);
 
   // draw children
-  city.children().forEach((child) => drawShape(ctx, child));
+  const shapes: IShape[] = [];
+
+  // Process tree2 children with hatch logic
+  city.children().forEach((child) => {
+    shapes.push(child);
+  });
+
+  return shapes;
 };
 
+
 document.onkeydown = function (e) {
+  // if enter
   if (e.keyCode === 13) {
+    // reset Sequences
     Sequence.resetAll();
-    const blob = new Blob([svgContent], { type: "image/svg+xml" });
+    // draw the shapes
+    const shapes = draw();
+    cachedSVG = DrawSVG.renderSVG(shapes, {
+      width: w,
+      height: h,
+      backgroundColor: '#000000'
+    });
+    // download the SVG
+    const blob = new Blob([cachedSVG], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -377,8 +381,21 @@ document.onkeydown = function (e) {
 
 async function main() {
   await ClipperHelpers.init();
+
   const now = new Date().getTime();
-  draw(ctx);
+  const shapes = draw();
+  cachedSVG = DrawSVG.renderSVG(shapes, {
+    width: w,
+    height: h,
+    backgroundColor: '#000000'
+  });
+  
+  // Display the SVG
+  const canvasElement = document.getElementById('canvas');
+  if (canvasElement) {
+    canvasElement.outerHTML = cachedSVG;
+  }
+  
   console.log(`${new Date().getTime() - now}ms`);
 }
 

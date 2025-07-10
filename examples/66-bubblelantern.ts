@@ -1,6 +1,6 @@
-import * as C2S from "canvas2svg";
-import { drawShape } from "../src/lib/draw";
-import { IShape, ParametricPath, Path, Point, Ray } from "../src/geom/core";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
+import { ParametricPath, Path, Point, Ray } from "../src/geom/core";
 import { GeomHelpers } from "../src/geom/helpers";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
@@ -15,21 +15,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 4 * 96;
 const pageHeight = 8 * 96;
-const ratio = 2;
-const zoom = 2;
-canvas.width = pageWidth * ratio;
-canvas.height = pageHeight * ratio;
-canvas.style.width = pageWidth * zoom + "px";
-canvas.style.height = pageHeight * zoom + "px";
-const ctx = canvas.getContext("2d")!;
-ctx.scale(ratio, ratio);
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
+const w = pageWidth;
+const h = pageHeight;
 
-ctx.fillStyle = "black";
+let cachedSVG = '';
 
 let stepNum = 0;
 let iter = 919918726;
@@ -56,8 +47,6 @@ const func = (perc: number) => {
   return pt;
 };
 
-//SVG.debugMode = true;
-
 function createGeometry() {
   Sequence.fromStatement("random 0-0 AS XX", 288);
 
@@ -73,8 +62,6 @@ function createGeometry() {
     let pts: Point[] = path.toPoints();
     pts.forEach((pt) => {
       let offsetPt = new Point(Sequence.resolve("XX()") * 1, 0);
-      //let ang = GeomUtil.angleBetween(cen, pt);
-      //GeomUtil.rotatePoint(offsetPt, 0 - ang);
       pt.x += offsetPt.x * 0.5;
       pt.y += offsetPt.y + x * 40;
       let tmp = pt.x;
@@ -181,17 +168,23 @@ function createGeometry() {
   bb.height = 10.6 * 96 * 0.5;
 }
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-  ctx.clearRect(0, 0, w, h);
+const draw = (): IShape[] => {
+  shapes.length = 0; // Clear shapes array
+  paths.length = 0; // Clear paths array
   createGeometry();
-  shapes.forEach((shape) => drawShape(ctx, shape));
-  //paths.forEach((path) => drawPath(ctx, path));
+  return [...shapes]; // Return copy of shapes array
 };
 
 document.onkeydown = function (e) {
   if (e.keyCode === 13) {
     Sequence.resetAll();
-    const blob = new Blob([svgContent], { type: "image/svg+xml" });
+    const shapes = draw();
+    cachedSVG = DrawSVG.renderSVG(shapes, {
+      width: w,
+      height: h,
+      backgroundColor: backgroundColor
+    });
+    const blob = new Blob([cachedSVG], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -201,15 +194,21 @@ document.onkeydown = function (e) {
 
 async function main() {
   await ClipperHelpers.init();
+
   const now = new Date().getTime();
-  const drawFrame = () => {
-    draw(ctx);
-    iter += step;
-    if (animate) {
-      requestAnimationFrame(drawFrame);
-    }
-  };
-  requestAnimationFrame(drawFrame);
+  const shapes = draw();
+  cachedSVG = DrawSVG.renderSVG(shapes, {
+    width: w,
+    height: h,
+    backgroundColor: backgroundColor
+  });
+  
+  // Display the SVG
+  const canvasElement = document.getElementById('canvas');
+  if (canvasElement) {
+    canvasElement.outerHTML = cachedSVG;
+  }
+  
   console.log(`${new Date().getTime() - now}ms`);
 }
 
