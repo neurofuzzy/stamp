@@ -1,31 +1,19 @@
-import * as C2S from 'canvas2svg';
-import { drawShape } from '../src/lib/draw';
-import { Point, Ray, Segment, ShapeAlignment } from '../src/geom/core';
+import { IShape, Point, Ray, Segment, ShapeAlignment } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
 import { ClipperHelpers } from '../src/lib/clipper-helpers';
 import { Sequence } from '../src/lib/sequence';
 import '../src/style.css';
 import { LinkedCell, LinkedGrid } from '../src/lib/linkedgrid';
-import { Optimize } from '../src/lib/optimize';
 import { Circle } from '../src/geom/shapes';
+import { Optimize } from '../src/lib/optimize';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <canvas id="canvas" width="768" height="768" style="background-color: black;"></canvas>
-  </div>
+  <div id="svg-container"></div>
 `;
 
-const canvas = document.getElementById('canvas') as HTMLCanvasElement
-const ratio = 2;
-canvas.width = 900 * ratio
-canvas.height = 900 * ratio
-canvas.style.width = '900px'
-canvas.style.height = '900px'
-const ctx = canvas.getContext('2d')!
-ctx.scale(ratio, ratio);
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
-
-ctx.fillStyle = 'white';
+const w = 768;
+const h = 768;
+let svgContent = '';
 
 const gw = 8;
 const gh = 8;
@@ -44,7 +32,6 @@ Sequence.seed = 81
 //Sequence.seed = 91
 Sequence.fromStatement("random 1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4 AS MV");
 Sequence.fromStatement("random -1,1,0,-1,1 AS SORT");
-
 
 function createTree (grid: LinkedGrid<any>) {
 
@@ -122,8 +109,7 @@ function createTree (grid: LinkedGrid<any>) {
 
 }
 
-const draw = (ctx: CanvasRenderingContext2D) => {
-
+const draw = () => {
   let grid: LinkedGrid<any> = new LinkedGrid(gw, gh);
 
   createTree(grid);
@@ -163,43 +149,35 @@ const draw = (ctx: CanvasRenderingContext2D) => {
   shapes.forEach(shape => {
     shape.addChild(singleHole);
   })
-  shapes.forEach(shape => {
-    drawShape(ctx, shape, 0);
-  });
-
+  
+  return shapes;
 }
 
+async function main() {
+  await ClipperHelpers.init();
+  const shapes = draw();
+  svgContent = DrawSVG.renderSVG(shapes, { 
+    width: w,
+    height: h,
+    margin: 60,
+    backgroundColor: '#000000',
+  });
+  
+  const container = document.getElementById('svg-container');
+  if (container) {
+    container.innerHTML = svgContent;
+  }
+}
+
+main();
+
 document.onkeydown = function (e) {
-  // if enter
   if (e.keyCode === 13) {
-    // reset Sequences
     Sequence.resetAll();
-    // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
-    // draw the boundary
-    ctx2.backgroundColor = '#000';
-    // draw the shapes
-    draw(ctx2);
-    // download the SVG
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
     link.click();
   }
 };
-
-async function main() {
-
-  await ClipperHelpers.init();
-
-  const now = new Date().getTime();
-  draw(ctx);
-  console.log(`${new Date().getTime() - now}ms`);
-
-}
-
-
-main();
