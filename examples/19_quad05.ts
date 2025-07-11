@@ -103,6 +103,7 @@ document.onkeydown = function (e) {
     cachedSVG = DrawSVG.renderSVG(shapes, {
       width: w,
       height: h,
+      margin: 48,
       backgroundColor: '#000000'
     });
     // download the SVG
@@ -122,6 +123,7 @@ async function main() {
   cachedSVG = DrawSVG.renderSVG(shapes, {
     width: w,
     height: h,
+    margin: 48,
     backgroundColor: '#000000'
   });
   

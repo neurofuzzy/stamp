@@ -1,5 +1,5 @@
-import * as C2S from "canvas2svg";
-import { drawPath, drawShape } from "../src/lib/draw";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
 import { Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
@@ -8,8 +8,6 @@ import "../src/style.css";
 import colors from "nice-color-palettes";
 import { GridStampLayout } from "../src/lib/layout/layout-stamp";
 import { GeomHelpers } from "../src/geom/helpers";
-import { GeomUtils } from "../src/geom/util";
-import { Rectangle } from "../src/geom/shapes";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
@@ -17,18 +15,10 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const ratio = 2;
-canvas.width = 1350 * ratio;
-canvas.height = 1800 * ratio;
-canvas.style.width = "1350px";
-canvas.style.height = "1800px";
-const ctx = canvas.getContext("2d")!;
-ctx.scale(ratio, ratio);
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
+const w = 768;
+const h = 768;
 
-ctx.fillStyle = "white";
+let cachedSVG = '';
 
 Sequence.seed = 1;
 
@@ -50,85 +40,68 @@ Sequence.seed = 197;
 Sequence.seed = 193;
 Sequence.seed = 316;
 //Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,-144,72,-72 AS RANGLE");
-//Sequence.fromStatement("shuffle -120,-120,60,60,-60,-60,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -60,-60,60,0,180,0,-60,-60,60,0,180,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,-72,-72,-72,72,72,180,0,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -90,-90,90,-90,0,-90,-90,90,0,0 AS RANGLE");
-//Sequence.fromStatement("shuffle -72,-72,72,72,72,72,72 AS RANGLE");
-//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
-// golden angle = 13
 Sequence.fromStatement(
-  "shuffle -72,-72,-72,-72,-72,-72,72,72,72,72,-144,144 AS RANGLE",
+  "shuffle -72,-72,-72,-72,-72,-72,-72,-72,72,72,72,72,72,72,72,72,72,72,-36 AS RANGLE",
 );
-Sequence.fromStatement("shuffle 90,90 AS RLEN");
-
+//Sequence.fromStatement("shuffle -144,-144,-144,-144,-144,-144,-144,-144,144,144,144,144,144,144,144,144,144,144,-72,-72,-72,72 AS RANGLE");
+//Sequence.fromStatement("shuffle -60,-60,-60,-60,-60,-60,-60,-60,60,60,60,60,60,60,60,60,60,60,30 AS RANGLE");
 Sequence.fromStatement("shuffle 0,1,0,1,0,1 AS BSKIP");
 Sequence.fromStatement("repeat 10,10 AS BERRY");
 
-const len = 90;
+const len = 30;
 const weight = 2;
 
-const draw = () => {
+const draw = (): IShape[] => {
   const lattice = new Stamp(new Ray(w / 2, h / 2, 0))
     .noBoolean()
     .defaultStyle({
       strokeThickness: 0,
       fillColor: "cyan",
     })
-    .forward({ distance: "RLEN()" })
+    .forward({ distance: len })
     .circle({
       radius: 2,
-      divisions: 3,
+      divisions: 5,
       skip: 1,
     })
     .rotate({ rotation: "RANGLE()" })
-    .repeatLast({ steps: 3, times: 180 });
+    .repeatLast({ steps: 3, times: 240 });
 
   //Sequence.fromStatement("repeat 120347,18648,9847,72398,12030,1923 AS SEEDS", 12);
   //Sequence.fromStatement("repeat 891274,23305972,12049842978,398085,851295,149899 AS SEEDS", 12);
   //Sequence.fromStatement("shuffle 7,12,26,35,66,113,108,93,91, AS SEEDS", 12);
-  //Sequence.fromStatement("repeat 45654245,6212575556,45618461976,86294281448,621286238642389462 AS SEEDS", 12);
-  //Sequence.fromStatement("repeat 11,13,16,22,23,110 AS SEEDS");
-  //Sequence.fromStatement("repeat 54,57,58,59, 49,46,37,39, 33,34,29,30 AS SEEDS");
   Sequence.fromStatement(
-    "repeat 66,79,100, 103,105,107, 110,112,114, 116,117,118 AS SEEDS",
+    "repeat 35,98721,286897,98234210,239712873 AS seeds",
+    12,
   );
-  //Sequence.fromStatement("shuffle 2,3,4,102, 11,13,16,141, 104,23,29,31, 149,105,110,44, 45,115,57,120, 122,169,128,129 AS SEEDS", 11);
 
   const grid = new GridStampLayout(new Ray(w / 2, h / 2, 0), {
+    type: "grid",
     stamp: lattice,
-    stampSeed: "SEEDS()",
-    rows: 4,
-    columns: 3,
-    rowSpacing: 400,
-    columnSpacing: 400,
+    stampSeed: "seeds()",
+    rows: 3,
+    columns: 4,
+    rowSpacing: 240,
+    columnSpacing: 240,
   });
 
   let pathSets = grid.children().map((x) => {
     let path = x.path({});
     let c = GeomHelpers.boundingCircleFromPaths(path);
     if (c) {
-      let scale = 170 / c.radius;
+      let scale = 100 / c.radius;
       return x.path({ scale: scale });
     }
     return path;
   });
 
-  const border = new Rectangle(new Ray(w / 2, h / 2), w, h);
-  border.style.fillAlpha = 0;
-  drawShape(ctx, border);
-
+  const shapes: IShape[] = [];
   pathSets.forEach((paths) => {
-    let shapes = ClipperHelpers.offsetPathsToShape(paths, 0.001, 4);
-    shapes.forEach((shape) => {
-      //drawShape(ctx, shape, 0);
-      console.log("shape perimeter", GeomUtils.measureShapePerimeter(shape));
-    });
-    paths.forEach((path) => {
-      drawPath(ctx, path, 0);
-    });
+    let offsetShapes = ClipperHelpers.offsetPathsToShape(paths, 4, 4);
+    shapes.push(...offsetShapes);
   });
+
+  return shapes;
 };
 
 document.onkeydown = function (e) {
@@ -136,17 +109,15 @@ document.onkeydown = function (e) {
   if (e.keyCode === 13) {
     // reset Sequences
     Sequence.resetAll();
-    // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
-    // draw the boundary
-    ctx2.backgroundColor = "#000";
     // draw the shapes
-    draw(ctx2);
+    const shapes = draw();
+    cachedSVG = DrawSVG.renderSVG(shapes, {
+      width: w,
+      height: h,
+      backgroundColor: '#000000'
+    });
     // download the SVG
-
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const blob = new Blob([cachedSVG], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -158,7 +129,20 @@ async function main() {
   await ClipperHelpers.init();
 
   const now = new Date().getTime();
-  draw(ctx);
+  const shapes = draw();
+  cachedSVG = DrawSVG.renderSVG(shapes, {
+    width: w,
+    height: h,
+    margin: 96,
+    backgroundColor: '#000000'
+  });
+  
+  // Display the SVG
+  const canvasElement = document.getElementById('canvas');
+  if (canvasElement) {
+    canvasElement.outerHTML = cachedSVG;
+  }
+  
   console.log(`${new Date().getTime() - now}ms`);
 }
 

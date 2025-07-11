@@ -1,5 +1,5 @@
-import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawShape } from "../src/lib/draw";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
 import { Ray } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Hatch } from "../src/lib/hatch";
@@ -15,18 +15,10 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const ratio = 2;
-canvas.width = 768 * ratio;
-canvas.height = 768 * ratio;
-canvas.style.width = "768px";
-canvas.style.height = "768px";
-const ctx = canvas.getContext("2d")!;
-ctx.scale(ratio, ratio);
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
+const w = 768;
+const h = 768;
 
-ctx.fillStyle = "white";
+let cachedSVG = '';
 
 Sequence.seed = 0;
 
@@ -41,7 +33,7 @@ Sequence.fromStatement("repeat 0.7 LOG2 AS ROFFSET", 1);
 Sequence.fromStatement("repeat 1.02 ADD AS RLA");
 Sequence.fromStatement("repeat 100,60 AS BERRY");
 
-const draw = () => {
+const draw = (): IShape[] => {
   // compound leaf
   const leaf = new Stamp(new Ray(0, 0)).rotate({ rotation: 90 }).ellipse({
     radiusX: "1.3 * RSCALE() * RSCALE()",
@@ -86,41 +78,24 @@ const draw = () => {
     .repeatLast({ steps: 4, times: 100 })
     .flip();
 
+  const shapes: IShape[] = [];
+
+  // Process tree children with hatch logic
   tree.children().forEach((child) => {
     if (
       child.style.hatchBooleanType === HatchBooleanType.DIFFERENCE ||
       child.style.hatchBooleanType === HatchBooleanType.INTERSECT
     ) {
       const shape = Hatch.subtractHatchFromShape(child);
-      if (shape) drawShape(ctx, shape);
+      if (shape) shapes.push(shape);
     } else {
-      drawShape(ctx, child);
+      shapes.push(child);
     }
   });
 
   Sequence.resetAll();
 
-  tree.children().forEach((child) => {
-    if (child.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(child);
-      if (fillPattern) drawHatchPattern(ctx, fillPattern);
-    }
-  });
-
-  /*
-  const ang = Math.PI * 0.25;
-  const ellipse = new Ellipse(new Ray(w / 2, h / 2 + 100, ang), 50, 70, 32, ShapeAlignment.TOP, false);
-
-  drawShape(ctx, ellipse);
-  drawRay(ctx, ellipse.center);
-
-  const leafShape = new LeafShape(new Ray(w / 2, h / 2 + 100, ang), 100, 20, 60, 80, 0, ShapeAlignment.TOP);
-
-  drawShape(ctx, leafShape);
-  drawRay(ctx, leafShape.center);
-  */
-
-  //drawRay(ctx, tree.center)
+  return shapes;
 };
 
 document.onkeydown = function (e) {
@@ -128,17 +103,15 @@ document.onkeydown = function (e) {
   if (e.keyCode === 13) {
     // reset Sequences
     Sequence.resetAll();
-    // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
-    // draw the boundary
-    ctx2.backgroundColor = "#000";
     // draw the shapes
-    draw(ctx2);
+    const shapes = draw();
+    cachedSVG = DrawSVG.renderSVG(shapes, {
+      width: w,
+      height: h,
+      backgroundColor: '#000000'
+    });
     // download the SVG
-
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const blob = new Blob([cachedSVG], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -150,7 +123,19 @@ async function main() {
   await ClipperHelpers.init();
 
   const now = new Date().getTime();
-  draw(ctx);
+  const shapes = draw();
+  cachedSVG = DrawSVG.renderSVG(shapes, {
+    width: w,
+    height: h,
+    backgroundColor: '#000000'
+  });
+  
+  // Display the SVG
+  const canvasElement = document.getElementById('canvas');
+  if (canvasElement) {
+    canvasElement.outerHTML = cachedSVG;
+  }
+  
   console.log(`${new Date().getTime() - now}ms`);
 }
 

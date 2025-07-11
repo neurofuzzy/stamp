@@ -1,12 +1,13 @@
-import * as C2S from "canvas2svg";
-import { drawHatchPattern, drawShape } from "../src/lib/draw";
-import { Point, Segment } from "../src/geom/core";
+import { IShape } from '../src/geom/core';
+import * as DrawSVG from '../src/lib/draw-svg';
+import { Point, Segment, Path } from "../src/geom/core";
 import { ClipperHelpers } from "../src/lib/clipper-helpers";
 import { Sequence } from "../src/lib/sequence";
 import "../src/style.css";
 import { LinkedCell, LinkedGrid, Direction } from "../src/lib/linkedgrid";
 import { Optimize } from "../src/lib/optimize";
 import { Hatch } from "../src/lib/hatch";
+import { HatchPatternType } from "../src/geom/hatch-patterns";
 
 const backgroundColor = "black";
 
@@ -16,21 +17,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const pageWidth = 9.5 * 96;
 const pageHeight = 8.5 * 96;
-const ratio = 2;
-const zoom = 1;
-canvas.width = pageWidth * ratio;
-canvas.height = pageHeight * ratio;
-canvas.style.width = pageWidth * zoom + "px";
-canvas.style.height = pageHeight * zoom + "px";
-const ctx = canvas.getContext("2d")!;
-ctx.scale(ratio, ratio);
-const w = canvas.width / ratio;
-const h = canvas.height / ratio;
+const w = pageWidth;
+const h = pageHeight;
 
-ctx.fillStyle = "white";
+let cachedSVG = '';
 
 // --
 
@@ -177,7 +169,7 @@ function createTree(grid: LinkedGrid<any>) {
   // console.log(grid.print(1));
 }
 
-const draw = (ctx: CanvasRenderingContext2D) => {
+const draw = (): IShape[] => {
   const segs: Segment[] = [];
   const ox = w / 2 - ((gw - 1) * scale * nx + nspacing * (nx - 1)) / 2;
   const oy = h / 2 - ((gh - 1) * scale * ny + nspacing * (ny - 1)) / 2;
@@ -226,38 +218,26 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     }
   }
 
-  const paths = Optimize.segments(segs);
+  // Convert segments to paths
+  const paths = segs.map(seg => new Path([seg.a, seg.b]));
+  let segments = Optimize.paths(paths, miterJoins, miterEnds);
 
-  let shapes = ClipperHelpers.offsetPathsToShape(
-    paths,
-    lineThickness,
-    1,
-    miterJoins,
-    miterEnds,
-  );
-
-  shapes.forEach((shape) => {
-    shape.style = {
-      fillAlpha: 1,
-      fillColor: Sequence.resolve("COL()"),
-      strokeColor: Sequence.resolve("COL"),
-      strokeThickness: strokeThickness,
-      // hatchStrokeColor: Sequence.resolve("COL"),
-      // hatchStrokeThickness: strokeThickness,
-      // hatchScale: lineThickness / 2.5,
-      // hatchPattern: HatchPatternType.OFFSETLOOP,
-    };
-    drawShape(ctx, shape, 0);
+  // Convert segments to shapes
+  const shapes: IShape[] = [];
+  
+  let offsetShapes = ClipperHelpers.offsetPathsToShape(segments, lineThickness, 1, miterJoins, miterEnds);
+  offsetShapes.forEach((shape) => {
+    shape.style.fillAlpha = 0;
+    shape.style.hatchStrokeColor = $(Sequence.resolve("COL()"));
+    shape.style.strokeColor = $(Sequence.resolve("COL()"));
+    shape.style.strokeThickness = strokeThickness;
+    shape.style.hatchStrokeThickness = strokeThickness;
+    shape.style.hatchScale = $(hatchScale);
+    shape.style.hatchPattern = HatchPatternType.OFFSETLOOP;
+    shapes.push(shape);
   });
 
-  shapes.forEach((shape) => {
-    if (shape.style.hatchPattern) {
-      const fillPattern = Hatch.applyHatchToShape(shape);
-      if (fillPattern) {
-        drawHatchPattern(ctx, fillPattern, true);
-      }
-    }
-  });
+  return shapes;
 };
 
 document.onkeydown = function (e) {
@@ -265,16 +245,16 @@ document.onkeydown = function (e) {
   if (e.keyCode === 13) {
     // reset Sequences
     Sequence.resetAll();
-    // export the canvas as SVG
-    const ctx2 = new C2S(canvas.width / ratio, canvas.height / ratio);
-    // draw the boundary
-    ctx2.backgroundColor = "#000000";
     // draw the shapes
-    draw(ctx2);
+    const shapes = draw();
+    cachedSVG = DrawSVG.renderSVG(shapes, {
+      width: w,
+      height: h,
+      margin: 48,
+      backgroundColor: backgroundColor
+    });
     // download the SVG
-    const svg = ctx2.getSerializedSvg(false).split("#FFFFFF").join("#000000");
-    const svgNoBackground = svg.replace(/\<rect.*?\>/g, "");
-    const blob = new Blob([svgNoBackground], { type: "image/svg+xml" });
+    const blob = new Blob([cachedSVG], { type: "image/svg+xml" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `stamp-${new Date().toISOString()}.svg`;
@@ -286,7 +266,20 @@ async function main() {
   await ClipperHelpers.init();
 
   const now = new Date().getTime();
-  draw(ctx);
+  const shapes = draw();
+  cachedSVG = DrawSVG.renderSVG(shapes, {
+    width: w,
+    height: h,
+    margin: 48,
+    backgroundColor: backgroundColor
+  });
+  
+  // Display the SVG
+  const canvasElement = document.getElementById('canvas');
+  if (canvasElement) {
+    canvasElement.outerHTML = cachedSVG;
+  }
+  
   console.log(`${new Date().getTime() - now}ms`);
 }
 

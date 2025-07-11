@@ -148,6 +148,7 @@ async function main() {
   cachedSVG = DrawSVG.renderSVG(shapes, {
     width: w,
     height: h,
+    margin: 40,
     backgroundColor: '#000000'
   });
   
